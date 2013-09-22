@@ -29,17 +29,17 @@ THE SOFTWARE.
 #include "platform/CCApplicationProtocol.h"
 
 NS_CC_BEGIN
-class Rect;
+class CCRect;
 
-class Application : public ApplicationProtocol
+class CCApplication : public CCApplicationProtocol
 {
 public:
-    Application();
-    virtual ~Application();
+    CCApplication();
+    virtual ~CCApplication();
 
     /**
-     @brief Callback by Director for limit FPS.
-     @param interval    The time, which expressed in second in second, between current frame and next.
+     @brief Callback by CCDirector for limit FPS.
+     @interval       The time, which expressed in second in second, between current frame and next.
      */
     void setAnimationInterval(double interval);
 
@@ -52,25 +52,22 @@ public:
      @brief Get current applicaiton instance.
      @return Current application instance pointer.
      */
-    static Application* getInstance();
+    static CCApplication* sharedApplication();
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
-    
     /* override functions */
-    virtual LanguageType getCurrentLanguage();
+    virtual ccLanguageType getCurrentLanguage();
 
     /**
      @brief Get target platform
      */
-    virtual Platform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform();
 
     static bool isRunning() { return s_running; }
 protected:
-    long _animationInterval;  // microseconds
+    long m_nAnimationInterval;  // microseconds
 
     static bool s_running; // is the application running
-    static Application* sm_pSharedApplication;
+    static CCApplication* sm_pSharedApplication;
 };
 
 NS_CC_END

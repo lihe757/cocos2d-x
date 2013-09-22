@@ -43,31 +43,31 @@ NS_CC_EXT_BEGIN
  as the private API may change with little or no warning.
  */
 
-static Color4F ColorForBody(cpBody *body)
+static ccColor4F ColorForBody(cpBody *body)
 {
 	if (cpBodyIsRogue(body) || cpBodyIsSleeping(body))
     {
-		return Color4F(0.5f, 0.5f, 0.5f ,0.5f);
+		return ccc4f(0.5f, 0.5f, 0.5f ,0.5f);
 	}
     else if (body->CP_PRIVATE(node).idleTime > body->CP_PRIVATE(space)->sleepTimeThreshold)
     {
-		return Color4F(0.33f, 0.33f, 0.33f, 0.5f);
+		return ccc4f(0.33f, 0.33f, 0.33f, 0.5f);
 	}
     else
     {
-		return Color4F(1.0f, 0.0f, 0.0f, 0.5f);
+		return ccc4f(1.0f, 0.0f, 0.0f, 0.5f);
 	}
 }
 
-static Point cpVert2Point(const cpVect &vert)
+static CCPoint cpVert2ccp(const cpVect &vert)
 {
-    return Point(vert.x, vert.y);
+    return CCPointMake(vert.x, vert.y);
 }
 
-static Point* cpVertArray2ccpArrayN(const cpVect* cpVertArray, unsigned int count)
+static CCPoint* cpVertArray2ccpArrayN(const cpVect* cpVertArray, unsigned int count)
 {
     if (count == 0) return NULL;
-    Point* pPoints = new Point[count];
+    CCPoint* pPoints = new CCPoint[count];
     
     for (unsigned int i = 0; i < count; ++i)
     {
@@ -77,10 +77,10 @@ static Point* cpVertArray2ccpArrayN(const cpVect* cpVertArray, unsigned int coun
     return pPoints;
 }
 
-static void DrawShape(cpShape *shape, DrawNode *renderer)
+static void DrawShape(cpShape *shape, CCDrawNode *renderer)
 {
 	cpBody *body = shape->body;
-	Color4F color = ColorForBody(body);
+	ccColor4F color = ColorForBody(body);
     
 	switch (shape->CP_PRIVATE(klass)->type)
     {
@@ -89,22 +89,22 @@ static void DrawShape(cpShape *shape, DrawNode *renderer)
             cpCircleShape *circle = (cpCircleShape *)shape;
             cpVect center = circle->tc;
             cpFloat radius = circle->r;
-            renderer->drawDot(cpVert2Point(center), cpfmax(radius, 1.0), color);
-            renderer->drawSegment(cpVert2Point(center), cpVert2Point(cpvadd(center, cpvmult(body->rot, radius))), 1.0, color);
+            renderer->drawDot(cpVert2ccp(center), cpfmax(radius, 1.0), color);
+            renderer->drawSegment(cpVert2ccp(center), cpVert2ccp(cpvadd(center, cpvmult(body->rot, radius))), 1.0, color);
         }
              break;
 		case CP_SEGMENT_SHAPE:
         {
             cpSegmentShape *seg = (cpSegmentShape *)shape;
-            renderer->drawSegment(cpVert2Point(seg->ta), cpVert2Point(seg->tb), cpfmax(seg->r, 2.0), color);
+            renderer->drawSegment(cpVert2ccp(seg->ta), cpVert2ccp(seg->tb), cpfmax(seg->r, 2.0), color);
         }
             break;
 		case CP_POLY_SHAPE:
         {
             cpPolyShape *poly = (cpPolyShape *)shape;
-            Color4F line = color;
+            ccColor4F line = color;
             line.a = cpflerp(color.a, 1.0, 0.5);
-            Point* pPoints = cpVertArray2ccpArrayN(poly->tVerts, poly->numVerts);
+            CCPoint* pPoints = cpVertArray2ccpArrayN(poly->tVerts, poly->numVerts);
             renderer->drawPolygon(pPoints, poly->numVerts, color, 1.0, line);
             CC_SAFE_DELETE_ARRAY(pPoints);
         }
@@ -114,9 +114,9 @@ static void DrawShape(cpShape *shape, DrawNode *renderer)
 	}
 }
 
-static Color4F CONSTRAINT_COLOR(0, 1, 0, 0.5);
+static ccColor4F CONSTRAINT_COLOR = {0, 1, 0, 0.5};
 
-static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
+static void DrawConstraint(cpConstraint *constraint, CCDrawNode *renderer)
 {
 	cpBody *body_a = constraint->a;
 	cpBody *body_b = constraint->b;
@@ -129,9 +129,9 @@ static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
 		cpVect a = cpBodyLocal2World(body_a, joint->anchr1);
 		cpVect b = cpBodyLocal2World(body_b, joint->anchr2);
 		
-        renderer->drawDot(cpVert2Point(a), 3.0, CONSTRAINT_COLOR);
-        renderer->drawDot(cpVert2Point(b), 3.0, CONSTRAINT_COLOR);
-        renderer->drawSegment(cpVert2Point(a), cpVert2Point(b), 1.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(a), 3.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(b), 3.0, CONSTRAINT_COLOR);
+        renderer->drawSegment(cpVert2ccp(a), cpVert2ccp(b), 1.0, CONSTRAINT_COLOR);
 	}
     else if (klass == cpSlideJointGetClass())
     {
@@ -140,9 +140,9 @@ static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
 		cpVect a = cpBodyLocal2World(body_a, joint->anchr1);
 		cpVect b = cpBodyLocal2World(body_b, joint->anchr2);
         
-        renderer->drawDot(cpVert2Point(a), 3.0, CONSTRAINT_COLOR);
-        renderer->drawDot(cpVert2Point(b), 3.0, CONSTRAINT_COLOR);
-        renderer->drawSegment(cpVert2Point(a), cpVert2Point(b), 1.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(a), 3.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(b), 3.0, CONSTRAINT_COLOR);
+        renderer->drawSegment(cpVert2ccp(a), cpVert2ccp(b), 1.0, CONSTRAINT_COLOR);
 	}
     else if (klass == cpPivotJointGetClass())
     {
@@ -151,8 +151,8 @@ static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
 		cpVect a = cpBodyLocal2World(body_a, joint->anchr1);
 		cpVect b = cpBodyLocal2World(body_b, joint->anchr2);
         
-        renderer->drawDot(cpVert2Point(a), 3.0, CONSTRAINT_COLOR);
-        renderer->drawDot(cpVert2Point(b), 3.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(a), 3.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(b), 3.0, CONSTRAINT_COLOR);
 	}
     else if (klass == cpGrooveJointGetClass())
     {
@@ -162,8 +162,8 @@ static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
 		cpVect b = cpBodyLocal2World(body_a, joint->grv_b);
 		cpVect c = cpBodyLocal2World(body_b, joint->anchr2);
         
-        renderer->drawDot(cpVert2Point(c), 3.0, CONSTRAINT_COLOR);
-        renderer->drawSegment(cpVert2Point(a), cpVert2Point(b), 1.0, CONSTRAINT_COLOR);
+        renderer->drawDot(cpVert2ccp(c), 3.0, CONSTRAINT_COLOR);
+        renderer->drawSegment(cpVert2ccp(a), cpVert2ccp(b), 1.0, CONSTRAINT_COLOR);
 	}
     else if (klass == cpDampedSpringGetClass())
     {
@@ -175,34 +175,34 @@ static void DrawConstraint(cpConstraint *constraint, DrawNode *renderer)
 	}
 }
 
-// implementation of PhysicsDebugNode
+// implementation of CCPhysicsDebugNode
 
-void PhysicsDebugNode::draw()
+void CCPhysicsDebugNode::draw()
 {
-    if (! _spacePtr)
+    if (! m_pSpacePtr)
     {
         return;
     }
     
-    cpSpaceEachShape(_spacePtr, (cpSpaceShapeIteratorFunc)DrawShape, this);
-	cpSpaceEachConstraint(_spacePtr, (cpSpaceConstraintIteratorFunc)DrawConstraint, this);
+    cpSpaceEachShape(m_pSpacePtr, (cpSpaceShapeIteratorFunc)DrawShape, this);
+	cpSpaceEachConstraint(m_pSpacePtr, (cpSpaceConstraintIteratorFunc)DrawConstraint, this);
     
-    DrawNode::draw();
-    DrawNode::clear();
+    CCDrawNode::draw();
+    CCDrawNode::clear();
 }
 
-PhysicsDebugNode::PhysicsDebugNode()
-: _spacePtr(NULL)
+CCPhysicsDebugNode::CCPhysicsDebugNode()
+: m_pSpacePtr(NULL)
 {}
 
-PhysicsDebugNode* PhysicsDebugNode::create(cpSpace *space)
+CCPhysicsDebugNode* CCPhysicsDebugNode::create(cpSpace *space)
 {
-    PhysicsDebugNode *node = new PhysicsDebugNode();
+    CCPhysicsDebugNode *node = new CCPhysicsDebugNode();
     if (node)
     {
         node->init();
         
-        node->_spacePtr = space;
+        node->m_pSpacePtr = space;
         
         node->autorelease();
     }
@@ -214,18 +214,18 @@ PhysicsDebugNode* PhysicsDebugNode::create(cpSpace *space)
     return node;
 }
 
-PhysicsDebugNode::~PhysicsDebugNode()
+CCPhysicsDebugNode::~CCPhysicsDebugNode()
 {
 }
 
-cpSpace* PhysicsDebugNode::getSpace() const
+cpSpace* CCPhysicsDebugNode::getSpace() const
 {
-    return _spacePtr;
+    return m_pSpacePtr;
 }
 
-void PhysicsDebugNode::setSpace(cpSpace *space)
+void CCPhysicsDebugNode::setSpace(cpSpace *space)
 {
-    _spacePtr = space;
+    m_pSpacePtr = space;
 }
 
 NS_CC_EXT_END

@@ -33,7 +33,7 @@
 NS_CC_EXT_BEGIN
 
 /**
- A BaseData that draws the components of a physics engine.
+ A CCBaseData that draws the components of a physics engine.
  
  Supported physics engines:
  - Chipmunk
@@ -42,26 +42,23 @@ NS_CC_EXT_BEGIN
  @since v2.1
  */
 
-class PhysicsDebugNode : public DrawNode
+class CCPhysicsDebugNode : public CCDrawNode
 {
-
+protected:
+    cpSpace *m_pSpacePtr;
+    
 public:
     /** Create a debug node for a regular Chipmunk space. */
-    static PhysicsDebugNode* create(cpSpace *space);
-
-    PhysicsDebugNode();
-    virtual ~PhysicsDebugNode();
+    static CCPhysicsDebugNode* create(cpSpace *space);
     
-
+    virtual ~CCPhysicsDebugNode();
+    
+    virtual void draw();
+    
     cpSpace* getSpace() const;
     void setSpace(cpSpace *space);
     
-    // Overrides
-    virtual void draw() override;
-
-protected:
-    cpSpace *_spacePtr;
-
+    CCPhysicsDebugNode();
 };
 
 NS_CC_EXT_END

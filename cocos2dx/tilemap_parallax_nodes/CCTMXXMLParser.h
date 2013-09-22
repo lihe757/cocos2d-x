@@ -37,7 +37,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class TMXObjectGroup;
+class CCTMXObjectGroup;
 
 /** @file
 * Internal TMX parser
@@ -69,16 +69,16 @@ enum {
 };
 
 typedef enum ccTMXTileFlags_ {
-    kTMXTileHorizontalFlag        = 0x80000000,
-    kTMXTileVerticalFlag            = 0x40000000,
-    kTMXTileDiagonalFlag            = 0x20000000,
-    kFlipedAll                    = (kTMXTileHorizontalFlag|kTMXTileVerticalFlag|kTMXTileDiagonalFlag),
-    kFlippedMask                    = ~(kFlipedAll)
+    kCCTMXTileHorizontalFlag        = 0x80000000,
+    kCCTMXTileVerticalFlag            = 0x40000000,
+    kCCTMXTileDiagonalFlag            = 0x20000000,
+    kCCFlipedAll                    = (kCCTMXTileHorizontalFlag|kCCTMXTileVerticalFlag|kCCTMXTileDiagonalFlag),
+    kCCFlippedMask                    = ~(kCCFlipedAll)
 } ccTMXTileFlags;
 
 // Bits on the far end of the 32-bit global tile ID (GID's) are used for tile flags
 
-/** @brief TMXLayerInfo contains the information about the layers like:
+/** @brief CCTMXLayerInfo contains the information about the layers like:
 - Layer name
 - Layer size
 - Layer opacity at creation time (it can be modified at runtime)
@@ -86,28 +86,25 @@ typedef enum ccTMXTileFlags_ {
 
 This information is obtained from the TMX file.
 */
-class CC_DLL TMXLayerInfo : public Object
+class CC_DLL CCTMXLayerInfo : public CCObject
 {
+    CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
-    TMXLayerInfo();
-    virtual ~TMXLayerInfo();
-
-    void setProperties(Dictionary *properties);
-    Dictionary* getProperties();
-
-    Dictionary          *_properties;
-    std::string         _name;
-    Size                _layerSize;
-    unsigned int        *_tiles;
-    bool                _visible;
-    unsigned char       _opacity;
-    bool                _ownTiles;
-    unsigned int        _minGID;
-    unsigned int        _maxGID;
-    Point               _offset;
+    std::string         m_sName;
+    CCSize              m_tLayerSize;
+    unsigned int        *m_pTiles;
+    bool                m_bVisible;
+    unsigned char       m_cOpacity;
+    bool                m_bOwnTiles;
+    unsigned int        m_uMinGID;
+    unsigned int        m_uMaxGID;
+    CCPoint             m_tOffset;
+public:
+    CCTMXLayerInfo();
+    virtual ~CCTMXLayerInfo();
 };
 
-/** @brief TMXTilesetInfo contains the information about the tilesets like:
+/** @brief CCTMXTilesetInfo contains the information about the tilesets like:
 - Tileset name
 - Tileset spacing
 - Tileset margin
@@ -117,25 +114,25 @@ public:
 
 This information is obtained from the TMX file. 
 */
-class CC_DLL TMXTilesetInfo : public Object
+class CC_DLL CCTMXTilesetInfo : public CCObject
 {
 public:
-    std::string     _name;
-    unsigned int    _firstGid;
-    Size          _tileSize;
-    unsigned int    _spacing;
-    unsigned int    _margin;
+    std::string     m_sName;
+    unsigned int    m_uFirstGid;
+    CCSize          m_tTileSize;
+    unsigned int    m_uSpacing;
+    unsigned int    m_uMargin;
     //! filename containing the tiles (should be spritesheet / texture atlas)
-    std::string     _sourceImage;
+    std::string     m_sSourceImage;
     //! size in pixels of the image
-    Size          _imageSize;
+    CCSize          m_tImageSize;
 public:
-    TMXTilesetInfo();
-    virtual ~TMXTilesetInfo();
-    Rect rectForGID(unsigned int gid);
+    CCTMXTilesetInfo();
+    virtual ~CCTMXTilesetInfo();
+    CCRect rectForGID(unsigned int gid);
 };
 
-/** @brief TMXMapInfo contains the information about the map like:
+/** @brief CCTMXMapInfo contains the information about the map like:
 - Map orientation (hexagonal, isometric or orthogonal)
 - Tile size
 - Map size
@@ -148,22 +145,38 @@ And it also contains:
 This information is obtained from the TMX file.
 
 */
-class CC_DLL TMXMapInfo : public Object, public SAXDelegator
+class CC_DLL CCTMXMapInfo : public CCObject, public CCSAXDelegator
 {    
 public:    
+    /// map orientation
+    CC_SYNTHESIZE(int,    m_nOrientation, Orientation);
+    /// map width & height
+    CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tMapSize, MapSize);
+    /// tiles width & height
+    CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tTileSize, TileSize);
+    /// Layers
+    CC_PROPERTY(CCArray*, m_pLayers, Layers);
+    /// tilesets
+    CC_PROPERTY(CCArray*, m_pTilesets, Tilesets);
+    /// ObjectGroups
+    CC_PROPERTY(CCArray*, m_pObjectGroups, ObjectGroups);
+    /// parent element
+    CC_SYNTHESIZE(int, m_nParentElement, ParentElement);
+    /// parent GID
+    CC_SYNTHESIZE(unsigned int, m_uParentGID, ParentGID);
+    /// layer attribs
+    CC_SYNTHESIZE(int, m_nLayerAttribs, LayerAttribs);
+    /// is storing characters?
+    CC_SYNTHESIZE(bool, m_bStoringCharacters, StoringCharacters);
+    /// properties
+    CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
+public:    
+    CCTMXMapInfo();
+    virtual ~CCTMXMapInfo();
     /** creates a TMX Format with a tmx file */
-    static TMXMapInfo * create(const char *tmxFile);
+    static CCTMXMapInfo * formatWithTMXFile(const char *tmxFile);
     /** creates a TMX Format with an XML string and a TMX resource path */
-    static TMXMapInfo * createWithXML(const char* tmxString, const char* resourcePath);
-    
-    /** creates a TMX Format with a tmx file */
-    CC_DEPRECATED_ATTRIBUTE static TMXMapInfo * formatWithTMXFile(const char *tmxFile) { return TMXMapInfo::create(tmxFile); };
-    /** creates a TMX Format with an XML string and a TMX resource path */
-    CC_DEPRECATED_ATTRIBUTE static TMXMapInfo * formatWithXML(const char* tmxString, const char* resourcePath) { return TMXMapInfo::createWithXML(tmxString, resourcePath); };
-    
-    TMXMapInfo();
-    virtual ~TMXMapInfo();
-    
+    static CCTMXMapInfo * formatWithXML(const char* tmxString, const char* resourcePath);
     /** initializes a TMX format with a  tmx file */
     bool initWithTMXFile(const char *tmxFile);
     /** initializes a TMX format with an XML string and a TMX resource path */
@@ -173,119 +186,30 @@ public:
     /* initializes parsing of an XML string, either a tmx (Map) string or tsx (Tileset) string */
     bool parseXMLString(const char *xmlString);
 
-    Dictionary* getTileProperties() { return _tileProperties; };
-    void setTileProperties(Dictionary* tileProperties) {
-        CC_SAFE_RETAIN(tileProperties);
-        CC_SAFE_RELEASE(_tileProperties);
-        _tileProperties = tileProperties;
-    };
+    CCDictionary* getTileProperties();
+    void setTileProperties(CCDictionary* tileProperties);
 
-    /// map orientation
-    inline int getOrientation() const { return _orientation; };
-    inline void setOrientation(int orientation) { _orientation = orientation; };
-
-    /// map width & height
-    inline const Size& getMapSize() const { return _mapSize; };
-    inline void setMapSize(const Size& mapSize) { _mapSize = mapSize; };
-
-    /// tiles width & height
-    inline const Size& getTileSize() const { return _tileSize; };
-    inline void setTileSize(const Size& tileSize) { _tileSize = tileSize; };
-    
-    /// Layers
-    inline Array* getLayers() const { return _layers; };
-    inline void setLayers(Array* layers) {
-        CC_SAFE_RETAIN(layers);
-        CC_SAFE_RELEASE(_layers);
-        _layers = layers;
-    };
-
-    /// tilesets
-    inline Array* getTilesets() const { return _tilesets; };
-    inline void setTilesets(Array* tilesets) {
-        CC_SAFE_RETAIN(tilesets);
-        CC_SAFE_RELEASE(_tilesets);
-        _tilesets = tilesets;
-    };
-
-    /// ObjectGroups
-    inline Array* getObjectGroups() const { return _objectGroups; };
-    inline void setObjectGroups(Array* groups) {
-        CC_SAFE_RETAIN(groups);
-        CC_SAFE_RELEASE(_objectGroups);
-        _objectGroups = groups;
-    };
-
-    /// parent element
-    inline int getParentElement() const { return _parentElement; };
-    inline void setParentElement(int element) { _parentElement = element; };
-
-    /// parent GID
-    inline unsigned int getParentGID() const { return _parentGID; };
-    inline void setParentGID(unsigned int gid) { _parentGID = gid; };
-
-    /// layer attribs
-    inline int getLayerAttribs() const { return _layerAttribs; };
-    inline void setLayerAttribs(int layerAttribs) { _layerAttribs = layerAttribs; };
-
-    /// is storing characters?
-    inline bool isStoringCharacters() const { return _storingCharacters; };
-    CC_DEPRECATED_ATTRIBUTE inline bool getStoringCharacters() const { return isStoringCharacters(); };
-    inline void setStoringCharacters(bool storingCharacters) { _storingCharacters = storingCharacters; };
-
-    /// properties
-    inline Dictionary* getProperties() const { return _properties; };
-    inline void setProperties(Dictionary* properties) {
-        CC_SAFE_RETAIN(properties);
-        CC_SAFE_RELEASE(_properties);
-        _properties = properties;
-    };
-    
-    // implement pure virtual methods of SAXDelegator
+    // implement pure virtual methods of CCSAXDelegator
     void startElement(void *ctx, const char *name, const char **atts);
     void endElement(void *ctx, const char *name);
     void textHandler(void *ctx, const char *ch, int len);
     
-    inline const char* getCurrentString(){ return _currentString.c_str(); }
-    inline void setCurrentString(const char *currentString){ _currentString = currentString; }
-    inline const char* getTMXFileName(){ return _TMXFileName.c_str(); }
-    inline void setTMXFileName(const char *fileName){ _TMXFileName = fileName; }
+    inline const char* getCurrentString(){ return m_sCurrentString.c_str(); }
+    inline void setCurrentString(const char *currentString){ m_sCurrentString = currentString; }
+    inline const char* getTMXFileName(){ return m_sTMXFileName.c_str(); }
+    inline void setTMXFileName(const char *fileName){ m_sTMXFileName = fileName; }
 private:
     void internalInit(const char* tmxFileName, const char* resourcePath);
 protected:
-
-    /// map orientation
-    int    _orientation;
-    /// map width & height
-    Size _mapSize;
-    /// tiles width & height
-    Size _tileSize;
-    /// Layers
-    Array* _layers;
-    /// tilesets
-    Array* _tilesets;
-    /// ObjectGroups
-    Array* _objectGroups;
-    /// parent element
-    int _parentElement;
-    /// parent GID
-    unsigned int _parentGID;
-    /// layer attribs
-    int _layerAttribs;
-    /// is storing characters?
-    bool _storingCharacters;
-    /// properties
-    Dictionary* _properties;
-    
     //! tmx filename
-    std::string _TMXFileName;
+    std::string m_sTMXFileName;
     // tmx resource path
-    std::string _resources;
+    std::string m_sResources;
     //! current string
-    std::string _currentString;
+    std::string m_sCurrentString;
     //! tile properties
-    Dictionary* _tileProperties;
-    unsigned int _currentFirstGID;
+    CCDictionary* m_pTileProperties;
+    unsigned int m_uCurrentFirstGID;
 };
 
 // end of tilemap_parallax_nodes group

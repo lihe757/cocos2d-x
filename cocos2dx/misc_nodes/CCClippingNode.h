@@ -33,24 +33,29 @@
 
 NS_CC_BEGIN
 
-/** ClippingNode is a subclass of Node.
+/** CCClippingNode is a subclass of CCNode.
  It draws its content (childs) clipped using a stencil.
- The stencil is an other Node that will not be drawn.
+ The stencil is an other CCNode that will not be drawn.
  The clipping is done using the alpha part of the stencil (adjusted with an alphaThreshold).
  */
-class CC_DLL ClippingNode : public Node
+class CC_DLL CCClippingNode : public CCNode
 {
+protected:
+    CCNode* m_pStencil;
+    GLfloat m_fAlphaThreshold;
+    bool    m_bInverted;
+    
 public:
     /** Creates and initializes a clipping node without a stencil.
      */
-    static ClippingNode* create();
+    static CCClippingNode* create();
     
     /** Creates and initializes a clipping node with an other node as its stencil.
      The stencil node will be retained.
      */
-    static ClippingNode* create(Node *pStencil);
+    static CCClippingNode* create(CCNode *pStencil);
     
-    virtual ~ClippingNode();
+    virtual ~CCClippingNode();
     
     /** Initializes a clipping node without a stencil.
      */
@@ -59,14 +64,20 @@ public:
     /** Initializes a clipping node with an other node as its stencil.
      The stencil node will be retained, and its parent will be set to this clipping node.
      */
-    virtual bool init(Node *pStencil);
+    virtual bool init(CCNode *pStencil);
     
-    /** The Node to use as a stencil to do the clipping.
+    virtual void onEnter();
+    virtual void onEnterTransitionDidFinish();
+    virtual void onExitTransitionDidStart();
+    virtual void onExit();
+    virtual void visit();
+    
+    /** The CCNode to use as a stencil to do the clipping.
      The stencil node will be retained.
      This default to nil.
      */
-    Node* getStencil() const;
-    void setStencil(Node *pStencil);
+    CCNode* getStencil() const;
+    void setStencil(CCNode *pStencil);
     
     /** The alpha threshold.
      The content is drawn only where the stencil have pixel with alpha greater than the alphaThreshold.
@@ -76,32 +87,15 @@ public:
     GLfloat getAlphaThreshold() const;
     void setAlphaThreshold(GLfloat fAlphaThreshold);
     
-    /** Inverted. If this is set to true,
+    /** Inverted. If this is set to YES,
      the stencil is inverted, so the content is drawn where the stencil is NOT drawn.
-     This default to false.
+     This default to NO.
      */
     bool isInverted() const;
     void setInverted(bool bInverted);
-
-    // Overrides
-    virtual void onEnter() override;
-    virtual void onEnterTransitionDidFinish() override;
-    virtual void onExitTransitionDidStart() override;
-    virtual void onExit() override;
-    virtual void visit() override;
-
+    
 private:
-    /**draw fullscreen quad to clear stencil bits
-    */
-    void drawFullScreenQuadClearStencil();
-
-private:
-    ClippingNode();
-
-protected:
-    Node* _stencil;
-    GLfloat _alphaThreshold;
-    bool    _inverted;
+    CCClippingNode();
 };
 
 NS_CC_END

@@ -36,7 +36,7 @@
 		// create the window
 		// note that using NSResizableWindowMask causes the window to be a little
 		// smaller and therefore ipad graphics are not loaded
-        NSRect rect = NSMakeRect(200, 200, 960, 640);
+        NSRect rect = NSMakeRect(200, 200, 480, 320);
 		window = [[NSWindow alloc] initWithContentRect:rect
 			styleMask:( NSClosableWindowMask | NSTitledWindowMask )
 			backing:NSBackingStoreBuffered
@@ -52,8 +52,8 @@
         NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attributes] autorelease];
 		
 		// allocate our GL view
-		// (isn't there already a shared CCEAGLView?)
-		glView = [[CCEAGLView alloc] initWithFrame:rect pixelFormat:pixelFormat];
+		// (isn't there already a shared EAGLView?)
+		glView = [[EAGLView alloc] initWithFrame:rect pixelFormat:pixelFormat];
 
 		// set window parameters
 		[window becomeFirstResponder];
@@ -62,7 +62,7 @@
 		[window makeKeyAndOrderFront:self];
 		[window setAcceptsMouseMovedEvents:NO];
 
-		cocos2d::Application::getInstance()->run();
+		cocos2d::CCApplication::sharedApplication()->run();
 	}
 
 	-(BOOL) applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)theApplication
@@ -72,7 +72,7 @@
 
 	-(void) dealloc
 	{
-		cocos2d::Director::getInstance()->end();
+		cocos2d::CCDirector::sharedDirector()->end();
 		[super dealloc];
 	}
 
@@ -81,13 +81,13 @@
 
 	-(IBAction) toggleFullScreen:(id)sender
 	{
-		CCEAGLView* pView = [CCEAGLView sharedEGLView];
+		EAGLView* pView = [EAGLView sharedEGLView];
 		[pView setFullScreen:!pView.isFullScreen];
 	}
 
 	-(IBAction) exitFullScreen:(id)sender
 	{
-		[[CCEAGLView sharedEGLView] setFullScreen:NO];
+		[[EAGLView sharedEGLView] setFullScreen:NO];
 	}
 
 @end

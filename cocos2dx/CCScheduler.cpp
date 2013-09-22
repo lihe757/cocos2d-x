@@ -42,7 +42,7 @@ NS_CC_BEGIN
 typedef struct _listEntry
 {
     struct _listEntry   *prev, *next;
-    Object            *target;        // not retained (retained by hashUpdateEntry)
+    CCObject            *target;        // not retained (retained by hashUpdateEntry)
     int                 priority;
     bool                paused;
     bool                markedForDeletion; // selector will no longer be called and entry will be removed at end of the next tick
@@ -52,7 +52,7 @@ typedef struct _hashUpdateEntry
 {
     tListEntry          **list;        // Which list does it belong to ?
     tListEntry          *entry;        // entry in the list
-    Object            *target;        // hash key (retained)
+    CCObject            *target;        // hash key (retained)
     UT_hash_handle      hh;
 } tHashUpdateEntry;
 
@@ -60,221 +60,209 @@ typedef struct _hashUpdateEntry
 typedef struct _hashSelectorEntry
 {
     ccArray             *timers;
-    Object            *target;    // hash key (retained)
+    CCObject            *target;    // hash key (retained)
     unsigned int        timerIndex;
-    Timer             *currentTimer;
+    CCTimer             *currentTimer;
     bool                currentTimerSalvaged;
     bool                paused;
     UT_hash_handle      hh;
 } tHashTimerEntry;
 
-// implementation Timer
+// implementation CCTimer
 
-Timer::Timer()
-: _target(NULL)
-, _elapsed(-1)
-, _runForever(false)
-, _useDelay(false)
-, _timesExecuted(0)
-, _repeat(0)
-, _delay(0.0f)
-, _interval(0.0f)
-, _selector(NULL)
-, _scriptHandler(0)
+CCTimer::CCTimer()
+: m_pTarget(NULL)
+, m_fElapsed(-1)
+, m_bRunForever(false)
+, m_bUseDelay(false)
+, m_uTimesExecuted(0)
+, m_uRepeat(0)
+, m_fDelay(0.0f)
+, m_fInterval(0.0f)
+, m_pfnSelector(NULL)
+, m_nScriptHandler(0)
 {
 }
 
-Timer* Timer::create(Object *target, SEL_SCHEDULE selector)
+CCTimer* CCTimer::timerWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector)
 {
-    Timer *pTimer = new Timer();
+    CCTimer *pTimer = new CCTimer();
 
-    pTimer->initWithTarget(target, selector, 0.0f, kRepeatForever, 0.0f);
+    pTimer->initWithTarget(pTarget, pfnSelector, 0.0f, kCCRepeatForever, 0.0f);
     pTimer->autorelease();
 
     return pTimer;
 }
 
-Timer* Timer::create(Object *target, SEL_SCHEDULE selector, float seconds)
+CCTimer* CCTimer::timerWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector, float fSeconds)
 {
-    Timer *pTimer = new Timer();
+    CCTimer *pTimer = new CCTimer();
 
-    pTimer->initWithTarget(target, selector, seconds, kRepeatForever, 0.0f);
+    pTimer->initWithTarget(pTarget, pfnSelector, fSeconds, kCCRepeatForever, 0.0f);
     pTimer->autorelease();
 
     return pTimer;
 }
 
-Timer* Timer::createWithScriptHandler(int handler, float seconds)
+CCTimer* CCTimer::timerWithScriptHandler(int nHandler, float fSeconds)
 {
-    Timer *pTimer = new Timer();
+    CCTimer *pTimer = new CCTimer();
 
-    pTimer->initWithScriptHandler(handler, seconds);
+    pTimer->initWithScriptHandler(nHandler, fSeconds);
     pTimer->autorelease();
 
     return pTimer;
 }
 
-bool Timer::initWithScriptHandler(int handler, float seconds)
+bool CCTimer::initWithScriptHandler(int nHandler, float fSeconds)
 {
-    _scriptHandler = handler;
-    _elapsed = -1;
-    _interval = seconds;
+    m_nScriptHandler = nHandler;
+    m_fElapsed = -1;
+    m_fInterval = fSeconds;
 
     return true;
 }
 
-bool Timer::initWithTarget(Object *target, SEL_SCHEDULE selector)
+bool CCTimer::initWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector)
 {
-    return initWithTarget(target, selector, 0, kRepeatForever, 0.0f);
+    return initWithTarget(pTarget, pfnSelector, 0, kCCRepeatForever, 0.0f);
 }
 
-bool Timer::initWithTarget(Object *target, SEL_SCHEDULE selector, float seconds, unsigned int repeat, float delay)
+bool CCTimer::initWithTarget(CCObject *pTarget, SEL_SCHEDULE pfnSelector, float fSeconds, unsigned int nRepeat, float fDelay)
 {
-    _target = target;
-    _selector = selector;
-    _elapsed = -1;
-    _interval = seconds;
-    _delay = delay;
-    _useDelay = (delay > 0.0f) ? true : false;
-    _repeat = repeat;
-    _runForever = (repeat == kRepeatForever) ? true : false;
+    m_pTarget = pTarget;
+    m_pfnSelector = pfnSelector;
+    m_fElapsed = -1;
+    m_fInterval = fSeconds;
+    m_fDelay = fDelay;
+    m_bUseDelay = (fDelay > 0.0f) ? true : false;
+    m_uRepeat = nRepeat;
+    m_bRunForever = (nRepeat == kCCRepeatForever) ? true : false;
     return true;
 }
 
-void Timer::update(float dt)
+void CCTimer::update(float dt)
 {
-    if (_elapsed == -1)
+    if (m_fElapsed == -1)
     {
-        _elapsed = 0;
-        _timesExecuted = 0;
+        m_fElapsed = 0;
+        m_uTimesExecuted = 0;
     }
     else
     {
-        if (_runForever && !_useDelay)
+        if (m_bRunForever && !m_bUseDelay)
         {//standard timer usage
-            _elapsed += dt;
-            if (_elapsed >= _interval)
+            m_fElapsed += dt;
+            if (m_fElapsed >= m_fInterval)
             {
-                if (_target && _selector)
+                if (m_pTarget && m_pfnSelector)
                 {
-                    (_target->*_selector)(_elapsed);
+                    (m_pTarget->*m_pfnSelector)(m_fElapsed);
                 }
 
-                if (0 != _scriptHandler)
+                if (m_nScriptHandler)
                 {
-                    SchedulerScriptData data(_scriptHandler,_elapsed);
-                    ScriptEvent event(kScheduleEvent,&data);
-                    ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+                    CCScriptEngineManager::sharedManager()->getScriptEngine()->executeSchedule(m_nScriptHandler, m_fElapsed);
                 }
-                _elapsed = 0;
+                m_fElapsed = 0;
             }
         }    
         else
         {//advanced usage
-            _elapsed += dt;
-            if (_useDelay)
+            m_fElapsed += dt;
+            if (m_bUseDelay)
             {
-                if( _elapsed >= _delay )
+                if( m_fElapsed >= m_fDelay )
                 {
-                    if (_target && _selector)
+                    if (m_pTarget && m_pfnSelector)
                     {
-                        (_target->*_selector)(_elapsed);
+                        (m_pTarget->*m_pfnSelector)(m_fElapsed);
                     }
 
-                    if (0 != _scriptHandler)
+                    if (m_nScriptHandler)
                     {
-                        SchedulerScriptData data(_scriptHandler,_elapsed);
-                        ScriptEvent event(kScheduleEvent,&data);
-                        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+                        CCScriptEngineManager::sharedManager()->getScriptEngine()->executeSchedule(m_nScriptHandler, m_fElapsed);
                     }
 
-                    _elapsed = _elapsed - _delay;
-                    _timesExecuted += 1;
-                    _useDelay = false;
+                    m_fElapsed = m_fElapsed - m_fDelay;
+                    m_uTimesExecuted += 1;
+                    m_bUseDelay = false;
                 }
             }
             else
             {
-                if (_elapsed >= _interval)
+                if (m_fElapsed >= m_fInterval)
                 {
-                    if (_target && _selector)
+                    if (m_pTarget && m_pfnSelector)
                     {
-                        (_target->*_selector)(_elapsed);
+                        (m_pTarget->*m_pfnSelector)(m_fElapsed);
                     }
 
-                    if (0 != _scriptHandler)
+                    if (m_nScriptHandler)
                     {
-                        SchedulerScriptData data(_scriptHandler,_elapsed);
-                        ScriptEvent event(kScheduleEvent,&data);
-                        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+                        CCScriptEngineManager::sharedManager()->getScriptEngine()->executeSchedule(m_nScriptHandler, m_fElapsed);
                     }
 
-                    _elapsed = 0;
-                    _timesExecuted += 1;
+                    m_fElapsed = 0;
+                    m_uTimesExecuted += 1;
 
                 }
             }
 
-            if (!_runForever && _timesExecuted > _repeat)
+            if (!m_bRunForever && m_uTimesExecuted > m_uRepeat)
             {    //unschedule timer
-                Director::getInstance()->getScheduler()->unscheduleSelector(_selector, _target);
+                CCDirector::sharedDirector()->getScheduler()->unscheduleSelector(m_pfnSelector, m_pTarget);
             }
         }
     }
 }
 
-float Timer::getInterval() const
+float CCTimer::getInterval() const
 {
-    return _interval;
+    return m_fInterval;
 }
 
-void Timer::setInterval(float interval)
+void CCTimer::setInterval(float fInterval)
 {
-    _interval = interval;
+    m_fInterval = fInterval;
 }
 
-SEL_SCHEDULE Timer::getSelector() const
+SEL_SCHEDULE CCTimer::getSelector() const
 {
-    return _selector;
+    return m_pfnSelector;
 }
 
-// implementation of Scheduler
+// implementation of CCScheduler
 
-// Priority level reserved for system services.
-const int Scheduler::PRIORITY_SYSTEM = INT_MIN;
-
-// Minimum priority level for user scheduling.
-const int Scheduler::PRIORITY_NON_SYSTEM_MIN = PRIORITY_SYSTEM + 1;
-
-Scheduler::Scheduler(void)
-: _timeScale(1.0f)
-, _updatesNegList(NULL)
-, _updates0List(NULL)
-, _updatesPosList(NULL)
-, _hashForUpdates(NULL)
-, _hashForTimers(NULL)
-, _currentTarget(NULL)
-, _currentTargetSalvaged(false)
-, _updateHashLocked(false)
-, _scriptHandlerEntries(NULL)
+CCScheduler::CCScheduler(void)
+: m_fTimeScale(1.0f)
+, m_pUpdatesNegList(NULL)
+, m_pUpdates0List(NULL)
+, m_pUpdatesPosList(NULL)
+, m_pHashForUpdates(NULL)
+, m_pHashForTimers(NULL)
+, m_pCurrentTarget(NULL)
+, m_bCurrentTargetSalvaged(false)
+, m_bUpdateHashLocked(false)
+, m_pScriptHandlerEntries(NULL)
 {
 
 }
 
-Scheduler::~Scheduler(void)
+CCScheduler::~CCScheduler(void)
 {
     unscheduleAll();
-    CC_SAFE_RELEASE(_scriptHandlerEntries);
+    CC_SAFE_RELEASE(m_pScriptHandlerEntries);
 }
 
-void Scheduler::removeHashElement(_hashSelectorEntry *element)
+void CCScheduler::removeHashElement(_hashSelectorEntry *pElement)
 {
 
-	cocos2d::Object *target = element->target;
+	cocos2d::CCObject *target = pElement->target;
 
-    ccArrayFree(element->timers);
-    HASH_DEL(_hashForTimers, element);
-    free(element);
+    ccArrayFree(pElement->timers);
+    HASH_DEL(m_pHashForTimers, pElement);
+    free(pElement);
 
     // make sure the target is released after we have removed the hash element
     // otherwise we access invalid memory when the release call deletes the target
@@ -283,108 +271,108 @@ void Scheduler::removeHashElement(_hashSelectorEntry *element)
 
 }
 
-void Scheduler::scheduleSelector(SEL_SCHEDULE selector, Object *target, float interval, bool paused)
+void CCScheduler::scheduleSelector(SEL_SCHEDULE pfnSelector, CCObject *pTarget, float fInterval, bool bPaused)
 {
-    this->scheduleSelector(selector, target, interval, kRepeatForever, 0.0f, paused);
+    this->scheduleSelector(pfnSelector, pTarget, fInterval, kCCRepeatForever, 0.0f, bPaused);
 }
 
-void Scheduler::scheduleSelector(SEL_SCHEDULE selector, Object *target, float interval, unsigned int repeat, float delay, bool paused)
+void CCScheduler::scheduleSelector(SEL_SCHEDULE pfnSelector, CCObject *pTarget, float fInterval, unsigned int repeat, float delay, bool bPaused)
 {
-    CCASSERT(selector, "Argument selector must be non-NULL");
-    CCASSERT(target, "Argument target must be non-NULL");
+    CCAssert(pfnSelector, "Argument selector must be non-NULL");
+    CCAssert(pTarget, "Argument target must be non-NULL");
 
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
 
-    if (! element)
+    if (! pElement)
     {
-        element = (tHashTimerEntry *)calloc(sizeof(*element), 1);
-        element->target = target;
-        if (target)
+        pElement = (tHashTimerEntry *)calloc(sizeof(*pElement), 1);
+        pElement->target = pTarget;
+        if (pTarget)
         {
-            target->retain();
+            pTarget->retain();
         }
-        HASH_ADD_INT(_hashForTimers, target, element);
+        HASH_ADD_INT(m_pHashForTimers, target, pElement);
 
         // Is this the 1st element ? Then set the pause level to all the selectors of this target
-        element->paused = paused;
+        pElement->paused = bPaused;
     }
     else
     {
-        CCASSERT(element->paused == paused, "");
+        CCAssert(pElement->paused == bPaused, "");
     }
 
-    if (element->timers == NULL)
+    if (pElement->timers == NULL)
     {
-        element->timers = ccArrayNew(10);
+        pElement->timers = ccArrayNew(10);
     }
     else 
     {
-        for (unsigned int i = 0; i < element->timers->num; ++i)
+        for (unsigned int i = 0; i < pElement->timers->num; ++i)
         {
-            Timer *timer = (Timer*)element->timers->arr[i];
+            CCTimer *timer = (CCTimer*)pElement->timers->arr[i];
 
-            if (selector == timer->getSelector())
+            if (pfnSelector == timer->getSelector())
             {
-                CCLOG("CCScheduler#scheduleSelector. Selector already scheduled. Updating interval from: %.4f to %.4f", timer->getInterval(), interval);
-                timer->setInterval(interval);
+                CCLOG("CCScheduler#scheduleSelector. Selector already scheduled. Updating interval from: %.4f to %.4f", timer->getInterval(), fInterval);
+                timer->setInterval(fInterval);
                 return;
             }        
         }
-        ccArrayEnsureExtraCapacity(element->timers, 1);
+        ccArrayEnsureExtraCapacity(pElement->timers, 1);
     }
 
-    Timer *pTimer = new Timer();
-    pTimer->initWithTarget(target, selector, interval, repeat, delay);
-    ccArrayAppendObject(element->timers, pTimer);
+    CCTimer *pTimer = new CCTimer();
+    pTimer->initWithTarget(pTarget, pfnSelector, fInterval, repeat, delay);
+    ccArrayAppendObject(pElement->timers, pTimer);
     pTimer->release();    
 }
 
-void Scheduler::unscheduleSelector(SEL_SCHEDULE selector, Object *target)
+void CCScheduler::unscheduleSelector(SEL_SCHEDULE pfnSelector, CCObject *pTarget)
 {
     // explicity handle nil arguments when removing an object
-    if (target == 0 || selector == 0)
+    if (pTarget == 0 || pfnSelector == 0)
     {
         return;
     }
 
-    //CCASSERT(target);
-    //CCASSERT(selector);
+    //CCAssert(pTarget);
+    //CCAssert(pfnSelector);
 
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
 
-    if (element)
+    if (pElement)
     {
-        for (unsigned int i = 0; i < element->timers->num; ++i)
+        for (unsigned int i = 0; i < pElement->timers->num; ++i)
         {
-            Timer *pTimer = (Timer*)(element->timers->arr[i]);
+            CCTimer *pTimer = (CCTimer*)(pElement->timers->arr[i]);
 
-            if (selector == pTimer->getSelector())
+            if (pfnSelector == pTimer->getSelector())
             {
-                if (pTimer == element->currentTimer && (! element->currentTimerSalvaged))
+                if (pTimer == pElement->currentTimer && (! pElement->currentTimerSalvaged))
                 {
-                    element->currentTimer->retain();
-                    element->currentTimerSalvaged = true;
+                    pElement->currentTimer->retain();
+                    pElement->currentTimerSalvaged = true;
                 }
 
-                ccArrayRemoveObjectAtIndex(element->timers, i, true);
+                ccArrayRemoveObjectAtIndex(pElement->timers, i, true);
 
                 // update timerIndex in case we are in tick:, looping over the actions
-                if (element->timerIndex >= i)
+                if (pElement->timerIndex >= i)
                 {
-                    element->timerIndex--;
+                    pElement->timerIndex--;
                 }
 
-                if (element->timers->num == 0)
+                if (pElement->timers->num == 0)
                 {
-                    if (_currentTarget == element)
+                    if (m_pCurrentTarget == pElement)
                     {
-                        _currentTargetSalvaged = true;
+                        m_bCurrentTargetSalvaged = true;
                     }
                     else
                     {
-                        removeHashElement(element);
+                        removeHashElement(pElement);
                     }
                 }
 
@@ -394,40 +382,40 @@ void Scheduler::unscheduleSelector(SEL_SCHEDULE selector, Object *target)
     }
 }
 
-void Scheduler::priorityIn(tListEntry **list, Object *target, int priority, bool paused)
+void CCScheduler::priorityIn(tListEntry **ppList, CCObject *pTarget, int nPriority, bool bPaused)
 {
-    tListEntry *listElement = (tListEntry *)malloc(sizeof(*listElement));
+    tListEntry *pListElement = (tListEntry *)malloc(sizeof(*pListElement));
 
-    listElement->target = target;
-    listElement->priority = priority;
-    listElement->paused = paused;
-    listElement->next = listElement->prev = NULL;
-    listElement->markedForDeletion = false;
+    pListElement->target = pTarget;
+    pListElement->priority = nPriority;
+    pListElement->paused = bPaused;
+    pListElement->next = pListElement->prev = NULL;
+    pListElement->markedForDeletion = false;
 
     // empty list ?
-    if (! *list)
+    if (! *ppList)
     {
-        DL_APPEND(*list, listElement);
+        DL_APPEND(*ppList, pListElement);
     }
     else
     {
         bool bAdded = false;
 
-        for (tListEntry *element = *list; element; element = element->next)
+        for (tListEntry *pElement = *ppList; pElement; pElement = pElement->next)
         {
-            if (priority < element->priority)
+            if (nPriority < pElement->priority)
             {
-                if (element == *list)
+                if (pElement == *ppList)
                 {
-                    DL_PREPEND(*list, listElement);
+                    DL_PREPEND(*ppList, pListElement);
                 }
                 else
                 {
-                    listElement->next = element;
-                    listElement->prev = element->prev;
+                    pListElement->next = pElement;
+                    pListElement->prev = pElement->prev;
 
-                    element->prev->next = listElement;
-                    element->prev = listElement;
+                    pElement->prev->next = pListElement;
+                    pElement->prev = pListElement;
                 }
 
                 bAdded = true;
@@ -438,47 +426,47 @@ void Scheduler::priorityIn(tListEntry **list, Object *target, int priority, bool
         // Not added? priority has the higher value. Append it.
         if (! bAdded)
         {
-            DL_APPEND(*list, listElement);
+            DL_APPEND(*ppList, pListElement);
         }
     }
 
     // update hash entry for quick access
     tHashUpdateEntry *pHashElement = (tHashUpdateEntry *)calloc(sizeof(*pHashElement), 1);
-    pHashElement->target = target;
-    target->retain();
-    pHashElement->list = list;
-    pHashElement->entry = listElement;
-    HASH_ADD_INT(_hashForUpdates, target, pHashElement);
+    pHashElement->target = pTarget;
+    pTarget->retain();
+    pHashElement->list = ppList;
+    pHashElement->entry = pListElement;
+    HASH_ADD_INT(m_pHashForUpdates, target, pHashElement);
 }
 
-void Scheduler::appendIn(_listEntry **list, Object *target, bool paused)
+void CCScheduler::appendIn(_listEntry **ppList, CCObject *pTarget, bool bPaused)
 {
-    tListEntry *listElement = (tListEntry *)malloc(sizeof(*listElement));
+    tListEntry *pListElement = (tListEntry *)malloc(sizeof(*pListElement));
 
-    listElement->target = target;
-    listElement->paused = paused;
-    listElement->markedForDeletion = false;
+    pListElement->target = pTarget;
+    pListElement->paused = bPaused;
+    pListElement->markedForDeletion = false;
 
-    DL_APPEND(*list, listElement);
+    DL_APPEND(*ppList, pListElement);
 
     // update hash entry for quicker access
     tHashUpdateEntry *pHashElement = (tHashUpdateEntry *)calloc(sizeof(*pHashElement), 1);
-    pHashElement->target = target;
-    target->retain();
-    pHashElement->list = list;
-    pHashElement->entry = listElement;
-    HASH_ADD_INT(_hashForUpdates, target, pHashElement);
+    pHashElement->target = pTarget;
+    pTarget->retain();
+    pHashElement->list = ppList;
+    pHashElement->entry = pListElement;
+    HASH_ADD_INT(m_pHashForUpdates, target, pHashElement);
 }
 
-void Scheduler::scheduleUpdateForTarget(Object *target, int priority, bool paused)
+void CCScheduler::scheduleUpdateForTarget(CCObject *pTarget, int nPriority, bool bPaused)
 {
 
     tHashUpdateEntry *pHashElement = NULL;
-    HASH_FIND_INT(_hashForUpdates, &target, pHashElement);
+    HASH_FIND_INT(m_pHashForUpdates, &pTarget, pHashElement);
     if (pHashElement)
     {
 #if COCOS2D_DEBUG >= 1
-        CCASSERT(pHashElement->entry->markedForDeletion,"");
+        CCAssert(pHashElement->entry->markedForDeletion,"");
 #endif
         // TODO: check if priority has changed!
 
@@ -488,60 +476,26 @@ void Scheduler::scheduleUpdateForTarget(Object *target, int priority, bool pause
 
     // most of the updates are going to be 0, that's way there
     // is an special list for updates with priority 0
-    if (priority == 0)
+    if (nPriority == 0)
     {
-        appendIn(&_updates0List, target, paused);
+        appendIn(&m_pUpdates0List, pTarget, bPaused);
     }
-    else if (priority < 0)
+    else if (nPriority < 0)
     {
-        priorityIn(&_updatesNegList, target, priority, paused);
+        priorityIn(&m_pUpdatesNegList, pTarget, nPriority, bPaused);
     }
     else
     {
         // priority > 0
-        priorityIn(&_updatesPosList, target, priority, paused);
+        priorityIn(&m_pUpdatesPosList, pTarget, nPriority, bPaused);
     }
 }
 
-bool Scheduler::isScheduledForTarget(SEL_SCHEDULE selector, Object *target)
-{
-    CCASSERT(selector, "Argument selector must be non-NULL");
-    CCASSERT(target, "Argument target must be non-NULL");
-    
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
-    
-    if (!element)
-    {
-        return false;
-    }
-    
-    if (element->timers == NULL)
-    {
-        return false;
-    }else
-    {
-        for (unsigned int i = 0; i < element->timers->num; ++i)
-        {
-            Timer *timer = (Timer*)element->timers->arr[i];
-            
-            if (selector == timer->getSelector())
-            {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    return false;  // should never get here
-}
-
-void Scheduler::removeUpdateFromHash(struct _listEntry *entry)
+void CCScheduler::removeUpdateFromHash(struct _listEntry *entry)
 {
     tHashUpdateEntry *element = NULL;
 
-    HASH_FIND_INT(_hashForUpdates, &entry->target, element);
+    HASH_FIND_INT(m_pHashForUpdates, &entry->target, element);
     if (element)
     {
         // list entry
@@ -549,62 +503,62 @@ void Scheduler::removeUpdateFromHash(struct _listEntry *entry)
         free(element->entry);
 
         // hash entry
-        Object* target = element->target;
-        HASH_DEL(_hashForUpdates, element);
+        CCObject* pTarget = element->target;
+        HASH_DEL(m_pHashForUpdates, element);
         free(element);
 
         // target#release should be the last one to prevent
         // a possible double-free. eg: If the [target dealloc] might want to remove it itself from there
-        target->release();
+        pTarget->release();
     }
 }
 
-void Scheduler::unscheduleUpdateForTarget(const Object *target)
+void CCScheduler::unscheduleUpdateForTarget(const CCObject *pTarget)
 {
-    if (target == NULL)
+    if (pTarget == NULL)
     {
         return;
     }
 
-    tHashUpdateEntry *element = NULL;
-    HASH_FIND_INT(_hashForUpdates, &target, element);
-    if (element)
+    tHashUpdateEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForUpdates, &pTarget, pElement);
+    if (pElement)
     {
-        if (_updateHashLocked)
+        if (m_bUpdateHashLocked)
         {
-            element->entry->markedForDeletion = true;
+            pElement->entry->markedForDeletion = true;
         }
         else
         {
-            this->removeUpdateFromHash(element->entry);
+            this->removeUpdateFromHash(pElement->entry);
         }
     }
 }
 
-void Scheduler::unscheduleAll(void)
+void CCScheduler::unscheduleAll(void)
 {
-    unscheduleAllWithMinPriority(PRIORITY_SYSTEM);
+    unscheduleAllWithMinPriority(kCCPrioritySystem);
 }
 
-void Scheduler::unscheduleAllWithMinPriority(int nMinPriority)
+void CCScheduler::unscheduleAllWithMinPriority(int nMinPriority)
 {
     // Custom Selectors
-    tHashTimerEntry *element = NULL;
+    tHashTimerEntry *pElement = NULL;
     tHashTimerEntry *pNextElement = NULL;
-    for (element = _hashForTimers; element != NULL;)
+    for (pElement = m_pHashForTimers; pElement != NULL;)
     {
-        // element may be removed in unscheduleAllSelectorsForTarget
-        pNextElement = (tHashTimerEntry *)element->hh.next;
-        unscheduleAllForTarget(element->target);
+        // pElement may be removed in unscheduleAllSelectorsForTarget
+        pNextElement = (tHashTimerEntry *)pElement->hh.next;
+        unscheduleAllForTarget(pElement->target);
 
-        element = pNextElement;
+        pElement = pNextElement;
     }
 
     // Updates selectors
     tListEntry *pEntry, *pTmp;
     if(nMinPriority < 0) 
     {
-        DL_FOREACH_SAFE(_updatesNegList, pEntry, pTmp)
+        DL_FOREACH_SAFE(m_pUpdatesNegList, pEntry, pTmp)
         {
             if(pEntry->priority >= nMinPriority) 
             {
@@ -615,13 +569,13 @@ void Scheduler::unscheduleAllWithMinPriority(int nMinPriority)
 
     if(nMinPriority <= 0) 
     {
-        DL_FOREACH_SAFE(_updates0List, pEntry, pTmp)
+        DL_FOREACH_SAFE(m_pUpdates0List, pEntry, pTmp)
         {
             unscheduleUpdateForTarget(pEntry->target);
         }
     }
 
-    DL_FOREACH_SAFE(_updatesPosList, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdatesPosList, pEntry, pTmp)
     {
         if(pEntry->priority >= nMinPriority) 
         {
@@ -629,65 +583,65 @@ void Scheduler::unscheduleAllWithMinPriority(int nMinPriority)
         }
     }
 
-    if (_scriptHandlerEntries)
+    if (m_pScriptHandlerEntries)
     {
-        _scriptHandlerEntries->removeAllObjects();
+        m_pScriptHandlerEntries->removeAllObjects();
     }
 }
 
-void Scheduler::unscheduleAllForTarget(Object *target)
+void CCScheduler::unscheduleAllForTarget(CCObject *pTarget)
 {
     // explicit NULL handling
-    if (target == NULL)
+    if (pTarget == NULL)
     {
         return;
     }
 
     // Custom Selectors
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
 
-    if (element)
+    if (pElement)
     {
-        if (ccArrayContainsObject(element->timers, element->currentTimer)
-            && (! element->currentTimerSalvaged))
+        if (ccArrayContainsObject(pElement->timers, pElement->currentTimer)
+            && (! pElement->currentTimerSalvaged))
         {
-            element->currentTimer->retain();
-            element->currentTimerSalvaged = true;
+            pElement->currentTimer->retain();
+            pElement->currentTimerSalvaged = true;
         }
-        ccArrayRemoveAllObjects(element->timers);
+        ccArrayRemoveAllObjects(pElement->timers);
 
-        if (_currentTarget == element)
+        if (m_pCurrentTarget == pElement)
         {
-            _currentTargetSalvaged = true;
+            m_bCurrentTargetSalvaged = true;
         }
         else
         {
-            removeHashElement(element);
+            removeHashElement(pElement);
         }
     }
 
     // update selector
-    unscheduleUpdateForTarget(target);
+    unscheduleUpdateForTarget(pTarget);
 }
 
-unsigned int Scheduler::scheduleScriptFunc(unsigned int handler, float interval, bool paused)
+unsigned int CCScheduler::scheduleScriptFunc(unsigned int nHandler, float fInterval, bool bPaused)
 {
-    SchedulerScriptHandlerEntry* pEntry = SchedulerScriptHandlerEntry::create(handler, interval, paused);
-    if (!_scriptHandlerEntries)
+    CCSchedulerScriptHandlerEntry* pEntry = CCSchedulerScriptHandlerEntry::create(nHandler, fInterval, bPaused);
+    if (!m_pScriptHandlerEntries)
     {
-        _scriptHandlerEntries = Array::createWithCapacity(20);
-        _scriptHandlerEntries->retain();
+        m_pScriptHandlerEntries = CCArray::createWithCapacity(20);
+        m_pScriptHandlerEntries->retain();
     }
-    _scriptHandlerEntries->addObject(pEntry);
+    m_pScriptHandlerEntries->addObject(pEntry);
     return pEntry->getEntryId();
 }
 
-void Scheduler::unscheduleScriptEntry(unsigned int uScheduleScriptEntryID)
+void CCScheduler::unscheduleScriptEntry(unsigned int uScheduleScriptEntryID)
 {
-    for (int i = _scriptHandlerEntries->count() - 1; i >= 0; i--)
+    for (int i = m_pScriptHandlerEntries->count() - 1; i >= 0; i--)
     {
-        SchedulerScriptHandlerEntry* pEntry = static_cast<SchedulerScriptHandlerEntry*>(_scriptHandlerEntries->objectAtIndex(i));
+        CCSchedulerScriptHandlerEntry* pEntry = static_cast<CCSchedulerScriptHandlerEntry*>(m_pScriptHandlerEntries->objectAtIndex(i));
         if (pEntry->getEntryId() == (int)uScheduleScriptEntryID)
         {
             pEntry->markedForDeletion();
@@ -696,65 +650,65 @@ void Scheduler::unscheduleScriptEntry(unsigned int uScheduleScriptEntryID)
     }
 }
 
-void Scheduler::resumeTarget(Object *target)
+void CCScheduler::resumeTarget(CCObject *pTarget)
 {
-    CCASSERT(target != NULL, "");
+    CCAssert(pTarget != NULL, "");
 
     // custom selectors
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
-    if (element)
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
+    if (pElement)
     {
-        element->paused = false;
+        pElement->paused = false;
     }
 
     // update selector
-    tHashUpdateEntry *elementUpdate = NULL;
-    HASH_FIND_INT(_hashForUpdates, &target, elementUpdate);
-    if (elementUpdate)
+    tHashUpdateEntry *pElementUpdate = NULL;
+    HASH_FIND_INT(m_pHashForUpdates, &pTarget, pElementUpdate);
+    if (pElementUpdate)
     {
-        CCASSERT(elementUpdate->entry != NULL, "");
-        elementUpdate->entry->paused = false;
+        CCAssert(pElementUpdate->entry != NULL, "");
+        pElementUpdate->entry->paused = false;
     }
 }
 
-void Scheduler::pauseTarget(Object *target)
+void CCScheduler::pauseTarget(CCObject *pTarget)
 {
-    CCASSERT(target != NULL, "");
+    CCAssert(pTarget != NULL, "");
 
     // custom selectors
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
-    if (element)
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
+    if (pElement)
     {
-        element->paused = true;
+        pElement->paused = true;
     }
 
     // update selector
-    tHashUpdateEntry *elementUpdate = NULL;
-    HASH_FIND_INT(_hashForUpdates, &target, elementUpdate);
-    if (elementUpdate)
+    tHashUpdateEntry *pElementUpdate = NULL;
+    HASH_FIND_INT(m_pHashForUpdates, &pTarget, pElementUpdate);
+    if (pElementUpdate)
     {
-        CCASSERT(elementUpdate->entry != NULL, "");
-        elementUpdate->entry->paused = true;
+        CCAssert(pElementUpdate->entry != NULL, "");
+        pElementUpdate->entry->paused = true;
     }
 }
 
-bool Scheduler::isTargetPaused(Object *target)
+bool CCScheduler::isTargetPaused(CCObject *pTarget)
 {
-    CCASSERT( target != NULL, "target must be non nil" );
+    CCAssert( pTarget != NULL, "target must be non nil" );
 
     // Custom selectors
-    tHashTimerEntry *element = NULL;
-    HASH_FIND_INT(_hashForTimers, &target, element);
-    if( element )
+    tHashTimerEntry *pElement = NULL;
+    HASH_FIND_INT(m_pHashForTimers, &pTarget, pElement);
+    if( pElement )
     {
-        return element->paused;
+        return pElement->paused;
     }
     
     // We should check update selectors if target does not have custom selectors
 	tHashUpdateEntry *elementUpdate = NULL;
-	HASH_FIND_INT(_hashForUpdates, &target, elementUpdate);
+	HASH_FIND_INT(m_pHashForUpdates, &pTarget, elementUpdate);
 	if ( elementUpdate )
     {
 		return elementUpdate->entry->paused;
@@ -763,18 +717,18 @@ bool Scheduler::isTargetPaused(Object *target)
     return false;  // should never get here
 }
 
-Set* Scheduler::pauseAllTargets()
+CCSet* CCScheduler::pauseAllTargets()
 {
-    return pauseAllTargetsWithMinPriority(PRIORITY_SYSTEM);
+    return pauseAllTargetsWithMinPriority(kCCPrioritySystem);
 }
 
-Set* Scheduler::pauseAllTargetsWithMinPriority(int nMinPriority)
+CCSet* CCScheduler::pauseAllTargetsWithMinPriority(int nMinPriority)
 {
-    Set* idsWithSelectors = new Set();// setWithCapacity:50];
+    CCSet* idsWithSelectors = new CCSet();// setWithCapacity:50];
     idsWithSelectors->autorelease();
 
     // Custom Selectors
-    for(tHashTimerEntry *element = _hashForTimers; element != NULL;
+    for(tHashTimerEntry *element = m_pHashForTimers; element != NULL;
         element = (tHashTimerEntry*)element->hh.next)
     {
         element->paused = true;
@@ -785,7 +739,7 @@ Set* Scheduler::pauseAllTargetsWithMinPriority(int nMinPriority)
     tListEntry *entry, *tmp;
     if(nMinPriority < 0) 
     {
-        DL_FOREACH_SAFE( _updatesNegList, entry, tmp ) 
+        DL_FOREACH_SAFE( m_pUpdatesNegList, entry, tmp ) 
         {
             if(entry->priority >= nMinPriority) 
             {
@@ -797,14 +751,14 @@ Set* Scheduler::pauseAllTargetsWithMinPriority(int nMinPriority)
 
     if(nMinPriority <= 0) 
     {
-        DL_FOREACH_SAFE( _updates0List, entry, tmp )
+        DL_FOREACH_SAFE( m_pUpdates0List, entry, tmp )
         {
             entry->paused = true;
             idsWithSelectors->addObject(entry->target);
         }
     }
 
-    DL_FOREACH_SAFE( _updatesPosList, entry, tmp ) 
+    DL_FOREACH_SAFE( m_pUpdatesPosList, entry, tmp ) 
     {
         if(entry->priority >= nMinPriority) 
         {
@@ -816,30 +770,30 @@ Set* Scheduler::pauseAllTargetsWithMinPriority(int nMinPriority)
     return idsWithSelectors;
 }
 
-void Scheduler::resumeTargets(Set* targetsToResume)
+void CCScheduler::resumeTargets(CCSet* pTargetsToResume)
 {
-    SetIterator iter;
-    for (iter = targetsToResume->begin(); iter != targetsToResume->end(); ++iter)
+    CCSetIterator iter;
+    for (iter = pTargetsToResume->begin(); iter != pTargetsToResume->end(); ++iter)
     {
         resumeTarget(*iter);
     }
 }
 
 // main loop
-void Scheduler::update(float dt)
+void CCScheduler::update(float dt)
 {
-    _updateHashLocked = true;
+    m_bUpdateHashLocked = true;
 
-    if (_timeScale != 1.0f)
+    if (m_fTimeScale != 1.0f)
     {
-        dt *= _timeScale;
+        dt *= m_fTimeScale;
     }
 
     // Iterate over all the Updates' selectors
     tListEntry *pEntry, *pTmp;
 
     // updates with priority < 0
-    DL_FOREACH_SAFE(_updatesNegList, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdatesNegList, pEntry, pTmp)
     {
         if ((! pEntry->paused) && (! pEntry->markedForDeletion))
         {
@@ -848,7 +802,7 @@ void Scheduler::update(float dt)
     }
 
     // updates with priority == 0
-    DL_FOREACH_SAFE(_updates0List, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdates0List, pEntry, pTmp)
     {
         if ((! pEntry->paused) && (! pEntry->markedForDeletion))
         {
@@ -857,7 +811,7 @@ void Scheduler::update(float dt)
     }
 
     // updates with priority > 0
-    DL_FOREACH_SAFE(_updatesPosList, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdatesPosList, pEntry, pTmp)
     {
         if ((! pEntry->paused) && (! pEntry->markedForDeletion))
         {
@@ -866,17 +820,17 @@ void Scheduler::update(float dt)
     }
 
     // Iterate over all the custom selectors
-    for (tHashTimerEntry *elt = _hashForTimers; elt != NULL; )
+    for (tHashTimerEntry *elt = m_pHashForTimers; elt != NULL; )
     {
-        _currentTarget = elt;
-        _currentTargetSalvaged = false;
+        m_pCurrentTarget = elt;
+        m_bCurrentTargetSalvaged = false;
 
-        if (! _currentTarget->paused)
+        if (! m_pCurrentTarget->paused)
         {
             // The 'timers' array may change while inside this loop
             for (elt->timerIndex = 0; elt->timerIndex < elt->timers->num; ++(elt->timerIndex))
             {
-                elt->currentTimer = (Timer*)(elt->timers->arr[elt->timerIndex]);
+                elt->currentTimer = (CCTimer*)(elt->timers->arr[elt->timerIndex]);
                 elt->currentTimerSalvaged = false;
 
                 elt->currentTimer->update(dt);
@@ -898,21 +852,21 @@ void Scheduler::update(float dt)
         elt = (tHashTimerEntry *)elt->hh.next;
 
         // only delete currentTarget if no actions were scheduled during the cycle (issue #481)
-        if (_currentTargetSalvaged && _currentTarget->timers->num == 0)
+        if (m_bCurrentTargetSalvaged && m_pCurrentTarget->timers->num == 0)
         {
-            removeHashElement(_currentTarget);
+            removeHashElement(m_pCurrentTarget);
         }
     }
 
     // Iterate over all the script callbacks
-    if (_scriptHandlerEntries)
+    if (m_pScriptHandlerEntries)
     {
-        for (int i = _scriptHandlerEntries->count() - 1; i >= 0; i--)
+        for (int i = m_pScriptHandlerEntries->count() - 1; i >= 0; i--)
         {
-            SchedulerScriptHandlerEntry* pEntry = static_cast<SchedulerScriptHandlerEntry*>(_scriptHandlerEntries->objectAtIndex(i));
+            CCSchedulerScriptHandlerEntry* pEntry = static_cast<CCSchedulerScriptHandlerEntry*>(m_pScriptHandlerEntries->objectAtIndex(i));
             if (pEntry->isMarkedForDeletion())
             {
-                _scriptHandlerEntries->removeObjectAtIndex(i);
+                m_pScriptHandlerEntries->removeObjectAtIndex(i);
             }
             else if (!pEntry->isPaused())
             {
@@ -923,7 +877,7 @@ void Scheduler::update(float dt)
 
     // delete all updates that are marked for deletion
     // updates with priority < 0
-    DL_FOREACH_SAFE(_updatesNegList, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdatesNegList, pEntry, pTmp)
     {
         if (pEntry->markedForDeletion)
         {
@@ -932,7 +886,7 @@ void Scheduler::update(float dt)
     }
 
     // updates with priority == 0
-    DL_FOREACH_SAFE(_updates0List, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdates0List, pEntry, pTmp)
     {
         if (pEntry->markedForDeletion)
         {
@@ -941,7 +895,7 @@ void Scheduler::update(float dt)
     }
 
     // updates with priority > 0
-    DL_FOREACH_SAFE(_updatesPosList, pEntry, pTmp)
+    DL_FOREACH_SAFE(m_pUpdatesPosList, pEntry, pTmp)
     {
         if (pEntry->markedForDeletion)
         {
@@ -949,9 +903,9 @@ void Scheduler::update(float dt)
         }
     }
 
-    _updateHashLocked = false;
+    m_bUpdateHashLocked = false;
 
-    _currentTarget = NULL;
+    m_pCurrentTarget = NULL;
 }
 
 

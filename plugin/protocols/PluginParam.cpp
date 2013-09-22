@@ -28,43 +28,43 @@ namespace cocos2d { namespace plugin {
 
 PluginParam::PluginParam()
 {
-    _type = kParamTypeNull;
+    m_type = kParamTypeNull;
 }
 
 PluginParam::PluginParam(int nValue)
-: _intValue(nValue)
+: m_nValue(nValue)
 {
-	_type = kParamTypeInt;
+	m_type = kParamTypeInt;
 }
 
 PluginParam::PluginParam(float fValue)
-: _floatValue(fValue)
+: m_fValue(fValue)
 {
-	_type = kParamTypeFloat;
+	m_type = kParamTypeFloat;
 }
 
 PluginParam::PluginParam(bool bValue)
-: _boolValue(bValue)
+: m_bValue(bValue)
 {
-	_type = kParamTypeBool;
+	m_type = kParamTypeBool;
 }
 
 PluginParam::PluginParam(const char* strValue)
-: _strValue(strValue)
+: m_strValue(strValue)
 {
-	_type = kParamTypeString;
+	m_type = kParamTypeString;
 }
 
 PluginParam::PluginParam(std::map<std::string, PluginParam*> mapValue)
-: _mapValue(mapValue)
+: m_mapValue(mapValue)
 {
-	_type = kParamTypeMap;
+	m_type = kParamTypeMap;
 }
 
 PluginParam::PluginParam(StringMap strMapValue)
-: _strMapValue(strMapValue)
+: m_strMapValue(strMapValue)
 {
-    _type = kParamTypeStringMap;
+    m_type = kParamTypeStringMap;
 }
 
 }} //namespace cocos2d { namespace plugin {

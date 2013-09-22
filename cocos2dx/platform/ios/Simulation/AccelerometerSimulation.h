@@ -30,7 +30,7 @@
 @end
 
 // our own version of the Accelerometer
-@interface CCAccelerometerSimulation : UIAccelerometer <NSMachPortDelegate>
+@interface AccelerometerSimulation : UIAccelerometer <NSMachPortDelegate>
 {
     
     //CFSocketRef udpSocket;
@@ -51,8 +51,8 @@
 - (void) setUpThreadingSupport;
 - (void) handleMachMessage:(void *) msg;
 - (void) processNotification:(NSNotification *) notification;
-+ (CCAccelerometerSimulation *)getAccelerometer;
-- (CCAccelerometerSimulation *)initialize;
++ (AccelerometerSimulation *)getAccelerometer;
+- (AccelerometerSimulation *)initialize;
 
 @end
 

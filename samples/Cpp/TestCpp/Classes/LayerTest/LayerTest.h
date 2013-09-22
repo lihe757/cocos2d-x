@@ -3,12 +3,11 @@
 
 ////----#include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class LayerTest : public BaseTest
+class LayerTest : public CCLayer
 {
 protected:
-    std::string    _title;
+    std::string    m_strTitle;
 
 public:
     LayerTest(void);
@@ -18,9 +17,9 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class LayerTestCascadingOpacityA : public LayerTest
@@ -72,11 +71,11 @@ public:
     virtual void onEnter();
     virtual std::string title();
 
-    void updateSize(Point &touchLocation);
+    void updateSize(CCPoint &touchLocation);
 
-    virtual void ccTouchesBegan(Set  *touches, Event  *event);
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
-    virtual void ccTouchesEnded(Set  *touches, Event  *event);
+    virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
 };
 
 class LayerTest2 : public LayerTest
@@ -95,37 +94,21 @@ public:
     virtual std::string title();
 };
 
-class LayerGradientTest : public LayerTest
+class LayerGradient : public LayerTest
 {
 public:
-    LayerGradientTest();
-    virtual void ccTouchesMoved(Set * touches, Event *event);
+    LayerGradient();
+    virtual void ccTouchesMoved(CCSet * touches, CCEvent *event);
     virtual std::string title();
     virtual std::string subtitle();
-    void toggleItem(cocos2d::Object *sender);
-};
-
-class LayerGradientTest2 : public LayerTest
-{
-public:
-    LayerGradientTest2();
-    virtual std::string title();
-    virtual std::string subtitle();
-};
-
-class LayerGradientTest3 : public LayerTest
-{
-public:
-    LayerGradientTest3();
-    virtual std::string title();
-    virtual std::string subtitle();
+    void toggleItem(cocos2d::CCObject *sender);
 };
 
 class LayerIgnoreAnchorPointPos : public LayerTest
 {
 public:
     virtual void onEnter();
-    void onToggle(Object* pObject);
+    void onToggle(CCObject* pObject);
     virtual std::string title();
     virtual std::string subtitle();
 };
@@ -134,7 +117,7 @@ class LayerIgnoreAnchorPointRot : public LayerTest
 {
 public:
     virtual void onEnter();
-    void onToggle(Object* pObject);
+    void onToggle(CCObject* pObject);
     virtual std::string title();
     virtual std::string subtitle();
 };
@@ -143,7 +126,7 @@ class LayerIgnoreAnchorPointScale : public LayerTest
 {
 public:
     virtual void onEnter();
-    void onToggle(Object* pObject);
+    void onToggle(CCObject* pObject);
     virtual std::string title();
     virtual std::string subtitle();
 };

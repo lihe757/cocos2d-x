@@ -9,45 +9,45 @@
 
 #include "Bug-1159.h"
 
-Scene* Bug1159Layer::scene()
+CCScene* Bug1159Layer::scene()
 {
-    Scene *scene = Scene::create();
+    CCScene *pScene = CCScene::create();
     Bug1159Layer* layer = Bug1159Layer::create();
-    scene->addChild(layer);
+    pScene->addChild(layer);
 
-    return scene;
+    return pScene;
 }
 
 bool Bug1159Layer::init()
 {
     if (BugsTestBaseLayer::init())
     {
-        Director::getInstance()->setDepthTest(true);
-        Size s = Director::getInstance()->getWinSize();
+        CCDirector::sharedDirector()->setDepthTest(true);
+        CCSize s = CCDirector::sharedDirector()->getWinSize();
 
-        LayerColor *background = LayerColor::create(Color4B(255, 0, 255, 255));
+        CCLayerColor *background = CCLayerColor::create(ccc4(255, 0, 255, 255));
         addChild(background);
 
-        LayerColor *sprite_a = LayerColor::create(Color4B(255, 0, 0, 255), 700, 700);
-        sprite_a->setAnchorPoint(Point(0.5f, 0.5f));
+        CCLayerColor *sprite_a = CCLayerColor::create(ccc4(255, 0, 0, 255), 700, 700);
+        sprite_a->setAnchorPoint(ccp(0.5f, 0.5f));
         sprite_a->ignoreAnchorPointForPosition(false);
-        sprite_a->setPosition(Point(0.0f, s.height/2));
+        sprite_a->setPosition(ccp(0.0f, s.height/2));
         addChild(sprite_a);
 
-        sprite_a->runAction(RepeatForever::create(Sequence::create(
-                                                        MoveTo::create(1.0f, Point(1024.0f, 384.0f)),
-                                                        MoveTo::create(1.0f, Point(0.0f, 384.0f)),
+        sprite_a->runAction(CCRepeatForever::create(CCSequence::create(
+                                                        CCMoveTo::create(1.0f, ccp(1024.0f, 384.0f)),
+                                                        CCMoveTo::create(1.0f, ccp(0.0f, 384.0f)),
                                                         NULL)));
 
-        LayerColor *sprite_b = LayerColor::create(Color4B(0, 0, 255, 255), 400, 400);
-        sprite_b->setAnchorPoint(Point(0.5f, 0.5f));
+        CCLayerColor *sprite_b = CCLayerColor::create(ccc4(0, 0, 255, 255), 400, 400);
+        sprite_b->setAnchorPoint(ccp(0.5f, 0.5f));
         sprite_b->ignoreAnchorPointForPosition(false);
-        sprite_b->setPosition(Point(s.width/2, s.height/2));
+        sprite_b->setPosition(ccp(s.width/2, s.height/2));
         addChild(sprite_b);
 
-        MenuItemLabel *label = MenuItemLabel::create(LabelTTF::create("Flip Me", "Helvetica", 24), CC_CALLBACK_1(Bug1159Layer::callBack, this) );
-        Menu *menu = Menu::create(label, NULL);
-        menu->setPosition(Point(s.width - 200.0f, 50.0f));
+        CCMenuItemLabel *label = CCMenuItemLabel::create(CCLabelTTF::create("Flip Me", "Helvetica", 24), this, menu_selector(Bug1159Layer::callBack));
+        CCMenu *menu = CCMenu::create(label, NULL);
+        menu->setPosition(ccp(s.width - 200.0f, 50.0f));
         addChild(menu);
 
         return true;
@@ -56,13 +56,13 @@ bool Bug1159Layer::init()
     return false;
 }
 
-void Bug1159Layer::callBack(Object* sender)
+void Bug1159Layer::callBack(CCObject* pSender)
 {
-    Director::getInstance()->replaceScene(TransitionPageTurn::create(1.0f, Bug1159Layer::scene(), false));
+    CCDirector::sharedDirector()->replaceScene(CCTransitionPageTurn::create(1.0f, Bug1159Layer::scene(), false));
 }
 
 void Bug1159Layer::onExit()
 {
-    Director::getInstance()->setDepthTest(false);
+    CCDirector::sharedDirector()->setDepthTest(false);
     BugsTestBaseLayer::onExit();
 }

@@ -1,5 +1,5 @@
 /*
- * Aplication.h
+ * CCAplication.h
  *
  *  Created on: Aug 8, 2011
  *      Author: laschweinski
@@ -13,17 +13,17 @@
 #include <string>
 
 NS_CC_BEGIN
-class Rect;
+class CCRect;
 
-class Application : public ApplicationProtocol
+class CCApplication : public CCApplicationProtocol
 {
 public:
-	Application();
-	virtual ~Application();
+	CCApplication();
+	virtual ~CCApplication();
 
 	/**
-	 @brief	Callback by Director for limit FPS.
-	 @param interval    The time, which expressed in second in second, between current frame and next.
+	 @brief	Callback by CCDirector for limit FPS.
+	 @interval       The time, which expressed in second in second, between current frame and next.
 	 */
 	void setAnimationInterval(double interval);
 
@@ -36,35 +36,32 @@ public:
 	 @brief	Get current applicaiton instance.
 	 @return Current application instance pointer.
 	 */
-	static Application* getInstance();
+	static CCApplication* sharedApplication();
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
-    
 	/* override functions */
-	virtual LanguageType getCurrentLanguage();
+	virtual ccLanguageType getCurrentLanguage();
 
 	/**
      *  Sets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->setSearchPaths() instead.
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const std::string& rootResDir);
     
 	/** 
      *  Gets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->getSearchPaths() instead. 
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead. 
      */
     CC_DEPRECATED_ATTRIBUTE const std::string& getResourceRootPath(void);
     
     /**
      @brief Get target platform
      */
-    virtual Platform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform();
 protected:
-    long       _animationInterval;  //micro second
-    std::string _resourceRootPath;
+    long       m_nAnimationInterval;  //micro second
+    std::string m_resourceRootPath;
     
-	static Application * sm_pSharedApplication;
+	static CCApplication * sm_pSharedApplication;
 };
 
 NS_CC_END

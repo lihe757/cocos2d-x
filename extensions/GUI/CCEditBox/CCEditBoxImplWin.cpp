@@ -31,133 +31,133 @@
 
 NS_CC_EXT_BEGIN
 
-EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
+CCEditBoxImpl* __createSystemEditBox(CCEditBox* pEditBox)
 {
-    return new EditBoxImplWin(pEditBox);
+    return new CCEditBoxImplWin(pEditBox);
 }
 
-EditBoxImplWin::EditBoxImplWin(EditBox* pEditText)
-: EditBoxImpl(pEditText)
-, _label(NULL)
-, _labelPlaceHolder(NULL)
-, _editBoxInputMode(EditBox::InputMode::SINGLE_LINE)
-, _editBoxInputFlag(EditBox::InputFlag::INTIAL_CAPS_ALL_CHARACTERS)
-, _keyboardReturnType(EditBox::KeyboardReturnType::DEFAULT)
-, _colText(Color3B::WHITE)
-, _colPlaceHolder(Color3B::GRAY)
-, _maxLength(-1)
+CCEditBoxImplWin::CCEditBoxImplWin(CCEditBox* pEditText)
+: CCEditBoxImpl(pEditText)
+, m_pLabel(NULL)
+, m_pLabelPlaceHolder(NULL)
+, m_eEditBoxInputMode(kEditBoxInputModeSingleLine)
+, m_eEditBoxInputFlag(kEditBoxInputFlagInitialCapsAllCharacters)
+, m_eKeyboardReturnType(kKeyboardReturnTypeDefault)
+, m_colText(ccWHITE)
+, m_colPlaceHolder(ccGRAY)
+, m_nMaxLength(-1)
 {
     
 }
 
-EditBoxImplWin::~EditBoxImplWin()
+CCEditBoxImplWin::~CCEditBoxImplWin()
 {
 }
 
-void EditBoxImplWin::doAnimationWhenKeyboardMove(float duration, float distance)
+void CCEditBoxImplWin::doAnimationWhenKeyboardMove(float duration, float distance)
 {
 }
 
-bool EditBoxImplWin::initWithSize(const Size& size)
+bool CCEditBoxImplWin::initWithSize(const CCSize& size)
 {
     //! int fontSize = getFontSizeAccordingHeightJni(size.height-12);
-    _label = LabelTTF::create("", "", size.height-12);
+    m_pLabel = CCLabelTTF::create("", "", size.height-12);
 	// align the text vertically center
-    _label->setAnchorPoint(Point(0, 0.5f));
-    _label->setPosition(Point(5, size.height / 2.0f));
-    _label->setColor(_colText);
-    _editBox->addChild(_label);
+    m_pLabel->setAnchorPoint(ccp(0, 0.5f));
+    m_pLabel->setPosition(ccp(5, size.height / 2.0f));
+    m_pLabel->setColor(m_colText);
+    m_pEditBox->addChild(m_pLabel);
 
-    _labelPlaceHolder = LabelTTF::create("", "", size.height-12);
+    m_pLabelPlaceHolder = CCLabelTTF::create("", "", size.height-12);
 	// align the text vertically center
-    _labelPlaceHolder->setAnchorPoint(Point(0, 0.5f));
-    _labelPlaceHolder->setPosition(Point(5, size.height / 2.0f));
-    _labelPlaceHolder->setVisible(false);
-    _labelPlaceHolder->setColor(_colPlaceHolder);
-    _editBox->addChild(_labelPlaceHolder);
+    m_pLabelPlaceHolder->setAnchorPoint(ccp(0, 0.5f));
+    m_pLabelPlaceHolder->setPosition(ccp(5, size.height / 2.0f));
+    m_pLabelPlaceHolder->setVisible(false);
+    m_pLabelPlaceHolder->setColor(m_colPlaceHolder);
+    m_pEditBox->addChild(m_pLabelPlaceHolder);
     
-    _editSize = size;
+    m_EditSize = size;
     return true;
 }
 
-void EditBoxImplWin::setFont(const char* pFontName, int fontSize)
+void CCEditBoxImplWin::setFont(const char* pFontName, int fontSize)
 {
-	if(_label != NULL) {
-		_label->setFontName(pFontName);
-		_label->setFontSize(fontSize);
+	if(m_pLabel != NULL) {
+		m_pLabel->setFontName(pFontName);
+		m_pLabel->setFontSize(fontSize);
 	}
 	
-	if(_labelPlaceHolder != NULL) {
-		_labelPlaceHolder->setFontName(pFontName);
-		_labelPlaceHolder->setFontSize(fontSize);
+	if(m_pLabelPlaceHolder != NULL) {
+		m_pLabelPlaceHolder->setFontName(pFontName);
+		m_pLabelPlaceHolder->setFontSize(fontSize);
 	}
 }
 
-void EditBoxImplWin::setFontColor(const Color3B& color)
+void CCEditBoxImplWin::setFontColor(const ccColor3B& color)
 {
-    _colText = color;
-    _label->setColor(color);
+    m_colText = color;
+    m_pLabel->setColor(color);
 }
 
-void EditBoxImplWin::setPlaceholderFont(const char* pFontName, int fontSize)
+void CCEditBoxImplWin::setPlaceholderFont(const char* pFontName, int fontSize)
 {
-	if(_labelPlaceHolder != NULL) {
-		_labelPlaceHolder->setFontName(pFontName);
-		_labelPlaceHolder->setFontSize(fontSize);
+	if(m_pLabelPlaceHolder != NULL) {
+		m_pLabelPlaceHolder->setFontName(pFontName);
+		m_pLabelPlaceHolder->setFontSize(fontSize);
 	}
 }
 
-void EditBoxImplWin::setPlaceholderFontColor(const Color3B& color)
+void CCEditBoxImplWin::setPlaceholderFontColor(const ccColor3B& color)
 {
-    _colPlaceHolder = color;
-    _labelPlaceHolder->setColor(color);
+    m_colPlaceHolder = color;
+    m_pLabelPlaceHolder->setColor(color);
 }
 
-void EditBoxImplWin::setInputMode(EditBox::InputMode inputMode)
+void CCEditBoxImplWin::setInputMode(EditBoxInputMode inputMode)
 {
-    _editBoxInputMode = inputMode;
+    m_eEditBoxInputMode = inputMode;
 }
 
-void EditBoxImplWin::setMaxLength(int maxLength)
+void CCEditBoxImplWin::setMaxLength(int maxLength)
 {
-    _maxLength = maxLength;
+    m_nMaxLength = maxLength;
 }
 
-int EditBoxImplWin::getMaxLength()
+int CCEditBoxImplWin::getMaxLength()
 {
-    return _maxLength;
+    return m_nMaxLength;
 }
 
-void EditBoxImplWin::setInputFlag(EditBox::InputFlag inputFlag)
+void CCEditBoxImplWin::setInputFlag(EditBoxInputFlag inputFlag)
 {
-    _editBoxInputFlag = inputFlag;
+    m_eEditBoxInputFlag = inputFlag;
 }
 
-void EditBoxImplWin::setReturnType(EditBox::KeyboardReturnType returnType)
+void CCEditBoxImplWin::setReturnType(KeyboardReturnType returnType)
 {
-    _keyboardReturnType = returnType;
+    m_eKeyboardReturnType = returnType;
 }
 
-bool EditBoxImplWin::isEditing()
+bool CCEditBoxImplWin::isEditing()
 {
     return false;
 }
 
-void EditBoxImplWin::setText(const char* pText)
+void CCEditBoxImplWin::setText(const char* pText)
 {
     if (pText != NULL)
     {
-        _text = pText;
+        m_strText = pText;
 
-        if (_text.length() > 0)
+        if (m_strText.length() > 0)
         {
-            _labelPlaceHolder->setVisible(false);
+            m_pLabelPlaceHolder->setVisible(false);
 
             std::string strToShow;
 
-			if (EditBox::InputFlag::PASSWORD == _editBoxInputFlag)
+            if (kEditBoxInputFlagPassword == m_eEditBoxInputFlag)
             {
-                long length = cc_utf8_strlen(_text.c_str(), -1);
+                long length = cc_utf8_strlen(m_strText.c_str(), -1);
                 for (long i = 0; i < length; i++)
                 {
                     strToShow.append("*");
@@ -165,109 +165,101 @@ void EditBoxImplWin::setText(const char* pText)
             }
             else
             {
-                strToShow = _text;
+                strToShow = m_strText;
             }
 
-            //! std::string strWithEllipsis = getStringWithEllipsisJni(strToShow.c_str(), _editSize.width, _editSize.height-12);
-            //! _label->setString(strWithEllipsis.c_str());
-			_label->setString(strToShow.c_str());
+            //! std::string strWithEllipsis = getStringWithEllipsisJni(strToShow.c_str(), m_EditSize.width, m_EditSize.height-12);
+            //! m_pLabel->setString(strWithEllipsis.c_str());
+			m_pLabel->setString(strToShow.c_str());
         }
         else
         {
-            _labelPlaceHolder->setVisible(true);
-            _label->setString("");
+            m_pLabelPlaceHolder->setVisible(true);
+            m_pLabel->setString("");
         }
 
     }
 }
 
-const char*  EditBoxImplWin::getText(void)
+const char*  CCEditBoxImplWin::getText(void)
 {
-    return _text.c_str();
+    return m_strText.c_str();
 }
 
-void EditBoxImplWin::setPlaceHolder(const char* pText)
+void CCEditBoxImplWin::setPlaceHolder(const char* pText)
 {
     if (pText != NULL)
     {
-        _placeHolder = pText;
-        if (_placeHolder.length() > 0 && _text.length() == 0)
+        m_strPlaceHolder = pText;
+        if (m_strPlaceHolder.length() > 0 && m_strText.length() == 0)
         {
-            _labelPlaceHolder->setVisible(true);
+            m_pLabelPlaceHolder->setVisible(true);
         }
 
-        _labelPlaceHolder->setString(_placeHolder.c_str());
+        m_pLabelPlaceHolder->setString(m_strPlaceHolder.c_str());
     }
 }
 
-void EditBoxImplWin::setPosition(const Point& pos)
+void CCEditBoxImplWin::setPosition(const CCPoint& pos)
 {
-	//_label->setPosition(pos);
-	//_labelPlaceHolder->setPosition(pos);
+	//m_pLabel->setPosition(pos);
+	//m_pLabelPlaceHolder->setPosition(pos);
 }
 
-void EditBoxImplWin::setVisible(bool visible)
+void CCEditBoxImplWin::setVisible(bool visible)
 { // don't need to be implemented on win32 platform.
 }
 
-void EditBoxImplWin::setContentSize(const Size& size)
+void CCEditBoxImplWin::setContentSize(const CCSize& size)
 {
 }
 
-void EditBoxImplWin::setAnchorPoint(const Point& anchorPoint)
+void CCEditBoxImplWin::setAnchorPoint(const CCPoint& anchorPoint)
 { // don't need to be implemented on win32 platform.
 	
 }
 
-void EditBoxImplWin::visit(void)
+void CCEditBoxImplWin::visit(void)
 {   
 }
 
 static void editBoxCallbackFunc(const char* pText, void* ctx)
 {
-    EditBoxImplWin* thiz = (EditBoxImplWin*)ctx;
+    CCEditBoxImplWin* thiz = (CCEditBoxImplWin*)ctx;
     thiz->setText(pText);
 
     if (thiz->getDelegate() != NULL)
     {
-        thiz->getDelegate()->editBoxTextChanged(thiz->getEditBox(), thiz->getText());
-        thiz->getDelegate()->editBoxEditingDidEnd(thiz->getEditBox());
-        thiz->getDelegate()->editBoxReturn(thiz->getEditBox());
+        thiz->getDelegate()->editBoxTextChanged(thiz->getCCEditBox(), thiz->getText());
+        thiz->getDelegate()->editBoxEditingDidEnd(thiz->getCCEditBox());
+        thiz->getDelegate()->editBoxReturn(thiz->getCCEditBox());
     }
     
-    EditBox* pEditBox = thiz->getEditBox();
+    CCEditBox* pEditBox = thiz->getCCEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
-        CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "changed",pEditBox);
-        ScriptEvent event(kCommonEvent,(void*)&data);
-        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
-        memset(data.eventName,0,64*sizeof(char));
-        strncpy(data.eventName,"ended",64);
-        event.data = (void*)&data;
-        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
-        memset(data.eventName,0,64*sizeof(char));
-        strncpy(data.eventName,"return",64);
-        event.data = (void*)&data;
-        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+        cocos2d::CCScriptEngineProtocol* pEngine = cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine();
+        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "changed",pEditBox);
+        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "ended",pEditBox);
+        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "return",pEditBox);
     }
 }
 
-void EditBoxImplWin::openKeyboard()
+void CCEditBoxImplWin::openKeyboard()
 {
-    if (_delegate != NULL)
+    if (m_pDelegate != NULL)
     {
-        _delegate->editBoxEditingDidBegin(_editBox);
+        m_pDelegate->editBoxEditingDidBegin(m_pEditBox);
     }
     
-    EditBox* pEditBox = this->getEditBox();
+    CCEditBox* pEditBox = this->getCCEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
-        CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "began",pEditBox);
-        ScriptEvent event(kCommonEvent,(void*)&data);
-        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+        cocos2d::CCScriptEngineProtocol* pEngine = cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine();
+        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "began",pEditBox);
     }
     
-	std::string placeHolder = _labelPlaceHolder->getString();
+	std::string placeHolder = m_pLabelPlaceHolder->getString();
 	if (placeHolder.length() == 0)
 		placeHolder = "Enter value";
 
@@ -280,20 +272,20 @@ void EditBoxImplWin::openKeyboard()
 	if (didChange) 	
 		setText(pText);
 
-	if (_delegate != NULL) {
+	if (m_pDelegate != NULL) {
 		if (didChange)
-			_delegate->editBoxTextChanged(_editBox, getText());
-		_delegate->editBoxEditingDidEnd(_editBox);
-		_delegate->editBoxReturn(_editBox);
+			m_pDelegate->editBoxTextChanged(m_pEditBox, getText());
+		m_pDelegate->editBoxEditingDidEnd(m_pEditBox);
+		m_pDelegate->editBoxReturn(m_pEditBox);
 	}
 }
 
-void EditBoxImplWin::closeKeyboard()
+void CCEditBoxImplWin::closeKeyboard()
 {
 
 }
 
-void EditBoxImplWin::onEnter(void)
+void CCEditBoxImplWin::onEnter(void)
 {
 
 }

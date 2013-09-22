@@ -25,12 +25,7 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include "platform/CCPlatformConfig.h"
 #include "CCPlatformDefine.h"
-
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-#include "platform/android/CCFileUtilsAndroid.h"
-#endif
 
 namespace cocos2d
 {
@@ -85,22 +80,6 @@ namespace cocos2d
         * @since v0.99.5
         */
         static int ccInflateGZipFile(const char *filename, unsigned char **out);
-        
-        /** test a file is a GZip format file or not
-        *
-        * @returns true is a GZip format file. false is not
-        *
-        * @since v3.0
-        */
-        static bool ccIsGZipFile(const char *filename);
-
-        /** test the buffer is GZip format or not
-        *
-        * @returns true is GZip format. false is not
-        *
-        * @since v3.0
-        */
-        static bool ccIsGZipBuffer(const unsigned char *buffer, int len);
 
         /** inflates a CCZ file into memory
         *
@@ -109,30 +88,6 @@ namespace cocos2d
         * @since v0.99.5
         */
         static int ccInflateCCZFile(const char *filename, unsigned char **out);
-
-        /** inflates a buffer with CCZ format into memory
-        *
-        * @returns the length of the deflated buffer
-        *
-        * @since v3.0
-        */
-        static int ccInflateCCZBuffer(const unsigned char *buffer, int len, unsigned char **out);
-        
-        /** test a file is a CCZ format file or not
-        *
-        * @returns true is a CCZ format file. false is not
-        *
-        * @since v3.0
-        */
-        static bool ccIsCCZFile(const char *filename);
-
-        /** test the buffer is CCZ format or not
-        *
-        * @returns true is CCZ format. false is not
-        *
-        * @since v3.0
-        */
-        static bool ccIsCCZBuffer(const unsigned char *buffer, int len);
 
         /** Sets the pvr.ccz encryption key parts separately for added
         * security.
@@ -257,7 +212,7 @@ namespace cocos2d
 
     private:
         /** Internal data like zip file pointer / file list array and so on */
-        ZipFilePrivate *_data;
+        ZipFilePrivate *m_data;
     };
 } // end of namespace cocos2d
 #endif // __SUPPORT_ZIPUTILS_H__

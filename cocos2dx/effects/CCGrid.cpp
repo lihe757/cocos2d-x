@@ -31,16 +31,17 @@ THE SOFTWARE.
 #include "shaders/CCShaderCache.h"
 #include "shaders/ccGLStateCache.h"
 #include "CCGL.h"
+#include "support/CCPointExtension.h"
 #include "support/TransformUtils.h"
 #include "kazmath/kazmath.h"
 #include "kazmath/GL/matrix.h"
 
 NS_CC_BEGIN
-// implementation of GridBase
+// implementation of CCGridBase
 
-GridBase* GridBase::create(const Size& gridSize)
+CCGridBase* CCGridBase::create(const CCSize& gridSize)
 {
-    GridBase *pGridBase = new GridBase();
+    CCGridBase *pGridBase = new CCGridBase();
 
     if (pGridBase)
     {
@@ -57,9 +58,9 @@ GridBase* GridBase::create(const Size& gridSize)
     return pGridBase;
 }
 
-GridBase* GridBase::create(const Size& gridSize, Texture2D *texture, bool flipped)
+CCGridBase* CCGridBase::create(const CCSize& gridSize, CCTexture2D *texture, bool flipped)
 {
-    GridBase *pGridBase = new GridBase();
+    CCGridBase *pGridBase = new CCGridBase();
 
     if (pGridBase)
     {
@@ -76,111 +77,110 @@ GridBase* GridBase::create(const Size& gridSize, Texture2D *texture, bool flippe
     return pGridBase;
 }
 
-bool GridBase::initWithSize(const Size& gridSize, Texture2D *texture, bool bFlipped)
+bool CCGridBase::initWithSize(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped)
 {
     bool bRet = true;
 
-    _active = false;
-    _reuseGrid = 0;
-    _gridSize = gridSize;
+    m_bActive = false;
+    m_nReuseGrid = 0;
+    m_sGridSize = gridSize;
 
-    _texture = texture;
-    CC_SAFE_RETAIN(_texture);
-    _isTextureFlipped = bFlipped;
+    m_pTexture = pTexture;
+    CC_SAFE_RETAIN(m_pTexture);
+    m_bIsTextureFlipped = bFlipped;
 
-    Size texSize = _texture->getContentSize();
-    _step.x = texSize.width / _gridSize.width;
-    _step.y = texSize.height / _gridSize.height;
+    CCSize texSize = m_pTexture->getContentSize();
+    m_obStep.x = texSize.width / m_sGridSize.width;
+    m_obStep.y = texSize.height / m_sGridSize.height;
 
-    _grabber = new Grabber();
-    if (_grabber)
+    m_pGrabber = new CCGrabber();
+    if (m_pGrabber)
     {
-        _grabber->grab(_texture);
+        m_pGrabber->grab(m_pTexture);
     }
     else
     {
         bRet = false;
     }
     
-    _shaderProgram = ShaderCache::getInstance()->programForKey(GLProgram::SHADER_NAME_POSITION_TEXTURE);
+    m_pShaderProgram = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTexture);
     calculateVertexPoints();
 
     return bRet;
 }
 
-bool GridBase::initWithSize(const Size& gridSize)
+bool CCGridBase::initWithSize(const CCSize& gridSize)
 {
-    Director *pDirector = Director::getInstance();
-    Size s = pDirector->getWinSizeInPixels();
+    CCDirector *pDirector = CCDirector::sharedDirector();
+    CCSize s = pDirector->getWinSizeInPixels();
     
     unsigned long POTWide = ccNextPOT((unsigned int)s.width);
     unsigned long POTHigh = ccNextPOT((unsigned int)s.height);
 
     // we only use rgba8888
-    Texture2D::PixelFormat format = Texture2D::PixelFormat::RGBA8888;
+    CCTexture2DPixelFormat format = kCCTexture2DPixelFormat_RGBA8888;
 
-    int dataLen = (int)(POTWide * POTHigh * 4);
-    void *data = calloc(dataLen, 1);
+    void *data = calloc((int)(POTWide * POTHigh * 4), 1);
     if (! data)
     {
-        CCLOG("cocos2d: Grid: not enough memory.");
+        CCLOG("cocos2d: CCGrid: not enough memory.");
         this->release();
         return false;
     }
 
-    Texture2D *texture = new Texture2D();
-    texture->initWithData(data, dataLen,  format, POTWide, POTHigh, s);
+    CCTexture2D *pTexture = new CCTexture2D();
+    pTexture->initWithData(data, format, POTWide, POTHigh, s);
 
     free(data);
 
-    if (! texture)
+    if (! pTexture)
     {
-        CCLOG("cocos2d: Grid: error creating texture");
+        CCLOG("cocos2d: CCGrid: error creating texture");
         return false;
     }
 
-    initWithSize(gridSize, texture, false);
+    initWithSize(gridSize, pTexture, false);
 
-    texture->release();
+    pTexture->release();
 
     return true;
 }
 
-GridBase::~GridBase(void)
+CCGridBase::~CCGridBase(void)
 {
     CCLOGINFO("cocos2d: deallocing %p", this);
 
 //TODO: ? why 2.0 comments this line        setActive(false);
-    CC_SAFE_RELEASE(_texture);
-    CC_SAFE_RELEASE(_grabber);
+    CC_SAFE_RELEASE(m_pTexture);
+    CC_SAFE_RELEASE(m_pGrabber);
 }
 
 // properties
-void GridBase::setActive(bool bActive)
+void CCGridBase::setActive(bool bActive)
 {
-    _active = bActive;
+    m_bActive = bActive;
     if (! bActive)
     {
-        Director *pDirector = Director::getInstance();
-        Director::Projection proj = pDirector->getProjection();
+        CCDirector *pDirector = CCDirector::sharedDirector();
+        ccDirectorProjection proj = pDirector->getProjection();
         pDirector->setProjection(proj);
     }
 }
 
-void GridBase::setTextureFlipped(bool bFlipped)
+void CCGridBase::setTextureFlipped(bool bFlipped)
 {
-    if (_isTextureFlipped != bFlipped)
+    if (m_bIsTextureFlipped != bFlipped)
     {
-        _isTextureFlipped = bFlipped;
+        m_bIsTextureFlipped = bFlipped;
         calculateVertexPoints();
     }
 }
 
-void GridBase::set2DProjection()
+void CCGridBase::set2DProjection()
 {
-    Director *director = Director::getInstance();
+    CCDirector *director = CCDirector::sharedDirector();
 
-    Size    size = director->getWinSizeInPixels();
+    CCSize    size = director->getWinSizeInPixels();
 
     glViewport(0, 0, (GLsizei)(size.width), (GLsizei)(size.height) );
     kmGLMatrixMode(KM_GL_PROJECTION);
@@ -193,73 +193,74 @@ void GridBase::set2DProjection()
     kmGLMatrixMode(KM_GL_MODELVIEW);
     kmGLLoadIdentity();
 
-    GL::setProjectionMatrixDirty();
+
+    ccSetProjectionMatrixDirty();
 }
 
-void GridBase::beforeDraw(void)
+void CCGridBase::beforeDraw(void)
 {
     // save projection
-    Director *director = Director::getInstance();
-    _directorProjection = director->getProjection();
+    CCDirector *director = CCDirector::sharedDirector();
+    m_directorProjection = director->getProjection();
 
     // 2d projection
-    //    [director setProjection:Director::Projection::_2D];
+    //    [director setProjection:kCCDirectorProjection2D];
     set2DProjection();
-    _grabber->beforeRender(_texture);
+    m_pGrabber->beforeRender(m_pTexture);
 }
 
-void GridBase::afterDraw(cocos2d::Node *target)
+void CCGridBase::afterDraw(cocos2d::CCNode *pTarget)
 {
-    _grabber->afterRender(_texture);
+    m_pGrabber->afterRender(m_pTexture);
 
     // restore projection
-    Director *director = Director::getInstance();
-    director->setProjection(_directorProjection);
+    CCDirector *director = CCDirector::sharedDirector();
+    director->setProjection(m_directorProjection);
 
-    if (target->getCamera()->isDirty())
+    if (pTarget->getCamera()->isDirty())
     {
-        Point offset = target->getAnchorPointInPoints();
+        CCPoint offset = pTarget->getAnchorPointInPoints();
 
         //
         // XXX: Camera should be applied in the AnchorPoint
         //
         kmGLTranslatef(offset.x, offset.y, 0);
-        target->getCamera()->locate();
+        pTarget->getCamera()->locate();
         kmGLTranslatef(-offset.x, -offset.y, 0);
     }
 
-    GL::bindTexture2D(_texture->getName());
+    ccGLBindTexture2D(m_pTexture->getName());
 
     // restore projection for default FBO .fixed bug #543 #544
-//TODO:         Director::getInstance()->setProjection(Director::getInstance()->getProjection());
-//TODO:         Director::getInstance()->applyOrientation();
+//TODO:         CCDirector::sharedDirector()->setProjection(CCDirector::sharedDirector()->getProjection());
+//TODO:         CCDirector::sharedDirector()->applyOrientation();
     blit();
 }
 
-void GridBase::blit(void)
+void CCGridBase::blit(void)
 {
-    CCASSERT(0, "");
+    CCAssert(0, "");
 }
 
-void GridBase::reuse(void)
+void CCGridBase::reuse(void)
 {
-    CCASSERT(0, "");
+    CCAssert(0, "");
 }
 
-void GridBase::calculateVertexPoints(void)
+void CCGridBase::calculateVertexPoints(void)
 {
-    CCASSERT(0, "");
+    CCAssert(0, "");
 }
 
-// implementation of Grid3D
+// implementation of CCGrid3D
 
-Grid3D* Grid3D::create(const Size& gridSize, Texture2D *texture, bool bFlipped)
+CCGrid3D* CCGrid3D::create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped)
 {
-    Grid3D *pRet= new Grid3D();
+    CCGrid3D *pRet= new CCGrid3D();
 
     if (pRet)
     {
-        if (pRet->initWithSize(gridSize, texture, bFlipped))
+        if (pRet->initWithSize(gridSize, pTexture, bFlipped))
         {
             pRet->autorelease();
         }
@@ -273,9 +274,9 @@ Grid3D* Grid3D::create(const Size& gridSize, Texture2D *texture, bool bFlipped)
     return pRet;
 }
 
-Grid3D* Grid3D::create(const Size& gridSize)
+CCGrid3D* CCGrid3D::create(const CCSize& gridSize)
 {
-    Grid3D *pRet= new Grid3D();
+    CCGrid3D *pRet= new CCGrid3D();
 
     if (pRet)
     {
@@ -294,113 +295,113 @@ Grid3D* Grid3D::create(const Size& gridSize)
 }
 
 
-Grid3D::Grid3D()
-    : _texCoordinates(NULL)
-    , _vertices(NULL)
-    , _originalVertices(NULL)
-    , _indices(NULL)
+CCGrid3D::CCGrid3D()
+    : m_pTexCoordinates(NULL)
+    , m_pVertices(NULL)
+    , m_pOriginalVertices(NULL)
+    , m_pIndices(NULL)
 {
 
 }
 
-Grid3D::~Grid3D(void)
+CCGrid3D::~CCGrid3D(void)
 {
-    CC_SAFE_FREE(_texCoordinates);
-    CC_SAFE_FREE(_vertices);
-    CC_SAFE_FREE(_indices);
-    CC_SAFE_FREE(_originalVertices);
+    CC_SAFE_FREE(m_pTexCoordinates);
+    CC_SAFE_FREE(m_pVertices);
+    CC_SAFE_FREE(m_pIndices);
+    CC_SAFE_FREE(m_pOriginalVertices);
 }
 
-void Grid3D::blit(void)
+void CCGrid3D::blit(void)
 {
-    int n = _gridSize.width * _gridSize.height;
+    int n = m_sGridSize.width * m_sGridSize.height;
 
-    GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION | GL::VERTEX_ATTRIB_FLAG_TEX_COORDS );
-    _shaderProgram->use();
-    _shaderProgram->setUniformsForBuiltins();;
+    ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position | kCCVertexAttribFlag_TexCoords );
+    m_pShaderProgram->use();
+    m_pShaderProgram->setUniformsForBuiltins();;
 
     //
     // Attributes
     //
 #ifdef EMSCRIPTEN
     // Size calculations from calculateVertexPoints().
-    unsigned int numOfPoints = (_gridSize.width+1) * (_gridSize.height+1);
+    unsigned int numOfPoints = (m_sGridSize.width+1) * (m_sGridSize.height+1);
 
     // position
-    setGLBufferData(_vertices, numOfPoints * sizeof(Vertex3F), 0);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    setGLBufferData(m_pVertices, numOfPoints * sizeof(ccVertex3F), 0);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // texCoords
-    setGLBufferData(_texCoordinates, numOfPoints * sizeof(Vertex2F), 1);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    setGLBufferData(m_pTexCoordinates, numOfPoints * sizeof(ccVertex2F), 1);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    setGLIndexData(_indices, n * 12, 0);
+    setGLIndexData(m_pIndices, n * 12, 0);
     glDrawElements(GL_TRIANGLES, (GLsizei) n*6, GL_UNSIGNED_SHORT, 0);
 #else
     // position
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, _vertices);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, 0, m_pVertices);
 
     // texCoords
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 0, _texCoordinates);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, 0, m_pTexCoordinates);
 
-    glDrawElements(GL_TRIANGLES, (GLsizei) n*6, GL_UNSIGNED_SHORT, _indices);
+    glDrawElements(GL_TRIANGLES, (GLsizei) n*6, GL_UNSIGNED_SHORT, m_pIndices);
 #endif // EMSCRIPTEN
     CC_INCREMENT_GL_DRAWS(1);
 }
 
-void Grid3D::calculateVertexPoints(void)
+void CCGrid3D::calculateVertexPoints(void)
 {
-    float width = (float)_texture->getPixelsWide();
-    float height = (float)_texture->getPixelsHigh();
-    float imageH = _texture->getContentSizeInPixels().height;
+    float width = (float)m_pTexture->getPixelsWide();
+    float height = (float)m_pTexture->getPixelsHigh();
+    float imageH = m_pTexture->getContentSizeInPixels().height;
 
     int x, y, i;
-    CC_SAFE_FREE(_vertices);
-    CC_SAFE_FREE(_originalVertices);
-    CC_SAFE_FREE(_texCoordinates);
-    CC_SAFE_FREE(_indices);
+    CC_SAFE_FREE(m_pVertices);
+    CC_SAFE_FREE(m_pOriginalVertices);
+    CC_SAFE_FREE(m_pTexCoordinates);
+    CC_SAFE_FREE(m_pIndices);
 
-    unsigned int numOfPoints = (_gridSize.width+1) * (_gridSize.height+1);
+    unsigned int numOfPoints = (m_sGridSize.width+1) * (m_sGridSize.height+1);
 
-    _vertices = malloc(numOfPoints * sizeof(Vertex3F));
-    _originalVertices = malloc(numOfPoints * sizeof(Vertex3F));
-    _texCoordinates = malloc(numOfPoints * sizeof(Vertex2F));
-    _indices = (GLushort*)malloc(_gridSize.width * _gridSize.height * sizeof(GLushort) * 6);
+    m_pVertices = malloc(numOfPoints * sizeof(ccVertex3F));
+    m_pOriginalVertices = malloc(numOfPoints * sizeof(ccVertex3F));
+    m_pTexCoordinates = malloc(numOfPoints * sizeof(ccVertex2F));
+    m_pIndices = (GLushort*)malloc(m_sGridSize.width * m_sGridSize.height * sizeof(GLushort) * 6);
 
-    GLfloat *vertArray = (GLfloat*)_vertices;
-    GLfloat *texArray = (GLfloat*)_texCoordinates;
-    GLushort *idxArray = _indices;
+    GLfloat *vertArray = (GLfloat*)m_pVertices;
+    GLfloat *texArray = (GLfloat*)m_pTexCoordinates;
+    GLushort *idxArray = m_pIndices;
 
-    for (x = 0; x < _gridSize.width; ++x)
+    for (x = 0; x < m_sGridSize.width; ++x)
     {
-        for (y = 0; y < _gridSize.height; ++y)
+        for (y = 0; y < m_sGridSize.height; ++y)
         {
-            int idx = (y * _gridSize.width) + x;
+            int idx = (y * m_sGridSize.width) + x;
 
-            GLfloat x1 = x * _step.x;
-            GLfloat x2 = x1 + _step.x;
-            GLfloat y1 = y * _step.y;
-            GLfloat y2= y1 + _step.y;
+            GLfloat x1 = x * m_obStep.x;
+            GLfloat x2 = x1 + m_obStep.x;
+            GLfloat y1 = y * m_obStep.y;
+            GLfloat y2= y1 + m_obStep.y;
 
-            GLushort a = (GLushort)(x * (_gridSize.height + 1) + y);
-            GLushort b = (GLushort)((x + 1) * (_gridSize.height + 1) + y);
-            GLushort c = (GLushort)((x + 1) * (_gridSize.height + 1) + (y + 1));
-            GLushort d = (GLushort)(x * (_gridSize.height + 1) + (y + 1));
+            GLushort a = (GLushort)(x * (m_sGridSize.height + 1) + y);
+            GLushort b = (GLushort)((x + 1) * (m_sGridSize.height + 1) + y);
+            GLushort c = (GLushort)((x + 1) * (m_sGridSize.height + 1) + (y + 1));
+            GLushort d = (GLushort)(x * (m_sGridSize.height + 1) + (y + 1));
 
             GLushort tempidx[6] = {a, b, d, b, c, d};
 
             memcpy(&idxArray[6*idx], tempidx, 6*sizeof(GLushort));
 
             int l1[4] = {a*3, b*3, c*3, d*3};
-            Vertex3F e(x1, y1, 0);
-            Vertex3F f(x2, y1, 0);
-            Vertex3F g(x2, y2, 0);
-            Vertex3F h(x1, y2, 0);
+            ccVertex3F e = {x1, y1, 0};
+            ccVertex3F f = {x2, y1, 0};
+            ccVertex3F g = {x2, y2, 0};
+            ccVertex3F h = {x1, y2, 0};
 
-            Vertex3F l2[4] = {e, f, g, h};
+            ccVertex3F l2[4] = {e, f, g, h};
 
             int tex1[4] = {a*2, b*2, c*2, d*2};
-            Point Tex2F[4] = {Point(x1, y1), Point(x2, y1), Point(x2, y2), Point(x1, y2)};
+            CCPoint tex2[4] = {ccp(x1, y1), ccp(x2, y1), ccp(x2, y2), ccp(x1, y2)};
 
             for (i = 0; i < 4; ++i)
             {
@@ -408,91 +409,91 @@ void Grid3D::calculateVertexPoints(void)
                 vertArray[l1[i] + 1] = l2[i].y;
                 vertArray[l1[i] + 2] = l2[i].z;
 
-                texArray[tex1[i]] = Tex2F[i].x / width;
-                if (_isTextureFlipped)
+                texArray[tex1[i]] = tex2[i].x / width;
+                if (m_bIsTextureFlipped)
                 {
-                    texArray[tex1[i] + 1] = (imageH - Tex2F[i].y) / height;
+                    texArray[tex1[i] + 1] = (imageH - tex2[i].y) / height;
                 }
                 else
                 {
-                    texArray[tex1[i] + 1] = Tex2F[i].y / height;
+                    texArray[tex1[i] + 1] = tex2[i].y / height;
                 }
             }
         }
     }
 
-    memcpy(_originalVertices, _vertices, (_gridSize.width+1) * (_gridSize.height+1) * sizeof(Vertex3F));
+    memcpy(m_pOriginalVertices, m_pVertices, (m_sGridSize.width+1) * (m_sGridSize.height+1) * sizeof(ccVertex3F));
 }
 
-Vertex3F Grid3D::getVertex(const Point& pos) const
+ccVertex3F CCGrid3D::vertex(const CCPoint& pos)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
     
-    int index = (pos.x * (_gridSize.height+1) + pos.y) * 3;
-    float *vertArray = (float*)_vertices;
+    int index = (pos.x * (m_sGridSize.height+1) + pos.y) * 3;
+    float *vertArray = (float*)m_pVertices;
 
-    Vertex3F vert(vertArray[index], vertArray[index+1], vertArray[index+2]);
+    ccVertex3F vert = {vertArray[index], vertArray[index+1], vertArray[index+2]};
 
     return vert;
 }
 
-Vertex3F Grid3D::getOriginalVertex(const Point& pos) const
+ccVertex3F CCGrid3D::originalVertex(const CCPoint& pos)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
     
-    int index = (pos.x * (_gridSize.height+1) + pos.y) * 3;
-    float *vertArray = (float*)_originalVertices;
+    int index = (pos.x * (m_sGridSize.height+1) + pos.y) * 3;
+    float *vertArray = (float*)m_pOriginalVertices;
 
-    Vertex3F vert(vertArray[index], vertArray[index+1], vertArray[index+2]);
+    ccVertex3F vert = {vertArray[index], vertArray[index+1], vertArray[index+2]};
 
     return vert;
 }
 
-void Grid3D::setVertex(const Point& pos, const Vertex3F& vertex)
+void CCGrid3D::setVertex(const CCPoint& pos, const ccVertex3F& vertex)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
-    int index = (pos.x * (_gridSize.height + 1) + pos.y) * 3;
-    float *vertArray = (float*)_vertices;
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    int index = (pos.x * (m_sGridSize.height + 1) + pos.y) * 3;
+    float *vertArray = (float*)m_pVertices;
     vertArray[index] = vertex.x;
     vertArray[index+1] = vertex.y;
     vertArray[index+2] = vertex.z;
 }
 
-void Grid3D::reuse(void)
+void CCGrid3D::reuse(void)
 {
-    if (_reuseGrid > 0)
+    if (m_nReuseGrid > 0)
     {
-        memcpy(_originalVertices, _vertices, (_gridSize.width+1) * (_gridSize.height+1) * sizeof(Vertex3F));
-        --_reuseGrid;
+        memcpy(m_pOriginalVertices, m_pVertices, (m_sGridSize.width+1) * (m_sGridSize.height+1) * sizeof(ccVertex3F));
+        --m_nReuseGrid;
     }
 }
 
-// implementation of TiledGrid3D
+// implementation of CCTiledGrid3D
 
-TiledGrid3D::TiledGrid3D()
-    : _texCoordinates(NULL)
-    , _vertices(NULL)
-    , _originalVertices(NULL)
-    , _indices(NULL)
+CCTiledGrid3D::CCTiledGrid3D()
+    : m_pTexCoordinates(NULL)
+    , m_pVertices(NULL)
+    , m_pOriginalVertices(NULL)
+    , m_pIndices(NULL)
 {
 
 }
 
-TiledGrid3D::~TiledGrid3D(void)
+CCTiledGrid3D::~CCTiledGrid3D(void)
 {
-    CC_SAFE_FREE(_texCoordinates);
-    CC_SAFE_FREE(_vertices);
-    CC_SAFE_FREE(_originalVertices);
-    CC_SAFE_FREE(_indices);
+    CC_SAFE_FREE(m_pTexCoordinates);
+    CC_SAFE_FREE(m_pVertices);
+    CC_SAFE_FREE(m_pOriginalVertices);
+    CC_SAFE_FREE(m_pIndices);
 }
 
-TiledGrid3D* TiledGrid3D::create(const Size& gridSize, Texture2D *texture, bool bFlipped)
+CCTiledGrid3D* CCTiledGrid3D::create(const CCSize& gridSize, CCTexture2D *pTexture, bool bFlipped)
 {
-    TiledGrid3D *pRet= new TiledGrid3D();
+    CCTiledGrid3D *pRet= new CCTiledGrid3D();
 
     if (pRet)
     {
-        if (pRet->initWithSize(gridSize, texture, bFlipped))
+        if (pRet->initWithSize(gridSize, pTexture, bFlipped))
         {
             pRet->autorelease();
         }
@@ -506,9 +507,9 @@ TiledGrid3D* TiledGrid3D::create(const Size& gridSize, Texture2D *texture, bool 
     return pRet;
 }
 
-TiledGrid3D* TiledGrid3D::create(const Size& gridSize)
+CCTiledGrid3D* CCTiledGrid3D::create(const CCSize& gridSize)
 {
-    TiledGrid3D *pRet= new TiledGrid3D();
+    CCTiledGrid3D *pRet= new CCTiledGrid3D();
 
     if (pRet)
     {
@@ -526,76 +527,76 @@ TiledGrid3D* TiledGrid3D::create(const Size& gridSize)
     return pRet;
 }
 
-void TiledGrid3D::blit(void)
+void CCTiledGrid3D::blit(void)
 {
-    int n = _gridSize.width * _gridSize.height;
+    int n = m_sGridSize.width * m_sGridSize.height;
 
     
-    _shaderProgram->use();
-    _shaderProgram->setUniformsForBuiltins();
+    m_pShaderProgram->use();
+    m_pShaderProgram->setUniformsForBuiltins();
 
     //
     // Attributes
     //
-    GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION | GL::VERTEX_ATTRIB_FLAG_TEX_COORDS );
+    ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position | kCCVertexAttribFlag_TexCoords );
 #ifdef EMSCRIPTEN
-    int numQuads = _gridSize.width * _gridSize.height;
+    int numQuads = m_sGridSize.width * m_sGridSize.height;
 
     // position
-    setGLBufferData(_vertices, (numQuads*4*sizeof(Vertex3F)), 0);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    setGLBufferData(m_pVertices, (numQuads*4*sizeof(ccVertex3F)), 0);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // texCoords
-    setGLBufferData(_texCoordinates, (numQuads*4*sizeof(Vertex2F)), 1);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    setGLBufferData(m_pTexCoordinates, (numQuads*4*sizeof(ccVertex2F)), 1);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    setGLIndexData(_indices, n * 12, 0);
+    setGLIndexData(m_pIndices, n * 12, 0);
     glDrawElements(GL_TRIANGLES, (GLsizei) n*6, GL_UNSIGNED_SHORT, 0);
 #else
     // position
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, _vertices);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, 0, m_pVertices);
 
     // texCoords
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 0, _texCoordinates);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, 0, m_pTexCoordinates);
 
-    glDrawElements(GL_TRIANGLES, (GLsizei)n*6, GL_UNSIGNED_SHORT, _indices);
+    glDrawElements(GL_TRIANGLES, (GLsizei)n*6, GL_UNSIGNED_SHORT, m_pIndices);
 #endif // EMSCRIPTEN
 
 
     CC_INCREMENT_GL_DRAWS(1);
 }
 
-void TiledGrid3D::calculateVertexPoints(void)
+void CCTiledGrid3D::calculateVertexPoints(void)
 {
-    float width = (float)_texture->getPixelsWide();
-    float height = (float)_texture->getPixelsHigh();
-    float imageH = _texture->getContentSizeInPixels().height;
+    float width = (float)m_pTexture->getPixelsWide();
+    float height = (float)m_pTexture->getPixelsHigh();
+    float imageH = m_pTexture->getContentSizeInPixels().height;
     
-    int numQuads = _gridSize.width * _gridSize.height;
-    CC_SAFE_FREE(_vertices);
-    CC_SAFE_FREE(_originalVertices);
-    CC_SAFE_FREE(_texCoordinates);
-    CC_SAFE_FREE(_indices);
+    int numQuads = m_sGridSize.width * m_sGridSize.height;
+    CC_SAFE_FREE(m_pVertices);
+    CC_SAFE_FREE(m_pOriginalVertices);
+    CC_SAFE_FREE(m_pTexCoordinates);
+    CC_SAFE_FREE(m_pIndices);
 
-    _vertices = malloc(numQuads*4*sizeof(Vertex3F));
-    _originalVertices = malloc(numQuads*4*sizeof(Vertex3F));
-    _texCoordinates = malloc(numQuads*4*sizeof(Vertex2F));
-    _indices = (GLushort*)malloc(numQuads*6*sizeof(GLushort));
+    m_pVertices = malloc(numQuads*4*sizeof(ccVertex3F));
+    m_pOriginalVertices = malloc(numQuads*4*sizeof(ccVertex3F));
+    m_pTexCoordinates = malloc(numQuads*4*sizeof(ccVertex2F));
+    m_pIndices = (GLushort*)malloc(numQuads*6*sizeof(GLushort));
 
-    GLfloat *vertArray = (GLfloat*)_vertices;
-    GLfloat *texArray = (GLfloat*)_texCoordinates;
-    GLushort *idxArray = _indices;
+    GLfloat *vertArray = (GLfloat*)m_pVertices;
+    GLfloat *texArray = (GLfloat*)m_pTexCoordinates;
+    GLushort *idxArray = m_pIndices;
     
     int x, y;
     
-    for( x = 0; x < _gridSize.width; x++ )
+    for( x = 0; x < m_sGridSize.width; x++ )
     {
-        for( y = 0; y < _gridSize.height; y++ )
+        for( y = 0; y < m_sGridSize.height; y++ )
         {
-            float x1 = x * _step.x;
-            float x2 = x1 + _step.x;
-            float y1 = y * _step.y;
-            float y2 = y1 + _step.y;
+            float x1 = x * m_obStep.x;
+            float x2 = x1 + m_obStep.x;
+            float y1 = y * m_obStep.y;
+            float y2 = y1 + m_obStep.y;
             
             *vertArray++ = x1;
             *vertArray++ = y1;
@@ -613,7 +614,7 @@ void TiledGrid3D::calculateVertexPoints(void)
             float newY1 = y1;
             float newY2 = y2;
             
-            if (_isTextureFlipped) 
+            if (m_bIsTextureFlipped) 
             {
                 newY1 = imageH - y1;
                 newY2 = imageH - y2;
@@ -641,49 +642,49 @@ void TiledGrid3D::calculateVertexPoints(void)
         idxArray[x*6+5] = (GLushort)(x * 4 + 3);
     }
     
-    memcpy(_originalVertices, _vertices, numQuads * 12 * sizeof(GLfloat));
+    memcpy(m_pOriginalVertices, m_pVertices, numQuads * 12 * sizeof(GLfloat));
 }
 
-void TiledGrid3D::setTile(const Point& pos, const Quad3& coords)
+void CCTiledGrid3D::setTile(const CCPoint& pos, const ccQuad3& coords)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
-    int idx = (_gridSize.height * pos.x + pos.y) * 4 * 3;
-    float *vertArray = (float*)_vertices;
-    memcpy(&vertArray[idx], &coords, sizeof(Quad3));
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    int idx = (m_sGridSize.height * pos.x + pos.y) * 4 * 3;
+    float *vertArray = (float*)m_pVertices;
+    memcpy(&vertArray[idx], &coords, sizeof(ccQuad3));
 }
 
-Quad3 TiledGrid3D::getOriginalTile(const Point& pos) const
+ccQuad3 CCTiledGrid3D::originalTile(const CCPoint& pos)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
-    int idx = (_gridSize.height * pos.x + pos.y) * 4 * 3;
-    float *vertArray = (float*)_originalVertices;
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    int idx = (m_sGridSize.height * pos.x + pos.y) * 4 * 3;
+    float *vertArray = (float*)m_pOriginalVertices;
 
-    Quad3 ret;
-    memcpy(&ret, &vertArray[idx], sizeof(Quad3));
+    ccQuad3 ret;
+    memcpy(&ret, &vertArray[idx], sizeof(ccQuad3));
 
     return ret;
 }
 
-Quad3 TiledGrid3D::getTile(const Point& pos) const
+ccQuad3 CCTiledGrid3D::tile(const CCPoint& pos)
 {
-    CCASSERT( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
-    int idx = (_gridSize.height * pos.x + pos.y) * 4 * 3;
-    float *vertArray = (float*)_vertices;
+    CCAssert( pos.x == (unsigned int)pos.x && pos.y == (unsigned int) pos.y , "Numbers must be integers");
+    int idx = (m_sGridSize.height * pos.x + pos.y) * 4 * 3;
+    float *vertArray = (float*)m_pVertices;
 
-    Quad3 ret;
-    memcpy(&ret, &vertArray[idx], sizeof(Quad3));
+    ccQuad3 ret;
+    memcpy(&ret, &vertArray[idx], sizeof(ccQuad3));
 
     return ret;
 }
 
-void TiledGrid3D::reuse(void)
+void CCTiledGrid3D::reuse(void)
 {
-    if (_reuseGrid > 0)
+    if (m_nReuseGrid > 0)
     {
-        int numQuads = _gridSize.width * _gridSize.height;
+        int numQuads = m_sGridSize.width * m_sGridSize.height;
 
-        memcpy(_originalVertices, _vertices, numQuads * 12 * sizeof(GLfloat));
-        --_reuseGrid;
+        memcpy(m_pOriginalVertices, m_pVertices, numQuads * 12 * sizeof(GLfloat));
+        --m_nReuseGrid;
     }
 }
 

@@ -4,16 +4,16 @@ USING_NS_CC;
 
 void CustomTableViewCell::draw()
 {
-	TableViewCell::draw();
+	CCTableViewCell::draw();
 	// draw bounding box
-// 	Point pos = getPosition();
-// 	Size size = Size(178, 200);
-// 	Point vertices[4]={
-// 		Point(pos.x+1, pos.y+1),
-// 		Point(pos.x+size.width-1, pos.y+1),
-// 		Point(pos.x+size.width-1, pos.y+size.height-1),
-// 		Point(pos.x+1, pos.y+size.height-1),
+// 	CCPoint pos = getPosition();
+// 	CCSize size = CCSizeMake(178, 200);
+// 	CCPoint vertices[4]={
+// 		ccp(pos.x+1, pos.y+1),
+// 		ccp(pos.x+size.width-1, pos.y+1),
+// 		ccp(pos.x+size.width-1, pos.y+size.height-1),
+// 		ccp(pos.x+1, pos.y+size.height-1),
 // 	};
-// 	DrawPrimitives::drawColor4B(0, 0, 255, 255);
-// 	DrawPrimitives::drawPoly(vertices, 4, true);
+// 	ccDrawColor4B(0, 0, 255, 255);
+// 	ccDrawPoly(vertices, 4, true);
 }

@@ -14,10 +14,10 @@ bool Bug624Layer::init()
 {
     if(BugsTestBaseLayer::init())
     {
-        Size size = Director::getInstance()->getWinSize();
-        LabelTTF *label = LabelTTF::create("Layer1", "Marker Felt", 36);
+        CCSize size = CCDirector::sharedDirector()->getWinSize();
+        CCLabelTTF *label = CCLabelTTF::create("Layer1", "Marker Felt", 36);
 
-        label->setPosition(Point(size.width/2, size.height/2));
+        label->setPosition(ccp(size.width/2, size.height/2));
         addChild(label);
         setAccelerometerEnabled(true);
         schedule(schedule_selector(Bug624Layer::switchLayer), 5.0f);
@@ -32,14 +32,14 @@ void Bug624Layer::switchLayer(float dt)
 {
     unschedule(schedule_selector(Bug624Layer::switchLayer));
 
-    Scene *scene = Scene::create();    
+    CCScene *scene = CCScene::create();    
     scene->addChild(Bug624Layer2::create(), 0);
-    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, scene, Color3B::WHITE));
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(2.0f, scene, ccWHITE));
 }
 
-void Bug624Layer::didAccelerate(Acceleration* acceleration)
+void Bug624Layer::didAccelerate(CCAcceleration* acceleration)
 {    
-    log("Layer1 accel");
+    CCLog("Layer1 accel");
 }
 
 ////////////////////////////////////////////////////////
@@ -51,10 +51,10 @@ bool Bug624Layer2::init()
 {
     if(BugsTestBaseLayer::init())
     {
-        Size size = Director::getInstance()->getWinSize();
-        LabelTTF *label = LabelTTF::create("Layer2", "Marker Felt", 36);
+        CCSize size = CCDirector::sharedDirector()->getWinSize();
+        CCLabelTTF *label = CCLabelTTF::create("Layer2", "Marker Felt", 36);
 
-        label->setPosition(Point(size.width/2, size.height/2));
+        label->setPosition(ccp(size.width/2, size.height/2));
         addChild(label);
         setAccelerometerEnabled(true);
         schedule(schedule_selector(Bug624Layer2::switchLayer), 5.0f);
@@ -69,12 +69,12 @@ void Bug624Layer2::switchLayer(float dt)
 {
     unschedule(schedule_selector(Bug624Layer::switchLayer));
 
-    Scene *scene = Scene::create();    
+    CCScene *scene = CCScene::create();    
     scene->addChild(Bug624Layer::create(), 0);
-    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, scene, Color3B::RED));
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(2.0f, scene, ccRED));
 }
 
-void Bug624Layer2::didAccelerate(Acceleration* acceleration)
+void Bug624Layer2::didAccelerate(CCAcceleration* acceleration)
 {    
-    log("Layer2 accel");
+    CCLog("Layer2 accel");
 }

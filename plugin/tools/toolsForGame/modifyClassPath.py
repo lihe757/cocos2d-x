@@ -39,8 +39,7 @@ for pluginName in plugins:
         if os.path.splitext(fileName)[1] == '.jar':
             needAdd = True
             for linkedJar in linkedLibs:
-                jarName = os.path.basename(linkedJar)
-                if fileName == jarName:
+                if -1 != linkedJar.find(fileName):
                     needAdd = False
                     break
             

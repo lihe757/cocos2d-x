@@ -8,13 +8,13 @@
 
 NS_CC_BEGIN
 
-class Rect;
+class CCRect;
 
-class CC_DLL Application : public ApplicationProtocol
+class CC_DLL CCApplication : public CCApplicationProtocol
 {
 public:
-    Application();
-    virtual ~Application();
+    CCApplication();
+    virtual ~CCApplication();
 
     /**
     @brief    Run the message loop.
@@ -25,29 +25,26 @@ public:
     @brief    Get current applicaiton instance.
     @return Current application instance pointer.
     */
-    static Application* getInstance();
+    static CCApplication* sharedApplication();
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
-    
     /* override functions */
     virtual void setAnimationInterval(double interval);
-    virtual LanguageType getCurrentLanguage();
+    virtual ccLanguageType getCurrentLanguage();
     
     /**
      @brief Get target platform
      */
-    virtual Platform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform();
 
     /**
      *  Sets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->setSearchPaths() instead.
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const std::string& rootResDir);
 
     /** 
      *  Gets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->getSearchPaths() instead. 
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead. 
      */
     CC_DEPRECATED_ATTRIBUTE const std::string& getResourceRootPath(void);
 
@@ -55,17 +52,17 @@ public:
 
     const std::string& getStartupScriptFilename(void)
     {
-        return _startupScriptFilename;
+        return m_startupScriptFilename;
     }
 
 protected:
-    HINSTANCE           _instance;
-    HACCEL              _accelTable;
-    LARGE_INTEGER       _animationInterval;
-    std::string         _resourceRootPath;
-    std::string         _startupScriptFilename;
+    HINSTANCE           m_hInstance;
+    HACCEL              m_hAccelTable;
+    LARGE_INTEGER       m_nAnimationInterval;
+    std::string         m_resourceRootPath;
+    std::string         m_startupScriptFilename;
 
-    static Application * sm_pSharedApplication;
+    static CCApplication * sm_pSharedApplication;
 };
 
 NS_CC_END

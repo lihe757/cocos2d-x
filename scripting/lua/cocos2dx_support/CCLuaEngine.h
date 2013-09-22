@@ -41,19 +41,18 @@ extern "C" {
 NS_CC_BEGIN
 
 // Lua support for cocos2d-x
-class LuaEngine : public ScriptEngineProtocol
+class CCLuaEngine : public CCScriptEngineProtocol
 {
 public:
-    static LuaEngine* getInstance(void);
-    CC_DEPRECATED_ATTRIBUTE static LuaEngine* defaultEngine(void) { return LuaEngine::getInstance(); }
-    virtual ~LuaEngine(void);
+    static CCLuaEngine* defaultEngine(void);    
+    virtual ~CCLuaEngine(void);
     
     virtual ccScriptType getScriptType() {
         return kScriptTypeLua;
     };
 
-    LuaStack *getLuaStack(void) {
-        return _stack;
+    CCLuaStack *getLuaStack(void) {
+        return m_stack;
     }
     
     /**
@@ -68,10 +67,10 @@ public:
     virtual void addLuaLoader(lua_CFunction func);
     
     /**
-     @brief Remove Object from lua state
+     @brief Remove CCObject from lua state
      @param object to remove
      */
-    virtual void removeScriptObjectByObject(Object* object);
+    virtual void removeScriptObjectByCCObject(CCObject* pObj);
     
     /**
      @brief Remove Lua function reference
@@ -105,50 +104,30 @@ public:
      */
     virtual int executeGlobalFunction(const char* functionName);
 
-    virtual int executeNodeEvent(Node* pNode, int nAction);
-    virtual int executeMenuItemEvent(MenuItem* pMenuItem);
-    virtual int executeNotificationEvent(NotificationCenter* pNotificationCenter, const char* pszName);
-    virtual int executeCallFuncActionEvent(CallFunc* pAction, Object* pTarget = NULL);
-    virtual int executeSchedule(int nHandler, float dt, Node* pNode = NULL);
-    virtual int executeLayerTouchesEvent(Layer* pLayer, int eventType, Set *pTouches);
-    virtual int executeLayerTouchEvent(Layer* pLayer, int eventType, Touch *pTouch);
-    virtual int executeLayerKeypadEvent(Layer* pLayer, int eventType);
+    virtual int executeNodeEvent(CCNode* pNode, int nAction);
+    virtual int executeMenuItemEvent(CCMenuItem* pMenuItem);
+    virtual int executeNotificationEvent(CCNotificationCenter* pNotificationCenter, const char* pszName);
+    virtual int executeCallFuncActionEvent(CCCallFunc* pAction, CCObject* pTarget = NULL);
+    virtual int executeSchedule(int nHandler, float dt, CCNode* pNode = NULL);
+    virtual int executeLayerTouchesEvent(CCLayer* pLayer, int eventType, CCSet *pTouches);
+    virtual int executeLayerTouchEvent(CCLayer* pLayer, int eventType, CCTouch *pTouch);
+    virtual int executeLayerKeypadEvent(CCLayer* pLayer, int eventType);
     /** execute a accelerometer event */
-    virtual int executeAccelerometerEvent(Layer* pLayer, Acceleration* pAccelerationValue);
-    virtual int executeEvent(int nHandler, const char* pEventName, Object* pEventSource = NULL, const char* pEventSourceClassName = NULL);
+    virtual int executeAccelerometerEvent(CCLayer* pLayer, CCAcceleration* pAccelerationValue);
+    virtual int executeEvent(int nHandler, const char* pEventName, CCObject* pEventSource = NULL, const char* pEventSourceClassName = NULL);
 
     virtual bool handleAssert(const char *msg);
     
-    virtual int sendEvent(ScriptEvent* message);
-    void extendLuaObject();
 private:
-    LuaEngine(void)
-    : _stack(NULL)
+    CCLuaEngine(void)
+    : m_stack(NULL)
     {
     }
+    
     bool init(void);
-    int handleNodeEvent(void* data);
-    int handleMenuClickedEvent(void* data);
-    int handleNotificationEvent(void* data);
-    int handleCallFuncActionEvent(void* data);
-    int handleScheduler(void* data);
-    int handleKeypadEvent(void* data);
-    int handleAccelerometerEvent(void* data);
-    int handleCommonEvent(void* data);
-    int handleTouchEvent(void* data);
-    int handleTouchesEvent(void* data);
-    int handlerControlEvent(void* data);
-    void extendNode(lua_State* lua_S);
-    void extendMenuItem(lua_State* lua_S);
-    void extendLayer(lua_State* lua_S);
-    void extendControl(lua_State* lua_S);
-    void extendWebsocket(lua_State* lua_S);
-    void extendGLNode(lua_State* lua_S);
-    void extendScrollView(lua_State* lua_S);
-    void extendDrawNode(lua_State* lua_S);
-private:
-    static LuaEngine* _defaultEngine;
-    LuaStack *_stack;
+    
+    static CCLuaEngine* m_defaultEngine;
+    CCLuaStack *m_stack;
 };
 
 NS_CC_END

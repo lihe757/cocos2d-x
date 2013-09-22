@@ -13,21 +13,21 @@
 NS_CC_BEGIN
 
 // sharedApplication pointer
-Application * Application::sm_pSharedApplication = 0;
+CCApplication * CCApplication::sm_pSharedApplication = 0;
 
-Application::Application()
+CCApplication::CCApplication()
 {
     CCAssert(! sm_pSharedApplication, "");
     sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
     CCAssert(this == sm_pSharedApplication, "");
     sm_pSharedApplication = NULL;
 }
 
-int Application::run()
+int CCApplication::run()
 {
     // Initialize instance and cocos2d.
     if (! applicationDidFinishLaunching())
@@ -38,7 +38,7 @@ int Application::run()
     return -1;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
     JniMethodInfo methodInfo;
     if (! JniHelper::getStaticMethodInfo(methodInfo, "org/cocos2dx/lib/Cocos2dxRenderer", "setAnimationInterval", 
@@ -55,86 +55,73 @@ void Application::setAnimationInterval(double interval)
 //////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
     CCAssert(sm_pSharedApplication, "");
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
-{
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
     std::string languageName = getCurrentLanguageJNI();
     const char* pLanguageName = languageName.c_str();
-    LanguageType ret = LanguageType::ENGLISH;
+    ccLanguageType ret = kLanguageEnglish;
 
     if (0 == strcmp("zh", pLanguageName))
     {
-        ret = LanguageType::CHINESE;
+        ret = kLanguageChinese;
     }
     else if (0 == strcmp("en", pLanguageName))
     {
-        ret = LanguageType::ENGLISH;
+        ret = kLanguageEnglish;
     }
     else if (0 == strcmp("fr", pLanguageName))
     {
-        ret = LanguageType::FRENCH;
+        ret = kLanguageFrench;
     }
     else if (0 == strcmp("it", pLanguageName))
     {
-        ret = LanguageType::ITALIAN;
+        ret = kLanguageItalian;
     }
     else if (0 == strcmp("de", pLanguageName))
     {
-        ret = LanguageType::GERMAN;
+        ret = kLanguageGerman;
     }
     else if (0 == strcmp("es", pLanguageName))
     {
-        ret = LanguageType::SPANISH;
+        ret = kLanguageSpanish;
     }
     else if (0 == strcmp("ru", pLanguageName))
     {
-        ret = LanguageType::RUSSIAN;
+        ret = kLanguageRussian;
     }
     else if (0 == strcmp("ko", pLanguageName))
     {
-        ret = LanguageType::KOREAN;
+        ret = kLanguageKorean;
     }
     else if (0 == strcmp("ja", pLanguageName))
     {
-        ret = LanguageType::JAPANESE;
+        ret = kLanguageJapanese;
     }
     else if (0 == strcmp("hu", pLanguageName))
     {
-        ret = LanguageType::HUNGARIAN;
+        ret = kLanguageHungarian;
     }
     else if (0 == strcmp("pt", pLanguageName))
     {
-        ret = LanguageType::PORTUGUESE;
+        ret = kLanguagePortuguese;
     }
     else if (0 == strcmp("ar", pLanguageName))
     {
-        ret = LanguageType::ARABIC;
+        ret = kLanguageArabic;
     }
-    else if (0 == strcmp("nb", pLanguageName))
-    {
-        ret = LanguageType::NORWEGIAN;
-    }
-    else if (0 == strcmp("pl", pLanguageName))
-    {
-        ret = LanguageType::POLISH;
-    }
+    
     return ret;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_ANDROID;
+    return kTargetAndroid;
 }
 
 NS_CC_END

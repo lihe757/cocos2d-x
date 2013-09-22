@@ -30,11 +30,11 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class CC_DLL EGLView : public EGLViewProtocol
+class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
 public:
-    EGLView();
-    virtual ~EGLView();
+    CCEGLView();
+    virtual ~CCEGLView();
 
     bool    isOpenGLReady();
 
@@ -47,10 +47,7 @@ public:
     /**
     @brief    get the shared main open gl window
     */
-    static EGLView* getInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static EGLView* sharedOpenGLView();
+    static CCEGLView* sharedOpenGLView();
 };
 
 NS_CC_END

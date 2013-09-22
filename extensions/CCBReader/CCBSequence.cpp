@@ -7,8 +7,8 @@ using namespace std;
 NS_CC_EXT_BEGIN
 
 CCBSequence::CCBSequence()
-: _duration(0.0f)
-, _name("")
+: mDuration(0.0f)
+, mName("")
 , mSequenceId(0)
 , mChainedSequenceId(0)
 , mCallbackChannel(NULL)
@@ -22,22 +22,22 @@ CCBSequence::~CCBSequence() {
 
 float CCBSequence::getDuration()
 {
-    return _duration;
+    return mDuration;
 }
 
 void CCBSequence::setDuration(float fDuration)
 {
-    _duration = fDuration;
+    mDuration = fDuration;
 }
 
 const char* CCBSequence::getName()
 {
-    return _name.c_str();
+    return mName.c_str();
 }
 
 void CCBSequence::setName(const char *pName)
 {
-    _name = pName;
+    mName = pName;
 }
 
 int CCBSequence::getSequenceId()

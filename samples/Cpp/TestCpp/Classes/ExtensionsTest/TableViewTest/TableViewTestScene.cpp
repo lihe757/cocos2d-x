@@ -7,88 +7,88 @@ USING_NS_CC_EXT;
 
 void runTableViewTest()
 {
-	Scene *scene = Scene::create();
-	TableViewTestLayer *layer = TableViewTestLayer::create();
-	scene->addChild(layer);
-	Director::getInstance()->replaceScene(scene);
+	CCScene *pScene = CCScene::create();
+	TableViewTestLayer *pLayer = TableViewTestLayer::create();
+	pScene->addChild(pLayer);
+	CCDirector::sharedDirector()->replaceScene(pScene);
 }
 
 // on "init" you need to initialize your instance
 bool TableViewTestLayer::init()
 {
-    if ( !Layer::init() )
+    if ( !CCLayer::init() )
     {
         return false;
     }
 
-	Size winSize = Director::getInstance()->getWinSize();
+	CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
-    TableView* tableView = TableView::create(this, Size(250, 60));
-    tableView->setDirection(ScrollView::Direction::HORIZONTAL);
-    tableView->setPosition(Point(20,winSize.height/2-30));
+    CCTableView* tableView = CCTableView::create(this, CCSizeMake(250, 60));
+    tableView->setDirection(kCCScrollViewDirectionHorizontal);
+    tableView->setPosition(ccp(20,winSize.height/2-30));
     tableView->setDelegate(this);
     this->addChild(tableView);
     tableView->reloadData();
 
-	tableView = TableView::create(this, Size(60, 250));
-	tableView->setDirection(ScrollView::Direction::VERTICAL);
-	tableView->setPosition(Point(winSize.width-150,winSize.height/2-120));
+	tableView = CCTableView::create(this, CCSizeMake(60, 250));
+	tableView->setDirection(kCCScrollViewDirectionVertical);
+	tableView->setPosition(ccp(winSize.width-150,winSize.height/2-120));
 	tableView->setDelegate(this);
-	tableView->setVerticalFillOrder(TableView::VerticalFillOrder::TOP_DOWN);
+	tableView->setVerticalFillOrder(kCCTableViewFillTopDown);
 	this->addChild(tableView);
 	tableView->reloadData();
 
 	// Back Menu
-	MenuItemFont *itemBack = MenuItemFont::create("Back", CC_CALLBACK_1(TableViewTestLayer::toExtensionsMainLayer, this));
-	itemBack->setPosition(Point(VisibleRect::rightBottom().x - 50, VisibleRect::rightBottom().y + 25));
-	Menu *menuBack = Menu::create(itemBack, NULL);
-	menuBack->setPosition(Point::ZERO);
+	CCMenuItemFont *itemBack = CCMenuItemFont::create("Back", this, menu_selector(TableViewTestLayer::toExtensionsMainLayer));
+	itemBack->setPosition(ccp(VisibleRect::rightBottom().x - 50, VisibleRect::rightBottom().y + 25));
+	CCMenu *menuBack = CCMenu::create(itemBack, NULL);
+	menuBack->setPosition(CCPointZero);
 	addChild(menuBack);
 
     return true;
 }
 
-void TableViewTestLayer::toExtensionsMainLayer(cocos2d::Object *sender)
+void TableViewTestLayer::toExtensionsMainLayer(cocos2d::CCObject *sender)
 {
-	ExtensionsTestScene *scene = new ExtensionsTestScene();
-	scene->runThisTest();
-	scene->release();
+	ExtensionsTestScene *pScene = new ExtensionsTestScene();
+	pScene->runThisTest();
+	pScene->release();
 }
 
-void TableViewTestLayer::tableCellTouched(TableView* table, TableViewCell* cell)
+void TableViewTestLayer::tableCellTouched(CCTableView* table, CCTableViewCell* cell)
 {
     CCLOG("cell touched at index: %i", cell->getIdx());
 }
 
-Size TableViewTestLayer::tableCellSizeForIndex(TableView *table, unsigned int idx)
+CCSize TableViewTestLayer::tableCellSizeForIndex(CCTableView *table, unsigned int idx)
 {
     if (idx == 2) {
-        return Size(100, 100);
+        return CCSizeMake(100, 100);
     }
-    return Size(60, 60);
+    return CCSizeMake(60, 60);
 }
 
-TableViewCell* TableViewTestLayer::tableCellAtIndex(TableView *table, unsigned int idx)
+CCTableViewCell* TableViewTestLayer::tableCellAtIndex(CCTableView *table, unsigned int idx)
 {
-    String *string = String::createWithFormat("%d", idx);
-    TableViewCell *cell = table->dequeueCell();
+    CCString *string = CCString::createWithFormat("%d", idx);
+    CCTableViewCell *cell = table->dequeueCell();
     if (!cell) {
         cell = new CustomTableViewCell();
         cell->autorelease();
-        Sprite *sprite = Sprite::create("Images/Icon.png");
-        sprite->setAnchorPoint(Point::ZERO);
-        sprite->setPosition(Point(0, 0));
+        CCSprite *sprite = CCSprite::create("Images/Icon.png");
+        sprite->setAnchorPoint(CCPointZero);
+        sprite->setPosition(ccp(0, 0));
         cell->addChild(sprite);
 
-        LabelTTF *label = LabelTTF::create(string->getCString(), "Helvetica", 20.0);
-        label->setPosition(Point::ZERO);
-		label->setAnchorPoint(Point::ZERO);
+        CCLabelTTF *label = CCLabelTTF::create(string->getCString(), "Helvetica", 20.0);
+        label->setPosition(CCPointZero);
+		label->setAnchorPoint(CCPointZero);
         label->setTag(123);
         cell->addChild(label);
     }
     else
     {
-        LabelTTF *label = (LabelTTF*)cell->getChildByTag(123);
+        CCLabelTTF *label = (CCLabelTTF*)cell->getChildByTag(123);
         label->setString(string->getCString());
     }
 
@@ -96,7 +96,7 @@ TableViewCell* TableViewTestLayer::tableCellAtIndex(TableView *table, unsigned i
     return cell;
 }
 
-unsigned int TableViewTestLayer::numberOfCellsInTableView(TableView *table)
+unsigned int TableViewTestLayer::numberOfCellsInTableView(CCTableView *table)
 {
     return 20;
 }

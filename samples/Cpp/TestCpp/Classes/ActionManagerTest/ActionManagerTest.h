@@ -2,24 +2,24 @@
 #define _ACTION_MANAGER_TEST_H_
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class ActionManagerTest: public BaseTest
+class ActionManagerTest: public CCLayer
 {
 protected:
-    TextureAtlas* _atlas;
+    CCTextureAtlas* m_atlas;
 
-    std::string    _title;
+    std::string    m_strTitle;
 
 public:
     ActionManagerTest(void);
     ~ActionManagerTest(void);
 
     virtual std::string title();
+    virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class CrashTest : public ActionManagerTest
@@ -35,7 +35,7 @@ class LogicTest : public ActionManagerTest
 public:
     virtual std::string title();
     virtual void onEnter();
-    void bugMe(Node* node);
+    void bugMe(CCNode* node);
 };
 
 class PauseTest : public ActionManagerTest

@@ -36,7 +36,7 @@ public:
     virtual void runThisTest();
 };
 
-class SpineTestLayer: public cocos2d::Layer {
+class SpineTestLayer: public cocos2d::CCLayer {
 private:
 	cocos2d::extension::CCSkeletonAnimation* skeletonNode;
 

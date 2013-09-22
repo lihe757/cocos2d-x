@@ -13,8 +13,8 @@
 NS_CC_BEGIN;
 
 // sharedApplication pointer
-Application * Application::sm_pSharedApplication = 0;
-long Application::_animationInterval = 1000;
+CCApplication * CCApplication::sm_pSharedApplication = 0;
+long CCApplication::m_animationInterval = 1000;
 
 // convert the timespec into milliseconds
 static long time2millis(struct timespec *times)
@@ -22,13 +22,13 @@ static long time2millis(struct timespec *times)
     return times->tv_sec*1000 + times->tv_nsec/1000000;
 }
 
-Application::Application()
+CCApplication::CCApplication()
 {
     CC_ASSERT(! sm_pSharedApplication);
     sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
     CC_ASSERT(this == sm_pSharedApplication);
     sm_pSharedApplication = NULL;
@@ -37,11 +37,11 @@ Application::~Application()
 
 extern "C" void mainLoopIter(void)
 {
-    EGLView::getInstance()->handleEvents();
-    Director::getInstance()->mainLoop();
+    CCEGLView::sharedOpenGLView()->handleEvents();
+    CCDirector::sharedDirector()->mainLoop();
 }
 
-int Application::run()
+int CCApplication::run()
 {
 	struct timespec time_struct;
 	long update_time;
@@ -61,53 +61,47 @@ int Application::run()
 	return -1;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
 	// interval in milliseconds
-	_animationInterval = (long)(interval * 1000);
+	m_animationInterval = (long)(interval * 1000);
 }
 
-void Application::setResourceRootPath(const std::string& rootResDir)
+void CCApplication::setResourceRootPath(const std::string& rootResDir)
 {
-    _resourceRootPath = rootResDir;
-    if (_resourceRootPath[_resourceRootPath.length() - 1] != '/')
+    m_resourceRootPath = rootResDir;
+    if (m_resourceRootPath[m_resourceRootPath.length() - 1] != '/')
     {
-        _resourceRootPath += '/';
+        m_resourceRootPath += '/';
     }
-    FileUtils* pFileUtils = FileUtils::getInstance();
+    CCFileUtils* pFileUtils = CCFileUtils::sharedFileUtils();
     std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
-    searchPaths.insert(searchPaths.begin(), _resourceRootPath);
+    searchPaths.insert(searchPaths.begin(), m_resourceRootPath);
     pFileUtils->setSearchPaths(searchPaths);
 }
 
-const std::string& Application::getResourceRootPath(void)
+const std::string& CCApplication::getResourceRootPath(void)
 {
-    return _resourceRootPath;
+    return m_resourceRootPath;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_EMSCRIPTEN;
+    return kTargetEmscripten;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
     CC_ASSERT(sm_pSharedApplication);
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
-{
-    return LanguageType::ENGLISH;
+    return kLanguageEnglish;
 }
 
 NS_CC_END;

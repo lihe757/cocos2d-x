@@ -27,74 +27,106 @@ THE SOFTWARE.
 #include "CCAction.h"
 #include "CCActionInterval.h"
 #include "base_nodes/CCNode.h"
+#include "support/CCPointExtension.h"
 #include "CCDirector.h"
+#include "cocoa/CCZone.h"
 
 NS_CC_BEGIN
 //
 // Action Base Class
 //
 
-Action::Action()
-:_originalTarget(NULL)
-,_target(NULL)
-,_tag(kActionTagInvalid)
+CCAction::CCAction()
+:m_pOriginalTarget(NULL)
+,m_pTarget(NULL)
+,m_nTag(kCCActionTagInvalid)
 {
 }
 
-Action::~Action()
+CCAction::~CCAction()
 {
     CCLOGINFO("cocos2d: deallocing");
 }
 
-const char* Action::description() const
+CCAction* CCAction::create()
 {
-    return String::createWithFormat("<Action | Tag = %d>", _tag)->getCString();
+    CCAction * pRet = new CCAction();
+    pRet->autorelease();
+    return pRet;
 }
 
-void Action::startWithTarget(Node *aTarget)
+const char* CCAction::description()
 {
-    _originalTarget = _target = aTarget;
+    return CCString::createWithFormat("<CCAction | Tag = %d>", m_nTag)->getCString();
 }
 
-void Action::stop()
+CCObject* CCAction::copyWithZone(CCZone *pZone)
 {
-    _target = NULL;
+    CCZone *pNewZone = NULL;
+    CCAction *pRet = NULL;
+    if (pZone && pZone->m_pCopyObject)
+    {
+        pRet = (CCAction*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pRet = new CCAction();
+        pNewZone = new CCZone(pRet);
+    }
+    //copy member data
+    pRet->m_nTag = m_nTag;
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-bool Action::isDone() const
+void CCAction::startWithTarget(CCNode *aTarget)
+{
+    m_pOriginalTarget = m_pTarget = aTarget;
+}
+
+void CCAction::stop()
+{
+    m_pTarget = NULL;
+}
+
+bool CCAction::isDone()
 {
     return true;
 }
 
-void Action::step(float dt)
+void CCAction::step(float dt)
 {
     CC_UNUSED_PARAM(dt);
     CCLOG("[Action step]. override me");
 }
 
-void Action::update(float time)
+void CCAction::update(float time)
 {
     CC_UNUSED_PARAM(time);
     CCLOG("[Action update]. override me");
 }
 
 //
+// FiniteTimeAction
+//
+
+CCFiniteTimeAction *CCFiniteTimeAction::reverse()
+{
+    CCLOG("cocos2d: FiniteTimeAction#reverse: Implement me");
+    return NULL;
+}
+
+//
 // Speed
 //
-Speed::Speed()
-: _speed(0.0)
-, _innerAction(NULL)
+CCSpeed::~CCSpeed()
 {
+    CC_SAFE_RELEASE(m_pInnerAction);
 }
 
-Speed::~Speed()
+CCSpeed* CCSpeed::create(CCActionInterval* pAction, float fSpeed)
 {
-    CC_SAFE_RELEASE(_innerAction);
-}
-
-Speed* Speed::create(ActionInterval* pAction, float fSpeed)
-{
-    Speed *pRet = new Speed();
+    CCSpeed *pRet = new CCSpeed();
     if (pRet && pRet->initWithAction(pAction, fSpeed))
     {
         pRet->autorelease();
@@ -104,73 +136,84 @@ Speed* Speed::create(ActionInterval* pAction, float fSpeed)
     return NULL;
 }
 
-bool Speed::initWithAction(ActionInterval *pAction, float fSpeed)
+bool CCSpeed::initWithAction(CCActionInterval *pAction, float fSpeed)
 {
-    CCASSERT(pAction != NULL, "");
+    CCAssert(pAction != NULL, "");
     pAction->retain();
-    _innerAction = pAction;
-    _speed = fSpeed;    
+    m_pInnerAction = pAction;
+    m_fSpeed = fSpeed;    
     return true;
 }
 
-Speed *Speed::clone() const
+CCObject *CCSpeed::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new Speed();
-	a->initWithAction(_innerAction->clone(), _speed);
-	a->autorelease();
-	return  a;
-}
-
-void Speed::startWithTarget(Node* target)
-{
-    Action::startWithTarget(target);
-    _innerAction->startWithTarget(target);
-}
-
-void Speed::stop()
-{
-    _innerAction->stop();
-    Action::stop();
-}
-
-void Speed::step(float dt)
-{
-    _innerAction->step(dt * _speed);
-}
-
-bool Speed::isDone() const
-{
-    return _innerAction->isDone();
-}
-
-Speed *Speed::reverse() const
-{
-
-	return Speed::create(_innerAction->reverse(), _speed);
-}
-
-void Speed::setInnerAction(ActionInterval *pAction)
-{
-    if (_innerAction != pAction)
+    CCZone* pNewZone = NULL;
+    CCSpeed* pRet = NULL;
+    if(pZone && pZone->m_pCopyObject) //in case of being called at sub class
     {
-        CC_SAFE_RELEASE(_innerAction);
-        _innerAction = pAction;
-        CC_SAFE_RETAIN(_innerAction);
+        pRet = (CCSpeed*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pRet = new CCSpeed();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    CCAction::copyWithZone(pZone);
+
+    pRet->initWithAction( (CCActionInterval*)(m_pInnerAction->copy()->autorelease()) , m_fSpeed );
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
+}
+
+void CCSpeed::startWithTarget(CCNode* pTarget)
+{
+    CCAction::startWithTarget(pTarget);
+    m_pInnerAction->startWithTarget(pTarget);
+}
+
+void CCSpeed::stop()
+{
+    m_pInnerAction->stop();
+    CCAction::stop();
+}
+
+void CCSpeed::step(float dt)
+{
+    m_pInnerAction->step(dt * m_fSpeed);
+}
+
+bool CCSpeed::isDone()
+{
+    return m_pInnerAction->isDone();
+}
+
+CCActionInterval *CCSpeed::reverse()
+{
+     return (CCActionInterval*)(CCSpeed::create(m_pInnerAction->reverse(), m_fSpeed));
+}
+
+void CCSpeed::setInnerAction(CCActionInterval *pAction)
+{
+    if (m_pInnerAction != pAction)
+    {
+        CC_SAFE_RELEASE(m_pInnerAction);
+        m_pInnerAction = pAction;
+        CC_SAFE_RETAIN(m_pInnerAction);
     }
 }
 
 //
 // Follow
 //
-Follow::~Follow()
+CCFollow::~CCFollow()
 {
-    CC_SAFE_RELEASE(_followedNode);
+    CC_SAFE_RELEASE(m_pobFollowedNode);
 }
 
-Follow* Follow::create(Node *pFollowedNode, const Rect& rect/* = Rect::ZERO*/)
+CCFollow* CCFollow::create(CCNode *pFollowedNode, const CCRect& rect/* = CCRectZero*/)
 {
-    Follow *pRet = new Follow();
+    CCFollow *pRet = new CCFollow();
     if (pRet && pRet->initWithTarget(pFollowedNode, rect))
     {
         pRet->autorelease();
@@ -180,101 +223,106 @@ Follow* Follow::create(Node *pFollowedNode, const Rect& rect/* = Rect::ZERO*/)
     return NULL;
 }
 
-Follow* Follow::clone() const
+bool CCFollow::initWithTarget(CCNode *pFollowedNode, const CCRect& rect/* = CCRectZero*/)
 {
-	// no copy constructor
-	auto a = new Follow();
-	a->initWithTarget(_followedNode, _worldRect);
-	a->autorelease();
-	return a;
-}
-
-Follow* Follow::reverse() const
-{
-    return clone();
-}
-
-bool Follow::initWithTarget(Node *pFollowedNode, const Rect& rect/* = Rect::ZERO*/)
-{
-    CCASSERT(pFollowedNode != NULL, "");
+    CCAssert(pFollowedNode != NULL, "");
  
     pFollowedNode->retain();
-    _followedNode = pFollowedNode;
-	_worldRect = rect;
-    if (rect.equals(Rect::ZERO))
+    m_pobFollowedNode = pFollowedNode;
+    if (rect.equals(CCRectZero))
     {
-        _boundarySet = false;
+        m_bBoundarySet = false;
     }
     else
     {
-        _boundarySet = true;
+        m_bBoundarySet = true;
     }
     
-    _boundaryFullyCovered = false;
+    m_bBoundaryFullyCovered = false;
 
-    Size winSize = Director::getInstance()->getWinSize();
-    _fullScreenSize = Point(winSize.width, winSize.height);
-    _halfScreenSize = _fullScreenSize * 0.5f;
+    CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+    m_obFullScreenSize = CCPointMake(winSize.width, winSize.height);
+    m_obHalfScreenSize = ccpMult(m_obFullScreenSize, 0.5f);
 
-    if (_boundarySet)
+    if (m_bBoundarySet)
     {
-        _leftBoundary = -((rect.origin.x+rect.size.width) - _fullScreenSize.x);
-        _rightBoundary = -rect.origin.x ;
-        _topBoundary = -rect.origin.y;
-        _bottomBoundary = -((rect.origin.y+rect.size.height) - _fullScreenSize.y);
+        m_fLeftBoundary = -((rect.origin.x+rect.size.width) - m_obFullScreenSize.x);
+        m_fRightBoundary = -rect.origin.x ;
+        m_fTopBoundary = -rect.origin.y;
+        m_fBottomBoundary = -((rect.origin.y+rect.size.height) - m_obFullScreenSize.y);
 
-        if(_rightBoundary < _leftBoundary)
+        if(m_fRightBoundary < m_fLeftBoundary)
         {
             // screen width is larger than world's boundary width
             //set both in the middle of the world
-            _rightBoundary = _leftBoundary = (_leftBoundary + _rightBoundary) / 2;
+            m_fRightBoundary = m_fLeftBoundary = (m_fLeftBoundary + m_fRightBoundary) / 2;
         }
-        if(_topBoundary < _bottomBoundary)
+        if(m_fTopBoundary < m_fBottomBoundary)
         {
             // screen width is larger than world's boundary width
             //set both in the middle of the world
-            _topBoundary = _bottomBoundary = (_topBoundary + _bottomBoundary) / 2;
+            m_fTopBoundary = m_fBottomBoundary = (m_fTopBoundary + m_fBottomBoundary) / 2;
         }
 
-        if( (_topBoundary == _bottomBoundary) && (_leftBoundary == _rightBoundary) )
+        if( (m_fTopBoundary == m_fBottomBoundary) && (m_fLeftBoundary == m_fRightBoundary) )
         {
-            _boundaryFullyCovered = true;
+            m_bBoundaryFullyCovered = true;
         }
     }
     
     return true;
 }
 
-void Follow::step(float dt)
+CCObject *CCFollow::copyWithZone(CCZone *pZone)
 {
-    CC_UNUSED_PARAM(dt);
-
-    if(_boundarySet)
+    CCZone *pNewZone = NULL;
+    CCFollow *pRet = NULL;
+    if(pZone && pZone->m_pCopyObject) //in case of being called at sub class
     {
-        // whole map fits inside a single screen, no need to modify the position - unless map boundaries are increased
-        if(_boundaryFullyCovered)
-            return;
-
-        Point tempPos = _halfScreenSize - _followedNode->getPosition();
-
-        _target->setPosition(Point(clampf(tempPos.x, _leftBoundary, _rightBoundary),
-                                   clampf(tempPos.y, _bottomBoundary, _topBoundary)));
+        pRet = (CCFollow*)(pZone->m_pCopyObject);
     }
     else
     {
-        _target->setPosition(_halfScreenSize - _followedNode->getPosition());
+        pRet = new CCFollow();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    CCAction::copyWithZone(pZone);
+    // copy member data
+    pRet->m_nTag = m_nTag;
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
+}
+
+void CCFollow::step(float dt)
+{
+    CC_UNUSED_PARAM(dt);
+
+    if(m_bBoundarySet)
+    {
+        // whole map fits inside a single screen, no need to modify the position - unless map boundaries are increased
+        if(m_bBoundaryFullyCovered)
+            return;
+
+        CCPoint tempPos = ccpSub( m_obHalfScreenSize, m_pobFollowedNode->getPosition());
+
+        m_pTarget->setPosition(ccp(clampf(tempPos.x, m_fLeftBoundary, m_fRightBoundary), 
+                                   clampf(tempPos.y, m_fBottomBoundary, m_fTopBoundary)));
+    }
+    else
+    {
+        m_pTarget->setPosition(ccpSub(m_obHalfScreenSize, m_pobFollowedNode->getPosition()));
     }
 }
 
-bool Follow::isDone() const
+bool CCFollow::isDone()
 {
-    return ( !_followedNode->isRunning() );
+    return ( !m_pobFollowedNode->isRunning() );
 }
 
-void Follow::stop()
+void CCFollow::stop()
 {
-    _target = NULL;
-    Action::stop();
+    m_pTarget = NULL;
+    CCAction::stop();
 }
 
 NS_CC_END

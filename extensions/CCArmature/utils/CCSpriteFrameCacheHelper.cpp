@@ -25,34 +25,34 @@ THE SOFTWARE.
 #include "CCSpriteFrameCacheHelper.h"
 
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-SpriteFrameCacheHelper *SpriteFrameCacheHelper::s_SpriteFrameCacheHelper = NULL;
+CCSpriteFrameCacheHelper *CCSpriteFrameCacheHelper::s_SpriteFrameCacheHelper = NULL;
 
-SpriteFrameCacheHelper *SpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()
+CCSpriteFrameCacheHelper *CCSpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()
 {
     if(!s_SpriteFrameCacheHelper)
     {
-        s_SpriteFrameCacheHelper = new SpriteFrameCacheHelper();
+        s_SpriteFrameCacheHelper = new CCSpriteFrameCacheHelper();
     }
 
     return s_SpriteFrameCacheHelper;
 }
 
-void SpriteFrameCacheHelper::purgeSpriteFrameCacheHelper()
+void CCSpriteFrameCacheHelper::purgeSpriteFrameCacheHelper()
 {
     delete s_SpriteFrameCacheHelper;
     s_SpriteFrameCacheHelper = NULL;
 }
 
-void SpriteFrameCacheHelper::addSpriteFrameFromFile(const char *plistPath, const char *imagePath)
+void CCSpriteFrameCacheHelper::addSpriteFrameFromFile(const char *plistPath, const char *imagePath)
 {
 
-    std::string path = FileUtils::getInstance()->fullPathForFilename(plistPath);
-    Dictionary *dict = Dictionary::createWithContentsOfFileThreadSafe(path.c_str());
+    std::string path = CCFileUtils::sharedFileUtils()->fullPathForFilename(plistPath);
+    CCDictionary *dict = CCDictionary::createWithContentsOfFileThreadSafe(path.c_str());
 
 
-    Texture2D *pobTexture = TextureCache::getInstance()->addImage(imagePath);
+    CCTexture2D *pobTexture = CCTextureCache::sharedTextureCache()->addImage(imagePath);
 
     addSpriteFrameFromDict(dict, pobTexture, imagePath);
 
@@ -60,7 +60,7 @@ void SpriteFrameCacheHelper::addSpriteFrameFromFile(const char *plistPath, const
 
 }
 
-void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Texture2D *pobTexture, const char *imagePath)
+void CCSpriteFrameCacheHelper::addSpriteFrameFromDict(CCDictionary *dictionary, CCTexture2D *pobTexture, const char *imagePath)
 {
     /*
     Supported Zwoptex Formats:
@@ -71,8 +71,8 @@ void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Text
     ZWTCoordinatesFormatOptionXML1_2 = 3, // Desktop Version 1.0.2+
     */
 
-    Dictionary *metadataDict = (Dictionary *)dictionary->objectForKey("metadata");
-    Dictionary *framesDict = (Dictionary *)dictionary->objectForKey("frames");
+    CCDictionary *metadataDict = (CCDictionary *)dictionary->objectForKey("metadata");
+    CCDictionary *framesDict = (CCDictionary *)dictionary->objectForKey("frames");
     int format = 0;
 
     // get the format
@@ -82,19 +82,19 @@ void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Text
     }
 
     // check the format
-    CCASSERT(format >= 0 && format <= 3, "format is not supported for SpriteFrameCache addSpriteFramesWithDictionary:textureFilename:");
+    CCAssert(format >= 0 && format <= 3, "format is not supported for CCSpriteFrameCache addSpriteFramesWithDictionary:textureFilename:");
 
-    DictElement *pElement = NULL;
+    CCDictElement *pElement = NULL;
     CCDICT_FOREACH(framesDict, pElement)
     {
-        Dictionary *frameDict = static_cast<Dictionary*>(pElement->getObject());
+        CCDictionary *frameDict = (CCDictionary *)pElement->getObject();
         std::string spriteFrameName = pElement->getStrKey();
 
-        _display2ImageMap[spriteFrameName] = imagePath;
+        m_Display2ImageMap[spriteFrameName] = imagePath;
 
-        //log("spriteFrameName : %s,    imagePath : %s", spriteFrameName.c_str(), _imagePath);
+        //CCLog("spriteFrameName : %s,    imagePath : %s", spriteFrameName.c_str(), _imagePath);
 
-        SpriteFrame *spriteFrame = (SpriteFrame *)SpriteFrameCache::getInstance()->getSpriteFrameByName(spriteFrameName.c_str());
+        CCSpriteFrame *spriteFrame = (CCSpriteFrame *)CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(spriteFrameName.c_str());
         if (spriteFrame)
         {
             continue;
@@ -113,18 +113,18 @@ void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Text
             // check ow/oh
             if(!ow || !oh)
             {
-                CCLOG("cocos2d: WARNING: originalWidth/Height not found on the SpriteFrame. AnchorPoint won't work as expected. Regenrate the .plist");
+                CCLOG("cocos2d: WARNING: originalWidth/Height not found on the CCSpriteFrame. AnchorPoint won't work as expected. Regenrate the .plist");
             }
             // abs ow/oh
             ow = abs(ow);
             oh = abs(oh);
             // create frame
-            spriteFrame = new SpriteFrame();
-            spriteFrame->initWithTexture(pobTexture, Rect(x, y, w, h), false, Point(ox, oy), Size((float)ow, (float)oh));
+            spriteFrame = new CCSpriteFrame();
+            spriteFrame->initWithTexture(pobTexture, CCRectMake(x, y, w, h), false, CCPointMake(ox, oy), CCSizeMake((float)ow, (float)oh));
 		}
         else if(format == 1 || format == 2)
         {
-            Rect frame = RectFromString(frameDict->valueForKey("frame")->getCString());
+            CCRect frame = CCRectFromString(frameDict->valueForKey("frame")->getCString());
             bool rotated = false;
 
             // rotation
@@ -133,11 +133,11 @@ void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Text
                 rotated = frameDict->valueForKey("rotated")->boolValue();
             }
 
-            Point offset = PointFromString(frameDict->valueForKey("offset")->getCString());
-            Size sourceSize = SizeFromString(frameDict->valueForKey("sourceSize")->getCString());
+            CCPoint offset = CCPointFromString(frameDict->valueForKey("offset")->getCString());
+            CCSize sourceSize = CCSizeFromString(frameDict->valueForKey("sourceSize")->getCString());
 
             // create frame
-            spriteFrame = new SpriteFrame();
+            spriteFrame = new CCSpriteFrame();
             spriteFrame->initWithTexture(pobTexture, frame, rotated, offset, sourceSize );
         }
         else if (format == 3)
@@ -146,38 +146,38 @@ void SpriteFrameCacheHelper::addSpriteFrameFromDict(Dictionary *dictionary, Text
         }
 
         // add sprite frame
-        SpriteFrameCache::getInstance()->addSpriteFrame(spriteFrame, spriteFrameName.c_str());
+        CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFrame(spriteFrame, spriteFrameName.c_str());
         spriteFrame->release();
     }
 }
 
-const char *SpriteFrameCacheHelper::getDisplayImagePath(const char *displayName)
+const char *CCSpriteFrameCacheHelper::getDisplayImagePath(const char *displayName)
 {
-    return _display2ImageMap[displayName].c_str();
+    return m_Display2ImageMap[displayName].c_str();
 }
 
 
-TextureAtlas *SpriteFrameCacheHelper::getTextureAtlas(const char *displayName)
+CCTextureAtlas *CCSpriteFrameCacheHelper::getTextureAtlas(const char *displayName)
 {
     const char *textureName = getDisplayImagePath(displayName);
-    TextureAtlas *atlas = (TextureAtlas *)_display2TextureAtlas->objectForKey(textureName);
+    CCTextureAtlas *atlas = (CCTextureAtlas *)m_pDisplay2TextureAtlas->objectForKey(textureName);
     if (atlas == NULL)
     {
-        atlas = TextureAtlas::createWithTexture(TextureCache::getInstance()->addImage(textureName), 4);
-        _display2TextureAtlas->setObject(atlas, textureName);
+        atlas = CCTextureAtlas::createWithTexture(CCTextureCache::sharedTextureCache()->addImage(textureName), 4);
+        m_pDisplay2TextureAtlas->setObject(atlas, textureName);
     }
 
     return atlas;
 }
 
-SpriteFrameCacheHelper::SpriteFrameCacheHelper()
+CCSpriteFrameCacheHelper::CCSpriteFrameCacheHelper()
 {
-    _display2TextureAtlas = new Dictionary();
+    m_pDisplay2TextureAtlas = new CCDictionary();
 }
 
-SpriteFrameCacheHelper::~SpriteFrameCacheHelper()
+CCSpriteFrameCacheHelper::~CCSpriteFrameCacheHelper()
 {
-    CC_SAFE_RELEASE_NULL(_display2TextureAtlas);
+    CC_SAFE_RELEASE_NULL(m_pDisplay2TextureAtlas);
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

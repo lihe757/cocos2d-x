@@ -31,12 +31,12 @@
 #include "CCControl.h"
 
 
-namespace cocos2d { class Sprite; }
-namespace cocos2d { class LabelTTF; }
+namespace cocos2d { class CCSprite; }
+namespace cocos2d { class CCLabelTTF; }
 
 NS_CC_EXT_BEGIN
 
-class ControlSwitchSprite;
+class CCControlSwitchSprite;
 
 /**
  * @addtogroup GUI
@@ -45,22 +45,25 @@ class ControlSwitchSprite;
  * @{
  */
 
-/** @class ControlSwitch Switch control for Cocos2D. */
-class ControlSwitch : public Control
+/** @class CCControlSwitch Switch control for Cocos2D. */
+class CCControlSwitch : public CCControl
 {
 public:
-    /** Creates a switch with a mask sprite, on/off sprites for on/off states, a thumb sprite and an on/off labels. */
-    static ControlSwitch* create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite, LabelTTF* onLabel, LabelTTF* offLabel);
-    /** Creates a switch with a mask sprite, on/off sprites for on/off states and a thumb sprite. */
-    static ControlSwitch* create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite);
-
-    ControlSwitch();
-    virtual ~ControlSwitch();
-
+    CCControlSwitch();
+    virtual ~CCControlSwitch();
     /** Initializes a switch with a mask sprite, on/off sprites for on/off states and a thumb sprite. */
-    bool initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite);
+    bool initWithMaskSprite(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite);
+
+    /** Creates a switch with a mask sprite, on/off sprites for on/off states and a thumb sprite. */
+    static CCControlSwitch* create(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite);
+
+
     /** Initializes a switch with a mask sprite, on/off sprites for on/off states, a thumb sprite and an on/off labels. */
-    bool initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite, LabelTTF* onLabel, LabelTTF* offLabel);
+    bool initWithMaskSprite(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite, CCLabelTTF* onLabel, CCLabelTTF* offLabel);
+
+    /** Creates a switch with a mask sprite, on/off sprites for on/off states, a thumb sprite and an on/off labels. */
+    static CCControlSwitch* create(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite, CCLabelTTF* onLabel, CCLabelTTF* offLabel);
+
 
     /**
      * Set the state of the switch to On or Off, optionally animating the transition.
@@ -72,26 +75,25 @@ public:
      */
     void setOn(bool isOn, bool animated);
     void setOn(bool isOn);
-    bool isOn(void) const { return _on; }
-    bool hasMoved() const { return _moved; }
+    bool isOn(void) { return m_bOn; }
+    bool hasMoved() { return m_bMoved; }
     virtual void setEnabled(bool enabled);
 
-    Point locationFromTouch(Touch* touch);
-
-    // Overrides
-    virtual bool ccTouchBegan(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchMoved(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchEnded(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchCancelled(Touch *pTouch, Event *pEvent) override;
+    CCPoint locationFromTouch(CCTouch* touch);
+    //events
+    virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
 
 protected:
     /** Sprite which represents the view. */
-    ControlSwitchSprite* _switchSprite;
-    float _initialTouchXPosition;
+    CCControlSwitchSprite* m_pSwitchSprite;
+    float m_fInitialTouchXPosition;
     
-    bool _moved;
+    bool m_bMoved;
     /** A Boolean value that determines the off/on state of the switch. */
-    bool _on;
+    bool m_bOn;
 };
 
 // end of GUI group

@@ -32,11 +32,11 @@ NS_CC_BEGIN
 
 
 
-class CC_DLL EGLView : public EGLViewProtocol
+class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
 public:
-    EGLView();
-   ~EGLView();
+    CCEGLView();
+   ~CCEGLView();
 
     virtual bool    isOpenGLReady();
     virtual bool    setContentScaleFactor(float contentScaleFactor);
@@ -46,12 +46,8 @@ public:
     virtual void    swapBuffers();
     
     virtual void setIMEKeyboardState(bool bOpen);
-
-    /** returns the singleton */
-    static EGLView* getInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static EGLView* sharedOpenGLView();
+    
+    static CCEGLView* sharedOpenGLView();
 
 };
 

@@ -32,7 +32,6 @@
 
 NS_CC_BEGIN
 
-// XXX deprecated
 void CCLog(const char * pszFormat, ...)
 {
     printf("Cocos2d: ");
@@ -47,28 +46,13 @@ void CCLog(const char * pszFormat, ...)
     fflush(stdout);
 }
 
-void log(const char * pszFormat, ...)
-{
-    printf("Cocos2d: ");
-    char szBuf[kMaxLogLen];
-
-    va_list ap;
-    va_start(ap, pszFormat);
-    vsnprintf(szBuf, kMaxLogLen, pszFormat, ap);
-    va_end(ap);
-    printf("%s", szBuf);
-    printf("\n");
-    fflush(stdout);
-}
-
-
-void LuaLog(const char * pszFormat)
+void CCLuaLog(const char * pszFormat)
 {
     puts(pszFormat);
 }
 
-// ios no MessageBox, use log instead
-void MessageBox(const char * pszMsg, const char * pszTitle)
+// ios no MessageBox, use CCLog instead
+void CCMessageBox(const char * pszMsg, const char * pszTitle)
 {
     NSString * title = (pszTitle) ? [NSString stringWithUTF8String : pszTitle] : nil;
     NSString * msg = (pszMsg) ? [NSString stringWithUTF8String : pszMsg] : nil;
@@ -79,7 +63,7 @@ void MessageBox(const char * pszMsg, const char * pszTitle)
 	[alert setInformativeText:title];
 	[alert setAlertStyle:NSWarningAlertStyle];
 
-	NSWindow *window = [[CCEAGLView sharedEGLView] window];
+	NSWindow *window = [[EAGLView sharedEGLView] window];
 	[alert beginSheetModalForWindow:window
 					  modalDelegate:[window delegate]
 					 didEndSelector:nil

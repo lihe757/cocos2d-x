@@ -2,10 +2,13 @@
 #define _TILEMAP_TEST_H_
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class TileDemo : public BaseTest
+class TileDemo : public CCLayer
 {
+protected:
+    CCLabelTTF* m_label;
+    CCLabelTTF* m_subtitle;
+
 public:
     TileDemo(void);
     virtual ~TileDemo(void);
@@ -14,11 +17,11 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
 };
 
 class TileMapTest : public TileDemo
@@ -71,13 +74,13 @@ public:
 
 class TMXReadWriteTest : public TileDemo
 {
-    unsigned int _gid;
-    unsigned int _gid2;
+    unsigned int m_gid;
+    unsigned int m_gid2;
 public:
     TMXReadWriteTest(void);
     virtual std::string title();
 
-    void removeSprite(Node* sender);
+    void removeSprite(CCNode* sender);
     void updateCol(float dt);
     void repaintWithGID(float dt);
     void removeTiles(float dt);
@@ -158,7 +161,7 @@ public:
 
 class TMXIsoZorder : public TileDemo
 {
-    Sprite*    _tamara;
+    CCSprite*    m_tamara;
 public:
     TMXIsoZorder(void);
     virtual std::string title();
@@ -171,7 +174,7 @@ public:
 
 class TMXOrthoZorder : public TileDemo
 {
-    Sprite*    _tamara;
+    CCSprite*    m_tamara;
 public:
     TMXOrthoZorder(void);
     virtual std::string title();
@@ -183,7 +186,7 @@ public:
 
 class TMXIsoVertexZ : public TileDemo
 {
-    Sprite*    _tamara;
+    CCSprite*    m_tamara;
 public:
     TMXIsoVertexZ(void);
     virtual std::string title();
@@ -197,7 +200,7 @@ public:
 
 class TMXOrthoVertexZ : public TileDemo
 {
-    Sprite*    _tamara;
+    CCSprite*    m_tamara;
 public:
     TMXOrthoVertexZ(void);
     virtual std::string title();

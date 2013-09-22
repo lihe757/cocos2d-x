@@ -50,7 +50,7 @@ namespace CocosDenshion {
 static std::string getFullPathWithoutAssetsPrefix(const char* pszFilename)
 {
 	// Changing file path to full path
-    std::string fullPath = FileUtils::getInstance()->fullPathForFilename(pszFilename);
+    std::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(pszFilename);
     // Removing `assets` since it isn't needed for the API of playing sound.
     size_t pos = fullPath.find("assets/");
     if (pos == 0)
@@ -74,13 +74,13 @@ SimpleAudioEngine::SimpleAudioEngine()
 	
 	const char* deviceModel = methodInfo.env->GetStringUTFChars(jstr, NULL);
     
-	LOGD("%s", deviceModel);
+	LOGD(deviceModel);
     
 	if (strcmp(I9100_MODEL, deviceModel) == 0)
 	{
 		LOGD("i9100 model\nSwitch to OpenSLES");
 		s_bI9100 = true;
-    }
+	}
     
 	methodInfo.env->ReleaseStringUTFChars(jstr, deviceModel);
 	methodInfo.env->DeleteLocalRef(jstr);
@@ -94,7 +94,7 @@ SimpleAudioEngine::~SimpleAudioEngine()
 	}
 }
 
-SimpleAudioEngine* SimpleAudioEngine::getInstance()
+SimpleAudioEngine* SimpleAudioEngine::sharedEngine()
 {
     if (! s_pEngine)
     {
@@ -192,17 +192,16 @@ void SimpleAudioEngine::setEffectsVolume(float volume)
 	}
 }
 
-unsigned int SimpleAudioEngine::playEffect(const char* pszFilePath, bool bLoop,
-                                           float pitch, float pan, float gain)
+unsigned int SimpleAudioEngine::playEffect(const char* pszFilePath, bool bLoop)
 {
 	std::string fullPath = getFullPathWithoutAssetsPrefix(pszFilePath);
 	if (s_bI9100)
 	{
-        return SimpleAudioEngineOpenSL::sharedEngine()->playEffect(fullPath.c_str(), bLoop, pitch, pan, gain);
+		return SimpleAudioEngineOpenSL::sharedEngine()->playEffect(fullPath.c_str(), bLoop);
 	}
 	else 
 	{
-        return playEffectJNI(fullPath.c_str(), bLoop, pitch, pan, gain);
+		return playEffectJNI(fullPath.c_str(), bLoop);
 	}
 }
 

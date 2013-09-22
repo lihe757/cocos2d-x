@@ -62,15 +62,15 @@ public:
 
 	void resumeAllEffects();
 
-	void setEffectParameters(unsigned int effectID, bool isLooping, float pitch, float pan, float gain);
+	void setEffectLooping(unsigned int effectID, bool isLooping);
 
 	void setEffectsVolume(float volume);
 
 	float getEffectsVolume();
 
 private:
-	SLmillibel _musicVolume;
-    float _effectVolume;
+	SLmillibel m_musicVolume;
+	SLmillibel m_effectVolume;
 };
 
 #endif

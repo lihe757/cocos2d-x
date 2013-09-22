@@ -43,7 +43,7 @@
 // override the static method and return our simulated version instead
 + (UIAccelerometer *)sharedAccelerometer
 {
-    return [CCAccelerometerSimulation getAccelerometer];
+    return [AccelerometerSimulation getAccelerometer];
 }
 #pragma clang diagnostic pop
 @end
@@ -63,9 +63,9 @@
  */
 
 // singleton
-static CCAccelerometerSimulation *sharedAccelerometer = NULL;
+static AccelerometerSimulation *sharedAccelerometer = NULL;
 
-@implementation CCAccelerometerSimulation
+@implementation AccelerometerSimulation
 
 - (void) dealloc {
     if (sharedAccelerometer) {
@@ -135,10 +135,10 @@ static CCAccelerometerSimulation *sharedAccelerometer = NULL;
     [notificationLock unlock];
 }
 #ifndef __clang_analyzer__
-+ (CCAccelerometerSimulation *)getAccelerometer
++ (AccelerometerSimulation *)getAccelerometer
 {
     if( sharedAccelerometer == NULL )
-        sharedAccelerometer = [[CCAccelerometerSimulation alloc] initialize];
+        sharedAccelerometer = [[AccelerometerSimulation alloc] initialize];
     
     return sharedAccelerometer;
 }
@@ -162,7 +162,7 @@ static CCAccelerometerSimulation *sharedAccelerometer = NULL;
 }
 
 // initialize our version of the accelerometer
-- (CCAccelerometerSimulation *)initialize
+- (AccelerometerSimulation *)initialize
 {
     accObject = [UIAccelerationSimulation alloc];
     isExiting = false;

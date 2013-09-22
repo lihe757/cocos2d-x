@@ -5,17 +5,17 @@
 
 USING_NS_CC;
 
-class AccelerometerTest: public Layer
+class AccelerometerTest: public CCLayer
 {
 protected:
-    Sprite* _ball;
-    double    _lastTime;
+    CCSprite* m_pBall;
+    double    m_fLastTime;
 
 public:
     AccelerometerTest(void);
     ~AccelerometerTest(void);
 
-    virtual void didAccelerate(Acceleration* pAccelerationValue);
+    virtual void didAccelerate(CCAcceleration* pAccelerationValue);
 
     virtual std::string title();
     virtual void onEnter();

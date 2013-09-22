@@ -33,38 +33,38 @@ class BitmapDC
 {
 public:
     BitmapDC(HWND hWnd = NULL)
-    : _DC(NULL)
-    , _bmp(NULL)
-    , _font((HFONT)GetStockObject(DEFAULT_GUI_FONT))
-    , _wnd(NULL)
+    : m_hDC(NULL)
+    , m_hBmp(NULL)
+    , m_hFont((HFONT)GetStockObject(DEFAULT_GUI_FONT))
+    , m_hWnd(NULL)
     {
-        _wnd = hWnd;
+        m_hWnd = hWnd;
         HDC hdc = GetDC(hWnd);
-        _DC   = CreateCompatibleDC(hdc);
+        m_hDC   = CreateCompatibleDC(hdc);
         ReleaseDC(hWnd, hdc);
     }
 
     ~BitmapDC()
     {
         prepareBitmap(0, 0);
-        if (_DC)
+        if (m_hDC)
         {
-            DeleteDC(_DC);
+            DeleteDC(m_hDC);
         }
         HFONT hDefFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
-        if (hDefFont != _font)
+        if (hDefFont != m_hFont)
         {
-            DeleteObject(_font);
-            _font = hDefFont;
+            DeleteObject(m_hFont);
+            m_hFont = hDefFont;
         }
 		// release temp font resource	
-		if (_curFontPath.size() > 0)
+		if (m_curFontPath.size() > 0)
 		{
-			wchar_t * pwszBuffer = utf8ToUtf16(_curFontPath);
+			wchar_t * pwszBuffer = utf8ToUtf16(m_curFontPath);
 			if (pwszBuffer)
 			{
 				RemoveFontResource(pwszBuffer);
-				SendMessage( _wnd, WM_FONTCHANGE, 0, 0);
+				SendMessage( m_hWnd, WM_FONTCHANGE, 0, 0);
 				delete [] pwszBuffer;
 				pwszBuffer = NULL;
 			}
@@ -111,7 +111,7 @@ public:
                 int nFindTTF = fontName.find(".TTF");
                 if (nFindttf >= 0 || nFindTTF >= 0)
                 {
-                    fontPath = FileUtils::getInstance()->fullPathForFilename(fontName.c_str());
+                    fontPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(fontName.c_str());
                     int nFindPos = fontName.rfind("/");
                     fontName = &fontName[nFindPos+1];
                     nFindPos = fontName.rfind(".");
@@ -124,7 +124,7 @@ public:
             {
                 tNewFont.lfHeight = -nSize;
             }
-            GetObjectA(_font,  sizeof(tOldFont), &tOldFont);
+            GetObjectA(m_hFont,  sizeof(tOldFont), &tOldFont);
 
             if (tOldFont.lfHeight == tNewFont.lfHeight
                 && 0 == strcmp(tOldFont.lfFaceName, tNewFont.lfFaceName))
@@ -135,53 +135,53 @@ public:
             }
 
             // delete old font
-            if (_font != hDefFont)
+            if (m_hFont != hDefFont)
             {
-                DeleteObject(_font);
+                DeleteObject(m_hFont);
 				// release old font register
-				if (_curFontPath.size() > 0)
+				if (m_curFontPath.size() > 0)
 				{
-					wchar_t * pwszBuffer = utf8ToUtf16(_curFontPath);
+					wchar_t * pwszBuffer = utf8ToUtf16(m_curFontPath);
 					if (pwszBuffer)
 					{
 						if(RemoveFontResource(pwszBuffer))
 						{
-							SendMessage( _wnd, WM_FONTCHANGE, 0, 0);
+							SendMessage( m_hWnd, WM_FONTCHANGE, 0, 0);
 						}						
 						delete [] pwszBuffer;
 						pwszBuffer = NULL;
 					}
 				}
 				if (fontPath.size() > 0)
-					_curFontPath = fontPath;
+					m_curFontPath = fontPath;
 				else
-					_curFontPath.clear();
+					m_curFontPath.clear();
 				// register temp font
-				if (_curFontPath.size() > 0)
+				if (m_curFontPath.size() > 0)
 				{
-					wchar_t * pwszBuffer = utf8ToUtf16(_curFontPath);
+					wchar_t * pwszBuffer = utf8ToUtf16(m_curFontPath);
 					if (pwszBuffer)
 					{
 						if(AddFontResource(pwszBuffer))
 						{
-							SendMessage( _wnd, WM_FONTCHANGE, 0, 0);
+							SendMessage( m_hWnd, WM_FONTCHANGE, 0, 0);
 						}						
 						delete [] pwszBuffer;
 						pwszBuffer = NULL;
 					}
 				}
             }
-            _font = NULL;
+            m_hFont = NULL;
 
             // disable Cleartype
             tNewFont.lfQuality = ANTIALIASED_QUALITY;
 
             // create new font
-            _font = CreateFontIndirectA(&tNewFont);
-            if (! _font)
+            m_hFont = CreateFontIndirectA(&tNewFont);
+            if (! m_hFont)
             {
                 // create failed, use default font
-                _font = hDefFont;
+                m_hFont = hDefFont;
                 break;
             }
             
@@ -208,11 +208,11 @@ public:
                     | (dwFmt & DT_RIGHT);
             }
             // use current font to measure text extent
-            HGDIOBJ hOld = SelectObject(_DC, _font);
+            HGDIOBJ hOld = SelectObject(m_hDC, m_hFont);
 
             // measure text size
-            DrawTextW(_DC, pszText, nLen, &rc, dwCalcFmt);
-            SelectObject(_DC, hOld);
+            DrawTextW(m_hDC, pszText, nLen, &rc, dwCalcFmt);
+            SelectObject(m_hDC, hOld);
 
             tRet.cx = rc.right;
             tRet.cy = rc.bottom;
@@ -224,15 +224,15 @@ public:
     bool prepareBitmap(int nWidth, int nHeight)
     {
         // release bitmap
-        if (_bmp)
+        if (m_hBmp)
         {
-            DeleteObject(_bmp);
-            _bmp = NULL;
+            DeleteObject(m_hBmp);
+            m_hBmp = NULL;
         }
         if (nWidth > 0 && nHeight > 0)
         {
-            _bmp = CreateBitmap(nWidth, nHeight, 1, 32, NULL);
-            if (! _bmp)
+            m_hBmp = CreateBitmap(nWidth, nHeight, 1, 32, NULL);
+            if (! m_hBmp)
             {
                 return false;
             }
@@ -240,7 +240,7 @@ public:
         return true;
     }
 
-    int drawText(const char * pszText, SIZE& tSize, Image::TextAlign eAlign)
+    int drawText(const char * pszText, SIZE& tSize, CCImage::ETextAlign eAlign)
     {
         int nRet = 0;
         wchar_t * pwszBuffer = 0;
@@ -249,8 +249,8 @@ public:
             CC_BREAK_IF(! pszText);
 
             DWORD dwFmt = DT_WORDBREAK;
-            DWORD dwHoriFlag = (int)eAlign & 0x0f;
-            DWORD dwVertFlag = ((int)eAlign & 0xf0) >> 4;
+            DWORD dwHoriFlag = eAlign & 0x0f;
+            DWORD dwVertFlag = (eAlign & 0xf0) >> 4;
 
             switch (dwHoriFlag)
             {
@@ -334,30 +334,30 @@ public:
             CC_BREAK_IF(! prepareBitmap(tSize.cx, tSize.cy));
 
             // draw text
-            HGDIOBJ hOldFont = SelectObject(_DC, _font);
-            HGDIOBJ hOldBmp  = SelectObject(_DC, _bmp);
+            HGDIOBJ hOldFont = SelectObject(m_hDC, m_hFont);
+            HGDIOBJ hOldBmp  = SelectObject(m_hDC, m_hBmp);
             
-            SetBkMode(_DC, TRANSPARENT);
-            SetTextColor(_DC, RGB(255, 255, 255)); // white color
+            SetBkMode(m_hDC, TRANSPARENT);
+            SetTextColor(m_hDC, RGB(255, 255, 255)); // white color
 
             // draw text
-            nRet = DrawTextW(_DC, pwszBuffer, nLen, &rcText, dwFmt);
-            //DrawTextA(_DC, pszText, nLen, &rcText, dwFmt);
+            nRet = DrawTextW(m_hDC, pwszBuffer, nLen, &rcText, dwFmt);
+            //DrawTextA(m_hDC, pszText, nLen, &rcText, dwFmt);
 
-            SelectObject(_DC, hOldBmp);
-            SelectObject(_DC, hOldFont);
+            SelectObject(m_hDC, hOldBmp);
+            SelectObject(m_hDC, hOldFont);
         } while (0);
         CC_SAFE_DELETE_ARRAY(pwszBuffer);
         return nRet;
     }
 
-    CC_SYNTHESIZE_READONLY(HDC, _DC, DC);
-    CC_SYNTHESIZE_READONLY(HBITMAP, _bmp, Bitmap);
+    CC_SYNTHESIZE_READONLY(HDC, m_hDC, DC);
+    CC_SYNTHESIZE_READONLY(HBITMAP, m_hBmp, Bitmap);
 private:
-    friend class Image;
-    HFONT   _font;
-    HWND    _wnd;
-    std::string _curFontPath;
+    friend class CCImage;
+    HFONT   m_hFont;
+    HWND    m_hWnd;
+    std::string m_curFontPath;
 };
 
 static BitmapDC& sharedBitmapDC()
@@ -366,11 +366,11 @@ static BitmapDC& sharedBitmapDC()
     return s_BmpDC;
 }
 
-bool Image::initWithString(
+bool CCImage::initWithString(
                                const char *    pText, 
                                int             nWidth/* = 0*/, 
                                int             nHeight/* = 0*/,
-                               TextAlign       eAlignMask/* = kAlignCenter*/,
+                               ETextAlign      eAlignMask/* = kAlignCenter*/,
                                const char *    pFontName/* = nil*/,
                                int             nSize/* = 0*/)
 {
@@ -383,16 +383,15 @@ bool Image::initWithString(
 
         if (! dc.setFont(pFontName, nSize))
         {
-            log("Can't found font(%s), use system default", pFontName);
+            CCLog("Can't found font(%s), use system default", pFontName);
         }
 
         // draw text
         SIZE size = {nWidth, nHeight};
         CC_BREAK_IF(! dc.drawText(pText, size, eAlignMask));
 
-        _dataLen = size.cx * size.cy * 4;
-        _data = new unsigned char[_dataLen];
-        CC_BREAK_IF(! _data);
+        m_pData = new unsigned char[size.cx * size.cy * 4];
+        CC_BREAK_IF(! m_pData);
 
         struct
         {
@@ -403,22 +402,23 @@ bool Image::initWithString(
         CC_BREAK_IF(! GetDIBits(dc.getDC(), dc.getBitmap(), 0, 0, 
             NULL, (LPBITMAPINFO)&bi, DIB_RGB_COLORS));
 
-        _width    = (short)size.cx;
-        _height   = (short)size.cy;
-        _preMulti = false;
-        _renderFormat = Texture2D::PixelFormat::RGBA8888;
+        m_nWidth    = (short)size.cx;
+        m_nHeight   = (short)size.cy;
+        m_bHasAlpha = true;
+        m_bPreMulti = false;
+        m_nBitsPerComponent = 8;
         // copy pixed data
         bi.bmiHeader.biHeight = (bi.bmiHeader.biHeight > 0)
            ? - bi.bmiHeader.biHeight : bi.bmiHeader.biHeight;
-        GetDIBits(dc.getDC(), dc.getBitmap(), 0, _height, _data, 
+        GetDIBits(dc.getDC(), dc.getBitmap(), 0, m_nHeight, m_pData, 
             (LPBITMAPINFO)&bi, DIB_RGB_COLORS);
 
         // change pixel's alpha value to 255, when it's RGB != 0
         COLORREF * pPixel = NULL;
-        for (int y = 0; y < _height; ++y)
+        for (int y = 0; y < m_nHeight; ++y)
         {
-            pPixel = (COLORREF *)_data + y * _width;
-            for (int x = 0; x < _width; ++x)
+            pPixel = (COLORREF *)m_pData + y * m_nWidth;
+            for (int x = 0; x < m_nWidth; ++x)
             {
                 COLORREF& clr = *pPixel;
                 if (GetRValue(clr) || GetGValue(clr) || GetBValue(clr))

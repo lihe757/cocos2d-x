@@ -33,14 +33,38 @@ PluginProtocol::~PluginProtocol()
     PluginUtils::erasePluginJavaData(this);
 }
 
-std::string PluginProtocol::getPluginVersion()
+const char* PluginProtocol::getPluginVersion()
 {
-    return PluginUtils::callJavaStringFuncWithName(this, "getPluginVersion");
+    std::string verName;
+
+    PluginJavaData* pData = PluginUtils::getPluginJavaData(this);
+    PluginJniMethodInfo t;
+    if (PluginJniHelper::getMethodInfo(t
+        , pData->jclassName.c_str()
+        , "getPluginVersion"
+        , "()Ljava/lang/String;"))
+    {
+        jstring ret = (jstring)(t.env->CallObjectMethod(pData->jobj, t.methodID));
+        verName = PluginJniHelper::jstring2string(ret);
+    }
+    return verName.c_str();
 }
 
-std::string PluginProtocol::getSDKVersion()
+const char* PluginProtocol::getSDKVersion()
 {
-    return PluginUtils::callJavaStringFuncWithName(this, "getSDKVersion");
+    std::string verName;
+
+    PluginJavaData* pData = PluginUtils::getPluginJavaData(this);
+    PluginJniMethodInfo t;
+    if (PluginJniHelper::getMethodInfo(t
+        , pData->jclassName.c_str()
+        , "getSDKVersion"
+        , "()Ljava/lang/String;"))
+    {
+        jstring ret = (jstring)(t.env->CallObjectMethod(pData->jobj, t.methodID));
+        verName = PluginJniHelper::jstring2string(ret);
+    }
+    return verName.c_str();
 }
 
 void PluginProtocol::setDebugMode(bool isDebugMode)
@@ -147,14 +171,14 @@ void PluginProtocol::callFuncWithParam(const char* funcName, std::vector<PluginP
     }
 }
 
-std::string PluginProtocol::callStringFuncWithParam(const char* funcName, PluginParam* param, ...)
+const char* PluginProtocol::callStringFuncWithParam(const char* funcName, PluginParam* param, ...)
 {
     CALL_JAVA_FUNC_WITH_VALIST(String)
 }
 
-std::string PluginProtocol::callStringFuncWithParam(const char* funcName, std::vector<PluginParam*> params)
+const char* PluginProtocol::callStringFuncWithParam(const char* funcName, std::vector<PluginParam*> params)
 {
-    CALL_JAVA_FUNC(std::string, String, "", "Ljava/lang/String;")
+    CALL_JAVA_FUNC(const char*, String, "", "Ljava/lang/String;")
 }
 
 int PluginProtocol::callIntFuncWithParam(const char* funcName, PluginParam* param, ...)

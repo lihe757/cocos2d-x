@@ -50,7 +50,7 @@ NS_CC_BEGIN
  */
 
 enum {
-    kLabelAutomaticWidth = -1,
+    kCCLabelAutomaticWidth = -1,
 };
 
 struct _FontDefHashElement;
@@ -63,7 +63,7 @@ typedef struct _BMFontDef {
     //! ID of the character
     unsigned int charID;
     //! origin and size of the font
-    Rect rect;
+    CCRect rect;
     //! The X amount the image should be offset when drawing the image (in pixels)
     short xOffset;
     //! The Y amount the image should be offset when drawing the image (in pixels)
@@ -92,7 +92,7 @@ typedef struct _FontDefHashElement
 	unsigned int	key;		// key. Font Unicode value
 	ccBMFontDef		fontDef;	// font definition
 	UT_hash_handle	hh;
-} tFontDefHashElement;
+} tCCFontDefHashElement;
 
 // Equal function for targetSet.
 typedef struct _KerningHashElement
@@ -100,33 +100,33 @@ typedef struct _KerningHashElement
 	int				key;		// key for the hash. 16-bit for 1st element, 16-bit for 2nd element
 	int				amount;
 	UT_hash_handle	hh;
-} tKerningHashElement;
+} tCCKerningHashElement;
 
 /** @brief CCBMFontConfiguration has parsed configuration of the the .fnt file
 @since v0.8
 */
-class CC_DLL CCBMFontConfiguration : public Object
+class CC_DLL CCBMFontConfiguration : public CCObject
 {
     // XXX: Creating a public interface so that the bitmapFontArray[] is accessible
 public://@public
     // BMFont definitions
-    tFontDefHashElement *_fontDefDictionary;
+    tCCFontDefHashElement *m_pFontDefDictionary;
 
     //! FNTConfig: Common Height Should be signed (issue #1343)
-    int _commonHeight;
+    int m_nCommonHeight;
     //! Padding
-    ccBMFontPadding    _padding;
+    ccBMFontPadding    m_tPadding;
     //! atlas name
-    std::string _atlasName;
+    std::string m_sAtlasName;
     //! values for kerning
-    tKerningHashElement *_kerningDictionary;
+    tCCKerningHashElement *m_pKerningDictionary;
     
     // Character Set defines the letters that actually exist in the font
-    std::set<unsigned int> *_characterSet;
+    std::set<unsigned int> *m_pCharacterSet;
 public:
     CCBMFontConfiguration();
     virtual ~CCBMFontConfiguration();
-    const char * description() const;
+    const char * description();
 
     /** allocates a CCBMFontConfiguration with a FNT file */
     static CCBMFontConfiguration * create(const char *FNTfile);
@@ -134,8 +134,8 @@ public:
     /** initializes a BitmapFontConfiguration with a FNT file */
     bool initWithFNTfile(const char *FNTfile);
     
-    inline const char* getAtlasName(){ return _atlasName.c_str(); }
-    inline void setAtlasName(const char* atlasName) { _atlasName = atlasName; }
+    inline const char* getAtlasName(){ return m_sAtlasName.c_str(); }
+    inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
     
     std::set<unsigned int>* getCharacterSet() const;
 private:
@@ -149,10 +149,10 @@ private:
     void purgeFontDefDictionary();
 };
 
-/** @brief LabelBMFont is a subclass of SpriteBatchNode.
+/** @brief CCLabelBMFont is a subclass of CCSpriteBatchNode.
 
 Features:
-- Treats each character like a Sprite. This means that each individual character can be:
+- Treats each character like a CCSprite. This means that each individual character can be:
 - rotated
 - scaled
 - translated
@@ -166,9 +166,9 @@ Limitations:
 - All inner characters are using an anchorPoint of (0.5f, 0.5f) and it is not recommend to change it
 because it might affect the rendering
 
-LabelBMFont implements the protocol LabelProtocol, like Label and LabelAtlas.
-LabelBMFont has the flexibility of Label, the speed of LabelAtlas and all the features of Sprite.
-If in doubt, use LabelBMFont instead of LabelAtlas / Label.
+CCLabelBMFont implements the protocol CCLabelProtocol, like CCLabel and CCLabelAtlas.
+CCLabelBMFont has the flexibility of CCLabel, the speed of CCLabelAtlas and all the features of CCSprite.
+If in doubt, use CCLabelBMFont instead of CCLabelAtlas / CCLabel.
 
 Supported editors:
 http://glyphdesigner.71squared.com/ (Commercial, Mac OS X)
@@ -179,12 +179,12 @@ http://www.angelcode.com/products/bmfont/ (Free, Windows only)
 @since v0.8
 */
 
-class CC_DLL LabelBMFont : public SpriteBatchNode, public LabelProtocol, public RGBAProtocol
+class CC_DLL CCLabelBMFont : public CCSpriteBatchNode, public CCLabelProtocol, public CCRGBAProtocol
 {
 public:
-    LabelBMFont();
+    CCLabelBMFont();
 
-    virtual ~LabelBMFont();
+    virtual ~CCLabelBMFont();
     /** Purges the cached data.
     Removes from memory the cached configurations and the atlas name dictionary.
     @since v0.99.3
@@ -192,21 +192,21 @@ public:
     static void purgeCachedData();
 
     /** creates a bitmap font atlas with an initial string and the FNT file */
-    static LabelBMFont * create(const char *str, const char *fntFile, float width, Label::HAlignment alignment, Point imageOffset);
+    static CCLabelBMFont * create(const char *str, const char *fntFile, float width, CCTextAlignment alignment, CCPoint imageOffset);
     
-	static LabelBMFont * create(const char *str, const char *fntFile, float width, Label::HAlignment alignment);
+	static CCLabelBMFont * create(const char *str, const char *fntFile, float width, CCTextAlignment alignment);
 
-	static LabelBMFont * create(const char *str, const char *fntFile, float width);
+	static CCLabelBMFont * create(const char *str, const char *fntFile, float width);
 
-	static LabelBMFont * create(const char *str, const char *fntFile);
+	static CCLabelBMFont * create(const char *str, const char *fntFile);
 
     /** Creates an label.
      */
-    static LabelBMFont * create();
+    static CCLabelBMFont * create();
 
     bool init();
     /** init a bitmap font atlas with an initial string and the FNT file */
-    bool initWithString(const char *str, const char *fntFile, float width = kLabelAutomaticWidth, Label::HAlignment alignment = Label::HAlignment::LEFT, Point imageOffset = Point::ZERO);
+    bool initWithString(const char *str, const char *fntFile, float width = kCCLabelAutomaticWidth, CCTextAlignment alignment = kCCTextAlignmentLeft, CCPoint imageOffset = CCPointZero);
 
     /** updates the font chars based on the string to render */
     void createFontChars();
@@ -214,31 +214,30 @@ public:
     virtual void setString(const char *newString);
     virtual void setString(const char *newString, bool needUpdateLabel);
 
-    virtual const char* getString(void) const;
+    virtual const char* getString(void);
     virtual void setCString(const char *label);
-    virtual void setAnchorPoint(const Point& var);
+    virtual void setAnchorPoint(const CCPoint& var);
     virtual void updateLabel();
-    virtual void setAlignment(Label::HAlignment alignment);
+    virtual void setAlignment(CCTextAlignment alignment);
     virtual void setWidth(float width);
     virtual void setLineBreakWithoutSpace(bool breakWithoutSpace);
     virtual void setScale(float scale);
     virtual void setScaleX(float scaleX);
     virtual void setScaleY(float scaleY);
     
-    // RGBAProtocol 
-    virtual bool isOpacityModifyRGB() const;
-    virtual void setOpacityModifyRGB(bool isOpacityModifyRGB);
-    virtual GLubyte getOpacity() const;
-    virtual GLubyte getDisplayedOpacity() const;
+    // CCRGBAProtocol 
+    virtual bool isOpacityModifyRGB();
+    virtual void setOpacityModifyRGB(bool isOpacityModifyRGB); virtual GLubyte getOpacity();
+    virtual GLubyte getDisplayedOpacity();
     virtual void setOpacity(GLubyte opacity);
     virtual void updateDisplayedOpacity(GLubyte parentOpacity);
-    virtual bool isCascadeOpacityEnabled() const;
+    virtual bool isCascadeOpacityEnabled();
     virtual void setCascadeOpacityEnabled(bool cascadeOpacityEnabled);
-    virtual const Color3B& getColor(void) const;
-    virtual const Color3B& getDisplayedColor() const;
-    virtual void setColor(const Color3B& color);
-    virtual void updateDisplayedColor(const Color3B& parentColor);
-    virtual bool isCascadeColorEnabled() const;
+    virtual const ccColor3B& getColor(void);
+    virtual const ccColor3B& getDisplayedColor();
+    virtual void setColor(const ccColor3B& color);
+    virtual void updateDisplayedColor(const ccColor3B& parentColor);
+    virtual bool isCascadeColorEnabled();
     virtual void setCascadeColorEnabled(bool cascadeColorEnabled);
 
     void setFntFile(const char* fntFile);
@@ -249,44 +248,44 @@ public:
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
-    float getLetterPosXLeft( Sprite* characterSprite );
-    float getLetterPosXRight( Sprite* characterSprite );
+    float getLetterPosXLeft( CCSprite* characterSprite );
+    float getLetterPosXRight( CCSprite* characterSprite );
     
 protected:
     virtual void setString(unsigned short *newString, bool needUpdateLabel);
     // string to render
-    unsigned short* _string;
+    unsigned short* m_sString;
     
     // name of fntFile
-    std::string _fntFile;
+    std::string m_sFntFile;
     
     // initial string without line breaks
-    unsigned short* _initialString;
-    std::string _initialStringUTF8;
+    unsigned short* m_sInitialString;
+    std::string m_sInitialStringUTF8;
     
     // alignment of all lines
-    Label::HAlignment _alignment;
+    CCTextAlignment m_pAlignment;
     // max width until a line break is added
-    float _width;
+    float m_fWidth;
     
-    CCBMFontConfiguration *_configuration;
+    CCBMFontConfiguration *m_pConfiguration;
     
-    bool _lineBreakWithoutSpaces;
+    bool m_bLineBreakWithoutSpaces;
     // offset of the texture atlas
-    Point    _imageOffset;
+    CCPoint    m_tImageOffset;
     
     // reused char
-    Sprite *_reusedChar;
+    CCSprite *m_pReusedChar;
     
     // texture RGBA
-    GLubyte _displayedOpacity;
-    GLubyte _realOpacity;
-    Color3B _displayedColor;
-    Color3B _realColor;
-    bool _cascadeColorEnabled;
-    bool _cascadeOpacityEnabled;
-    /** conforms to RGBAProtocol protocol */
-    bool        _isOpacityModifyRGB;
+    GLubyte m_cDisplayedOpacity;
+    GLubyte m_cRealOpacity;
+    ccColor3B m_tDisplayedColor;
+    ccColor3B m_tRealColor;
+    bool m_bCascadeColorEnabled;
+    bool m_bCascadeOpacityEnabled;
+    /** conforms to CCRGBAProtocol protocol */
+    bool        m_bIsOpacityModifyRGB;
 
 };
 

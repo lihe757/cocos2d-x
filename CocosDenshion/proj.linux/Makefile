@@ -4,14 +4,8 @@ INCLUDES += -I.. -I../include
 
 ##Using OpenAL
 ifeq ($(OPENAL),1)
-SOURCES = ../openal/OpenALDecoder.cpp \
-          ../openal/SimpleAudioEngineOpenAL.cpp
+SOURCES = ../linux/SimpleAudioEngineOpenAL.cpp 
 SHAREDLIBS += -lopenal -lalut
-
-ifeq ($(OPENAL_MP3),1)
-DEFINES += -DENABLE_MPG123
-SHAREDLIBS += -lmpg123
-endif
 
 ifneq ($(NOVORBIS),1)
 SHAREDLIBS += -logg -lvorbis -lvorbisfile

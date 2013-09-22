@@ -27,14 +27,14 @@
 
 struct b2AABB;
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 // This class implements debug drawing callbacks that are invoked
 // inside b2World::Step.
 class GLESDebugDraw : public b2Draw
 {
     float32 mRatio;
-    cocos2d::GLProgram* mShaderProgram;
+    cocos2d::CCGLProgram* mShaderProgram;
     GLint        mColorLocation;
 
     void initShader( void );
@@ -62,6 +62,6 @@ public:
     virtual void DrawAABB(b2AABB* aabb, const b2Color& color);
 };
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif

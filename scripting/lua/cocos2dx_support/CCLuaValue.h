@@ -47,98 +47,98 @@ typedef int LUA_FUNCTION;
 typedef int LUA_TABLE;
 typedef int LUA_STRING;
 
-class LuaValue;
+class CCLuaValue;
 
-typedef std::map<std::string, LuaValue>   LuaValueDict;
-typedef LuaValueDict::const_iterator      LuaValueDictIterator;
-typedef std::list<LuaValue>               LuaValueArray;
-typedef LuaValueArray::const_iterator     LuaValueArrayIterator;
+typedef std::map<std::string, CCLuaValue>   CCLuaValueDict;
+typedef CCLuaValueDict::const_iterator      CCLuaValueDictIterator;
+typedef std::list<CCLuaValue>               CCLuaValueArray;
+typedef CCLuaValueArray::const_iterator     CCLuaValueArrayIterator;
 
 typedef enum {
-    LuaValueTypeInt,
-    LuaValueTypeFloat,
-    LuaValueTypeBoolean,
-    LuaValueTypeString,
-    LuaValueTypeDict,
-    LuaValueTypeArray,
-    LuaValueTypeObject
-} LuaValueType;
+    CCLuaValueTypeInt,
+    CCLuaValueTypeFloat,
+    CCLuaValueTypeBoolean,
+    CCLuaValueTypeString,
+    CCLuaValueTypeDict,
+    CCLuaValueTypeArray,
+    CCLuaValueTypeCCObject
+} CCLuaValueType;
 
 typedef union {
     int                 intValue;
     float               floatValue;
     bool                booleanValue;
     std::string*        stringValue;
-    LuaValueDict*     dictValue;
-    LuaValueArray*    arrayValue;
-    Object*           ccobjectValue;
-} LuaValueField;
+    CCLuaValueDict*     dictValue;
+    CCLuaValueArray*    arrayValue;
+    CCObject*           ccobjectValue;
+} CCLuaValueField;
 
-class LuaValue
+class CCLuaValue
 {
 public:
-    static const LuaValue intValue(const int intValue);
-    static const LuaValue floatValue(const float floatValue);
-    static const LuaValue booleanValue(const bool booleanValue);
-    static const LuaValue stringValue(const char* stringValue);
-    static const LuaValue stringValue(const std::string& stringValue);
-    static const LuaValue dictValue(const LuaValueDict& dictValue);
-    static const LuaValue arrayValue(const LuaValueArray& arrayValue);
-    static const LuaValue ccobjectValue(Object* ccobjectValue, const char* objectTypename);
-    static const LuaValue ccobjectValue(Object* ccobjectValue, const std::string& objectTypename);
+    static const CCLuaValue intValue(const int intValue);
+    static const CCLuaValue floatValue(const float floatValue);
+    static const CCLuaValue booleanValue(const bool booleanValue);
+    static const CCLuaValue stringValue(const char* stringValue);
+    static const CCLuaValue stringValue(const std::string& stringValue);
+    static const CCLuaValue dictValue(const CCLuaValueDict& dictValue);
+    static const CCLuaValue arrayValue(const CCLuaValueArray& arrayValue);
+    static const CCLuaValue ccobjectValue(CCObject* ccobjectValue, const char* objectTypename);
+    static const CCLuaValue ccobjectValue(CCObject* ccobjectValue, const std::string& objectTypename);
     
-    LuaValue(void)
-    : _type(LuaValueTypeInt)
-    , _ccobjectType(NULL)
+    CCLuaValue(void)
+    : m_type(CCLuaValueTypeInt)
+    , m_ccobjectType(NULL)
     {
-        memset(&_field, 0, sizeof(_field));
+        memset(&m_field, 0, sizeof(m_field));
     }
-    LuaValue(const LuaValue& rhs);
-    LuaValue& operator=(const LuaValue& rhs);
-    ~LuaValue(void);
+    CCLuaValue(const CCLuaValue& rhs);
+    CCLuaValue& operator=(const CCLuaValue& rhs);
+    ~CCLuaValue(void);
     
-    const LuaValueType getType(void) const {
-        return _type;
+    const CCLuaValueType getType(void) const {
+        return m_type;
     }
     
-    const std::string& getObjectTypename(void) const {
-        return *_ccobjectType;
+    const std::string& getCCObjectTypename(void) const {
+        return *m_ccobjectType;
     }
     
     int intValue(void) const {
-        return _field.intValue;
+        return m_field.intValue;
     }
     
     float floatValue(void) const {
-        return _field.floatValue;
+        return m_field.floatValue;
     }
     
     bool booleanValue(void) const {
-        return _field.booleanValue;
+        return m_field.booleanValue;
     }
     
     const std::string& stringValue(void) const {
-        return *_field.stringValue;
+        return *m_field.stringValue;
     }
     
-    const LuaValueDict& dictValue(void) const {
-        return *_field.dictValue;
+    const CCLuaValueDict& dictValue(void) const {
+        return *m_field.dictValue;
     }
     
-    const LuaValueArray& arrayValue(void) const {
-        return *_field.arrayValue;
+    const CCLuaValueArray& arrayValue(void) const {
+        return *m_field.arrayValue;
     }
     
-    Object* ccobjectValue(void) const {
-        return _field.ccobjectValue;
+    CCObject* ccobjectValue(void) const {
+        return m_field.ccobjectValue;
     }
     
 private:
-    LuaValueField _field;
-    LuaValueType  _type;
-    std::string*    _ccobjectType;
+    CCLuaValueField m_field;
+    CCLuaValueType  m_type;
+    std::string*    m_ccobjectType;
     
-    void copy(const LuaValue& rhs);
+    void copy(const CCLuaValue& rhs);
 };
 
 NS_CC_END

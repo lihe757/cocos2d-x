@@ -2,7 +2,6 @@
 #define _PARTICLE_TEST_H_
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 ////----#include "cocos2d.h"
 // #include "touch_dispatcher/CCTouch.h"
 // #include "CCParticleExample.h"
@@ -13,12 +12,11 @@ public:
     virtual void runThisTest();
 };
 
-class ParticleDemo : public BaseTest
+class ParticleDemo : public CCLayerColor
 {
 protected:
-    ParticleSystem*    _emitter;
-    Sprite*            _background;
-	LayerColor*		 _color;
+    CCParticleSystem*    m_emitter;
+    CCSprite*            m_background;
 
 public:
     ~ParticleDemo(void);
@@ -28,14 +26,14 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
-    void toggleCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
+    void toggleCallback(CCObject* pSender);
 
-    virtual void ccTouchesBegan(Set  *touches, Event  *event);
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
-    virtual void ccTouchesEnded(Set  *touches, Event  *event);
+    virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
 
     virtual void update(float dt);
     void setEmitterPosition();
@@ -156,15 +154,15 @@ public:
 class DemoParticleFromFile : public ParticleDemo
 {
 public:
-    std::string _title;
+    std::string m_title;
     DemoParticleFromFile(const char *file)
     {    
-        _title = file;
+        m_title = file;
     }
     virtual void onEnter();
     virtual std::string title()
     {
-        return _title;
+        return m_title;
     }
 };
 
@@ -199,7 +197,7 @@ public:
     void updateQuads(float dt);
 
 private:
-    int _index;
+    int m_nIndex;
 };
 
 class Issue1201 : public ParticleDemo
@@ -218,8 +216,8 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 private:
-    Node* _parent1;
-    Node* _parent2;
+    CCNode* m_pParent1;
+    CCNode* m_pParent2;
 };
 
 class ParticleBatchMultipleEmitters : public ParticleDemo
@@ -238,7 +236,7 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 private:
-    unsigned int _order;
+    unsigned int m_nOrder;
 };
 
 class MultipleParticleSystems : public ParticleDemo
@@ -258,7 +256,7 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 private:
-    ParticleBatchNode* _batchNode;
+    CCParticleBatchNode* m_pBatchNode;
 };
 
 class AddAndDeleteParticleSystems : public ParticleDemo
@@ -270,7 +268,7 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 private:
-    ParticleBatchNode* _batchNode;
+    CCParticleBatchNode* m_pBatchNode;
 };
 
 class ReorderParticleSystems : public ParticleDemo
@@ -282,7 +280,7 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 private:
-    ParticleBatchNode* _batchNode;
+    CCParticleBatchNode* m_pBatchNode;
 };
 
 class PremultipliedAlphaTest : public ParticleDemo

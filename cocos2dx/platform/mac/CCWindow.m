@@ -65,7 +65,7 @@ THE SOFTWARE.
 	// exit fullscreen if user pressed esc
 	if([event keyCode] == 53)
 	{
-		CCEAGLView* eaglView = [CCEAGLView sharedEGLView];
+		EAGLView* eaglView = [EAGLView sharedEGLView];
 		
 		// cancel full screen
 		if( [eaglView isFullScreen] )

@@ -11,11 +11,11 @@ static MCIERROR  s_mciError;
 static LRESULT WINAPI _SoundPlayProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 MciPlayer::MciPlayer()
-: _wnd(NULL)
-, _dev(NULL)
-, _soundID(0)
-, _times(0)
-, _playing(false)
+: m_hWnd(NULL)
+, m_hDev(NULL)
+, m_nSoundID(0)
+, m_uTimes(0)
+, m_bPlaying(false)
 {
     if (! s_hInstance)
     {
@@ -42,7 +42,7 @@ MciPlayer::MciPlayer()
         }
     }
 
-    _wnd = CreateWindowEx(
+    m_hWnd = CreateWindowEx(
         WS_EX_APPWINDOW,                                    // Extended Style For The Window
         WIN_CLASS_NAME,                                        // Class Name
         NULL,                                        // Window Title
@@ -54,16 +54,16 @@ MciPlayer::MciPlayer()
         NULL,                                                // No Menu
         s_hInstance,                                        // Instance
         NULL );
-    if (_wnd)
+    if (m_hWnd)
     {
-        SetWindowLong(_wnd, GWL_USERDATA, (LONG)this);
+        SetWindowLong(m_hWnd, GWL_USERDATA, (LONG)this);
     }
 }
 
 MciPlayer::~MciPlayer()
 {
     Close();
-    DestroyWindow(_wnd);
+    DestroyWindow(m_hWnd);
 }
 
 void MciPlayer::Open(const char* pFileName, UINT uId)
@@ -71,7 +71,7 @@ void MciPlayer::Open(const char* pFileName, UINT uId)
 //     WCHAR * pBuf = NULL;
     do 
     {
-        BREAK_IF(! pFileName || ! _wnd);
+        BREAK_IF(! pFileName || ! m_hWnd);
         int nLen = (int)strlen(pFileName);
         BREAK_IF(! nLen);
 //         pBuf = new WCHAR[nLen + 1];
@@ -88,40 +88,40 @@ void MciPlayer::Open(const char* pFileName, UINT uId)
         mciError = mciSendCommand(0,MCI_OPEN, MCI_OPEN_ELEMENT, (DWORD)&mciOpen);
         BREAK_IF(mciError);
 
-        _dev = mciOpen.wDeviceID;
-        _soundID = uId;
-        _playing = false;
+        m_hDev = mciOpen.wDeviceID;
+        m_nSoundID = uId;
+        m_bPlaying = false;
     } while (0);
 }
 
 void MciPlayer::Play(UINT uTimes /* = 1 */)
 {
-    if (! _dev)
+    if (! m_hDev)
     {
         return;
     }
     MCI_PLAY_PARMS mciPlay = {0};
-    mciPlay.dwCallback = (DWORD_PTR)_wnd;
-    s_mciError = mciSendCommand(_dev,MCI_PLAY, MCI_FROM|MCI_NOTIFY,(DWORD)&mciPlay);
+    mciPlay.dwCallback = (DWORD_PTR)m_hWnd;
+    s_mciError = mciSendCommand(m_hDev,MCI_PLAY, MCI_FROM|MCI_NOTIFY,(DWORD)&mciPlay);
     if (! s_mciError)
     {
-        _playing = true;
-        _times = uTimes;
+        m_bPlaying = true;
+        m_uTimes = uTimes;
     }
 }
 
 void MciPlayer::Close()
 {
-    if (_playing)
+    if (m_bPlaying)
     {
         Stop();
     }
-    if (_dev)
+    if (m_hDev)
     {
          _SendGenericCommand(MCI_CLOSE);
     }
-    _dev = 0;
-    _playing = false;
+    m_hDev = 0;
+    m_bPlaying = false;
 }
 
 void MciPlayer::Pause()
@@ -137,30 +137,30 @@ void MciPlayer::Resume()
 void MciPlayer::Stop()
 {
     _SendGenericCommand(MCI_STOP);
-    _playing = false;
+    m_bPlaying = false;
 }
 
 void MciPlayer::Rewind()
 {
-    if (! _dev)
+    if (! m_hDev)
     {
         return;
     }
-    mciSendCommand(_dev, MCI_SEEK, MCI_SEEK_TO_START, 0);
+    mciSendCommand(m_hDev, MCI_SEEK, MCI_SEEK_TO_START, 0);
 
     MCI_PLAY_PARMS mciPlay = {0};
-    mciPlay.dwCallback = (DWORD)_wnd;
-    _playing = mciSendCommand(_dev, MCI_PLAY, MCI_NOTIFY,(DWORD)&mciPlay) ? false : true;
+    mciPlay.dwCallback = (DWORD)m_hWnd;
+    m_bPlaying = mciSendCommand(m_hDev, MCI_PLAY, MCI_NOTIFY,(DWORD)&mciPlay) ? false : true;
 }
 
 bool MciPlayer::IsPlaying()
 {
-    return _playing;
+    return m_bPlaying;
 }
 
 UINT MciPlayer::GetSoundID()
 {
-    return _soundID;
+    return m_nSoundID;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,11 +169,11 @@ UINT MciPlayer::GetSoundID()
 
 void MciPlayer::_SendGenericCommand(int nCommand)
 {
-    if (! _dev)
+    if (! m_hDev)
     {
         return;
     }
-    mciSendCommand(_dev, nCommand, 0, 0);
+    mciSendCommand(m_hDev, nCommand, 0, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -187,12 +187,12 @@ LRESULT WINAPI _SoundPlayProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
         && MCI_NOTIFY_SUCCESSFUL == wParam
         &&(pPlayer = (MciPlayer *)GetWindowLong(hWnd, GWL_USERDATA)))
     {
-        if (pPlayer->_times)
+        if (pPlayer->m_uTimes)
         {
-            --pPlayer->_times;
+            --pPlayer->m_uTimes;
         }
 
-        if (pPlayer->_times)
+        if (pPlayer->m_uTimes)
         {
             mciSendCommand(lParam, MCI_SEEK, MCI_SEEK_TO_START, 0);
 
@@ -202,7 +202,7 @@ LRESULT WINAPI _SoundPlayProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-            pPlayer->_playing = false;
+            pPlayer->m_bPlaying = false;
         }
         return 0;
     }

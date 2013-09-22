@@ -109,7 +109,7 @@ namespace
 
     void myAccelerometerKeyHook( UINT message,WPARAM wParam,LPARAM lParam )
     {
-        cocos2d::Accelerometer    *pAccelerometer = cocos2d::Director::getInstance()->getAccelerometer();
+        cocos2d::CCAccelerometer    *pAccelerometer = cocos2d::CCDirector::sharedDirector()->getAccelerometer();
         bool                        sendUpdate=false;
         switch( message )
         {
@@ -147,53 +147,53 @@ namespace
 
 NS_CC_BEGIN
 
-Accelerometer::Accelerometer() : 
-    _function(nullptr)
+CCAccelerometer::CCAccelerometer() : 
+    m_pAccelDelegate(NULL)
 {
-    memset(&_accelerationValue, 0, sizeof(_accelerationValue));
+    memset(&m_obAccelerationValue, 0, sizeof(m_obAccelerationValue));
 }
 
-Accelerometer::~Accelerometer() 
+CCAccelerometer::~CCAccelerometer() 
 {
 
 }
 
-void Accelerometer::setDelegate(std::function<void(Acceleration*)> function) 
+void CCAccelerometer::setDelegate(CCAccelerometerDelegate* pDelegate) 
 {
-    _function = function;
+    m_pAccelDelegate = pDelegate;
 
     // Enable/disable the accelerometer.
     // Well, there isn't one on Win32 so we don't do anything other than register
     // and deregister ourselves from the Windows Key handler.
-    if (_function)
+    if (pDelegate)
     {
         // Register our handler
-        EGLView::getInstance()->setAccelerometerKeyHook( &myAccelerometerKeyHook );
+        CCEGLView::sharedOpenGLView()->setAccelerometerKeyHook( &myAccelerometerKeyHook );
     }
     else
     {
         // De-register our handler
-        EGLView::getInstance()->setAccelerometerKeyHook( NULL );
+        CCEGLView::sharedOpenGLView()->setAccelerometerKeyHook( NULL );
         resetAccelerometer();
     }
 }
 
-void Accelerometer::setAccelerometerInterval(float interval)
+void CCAccelerometer::setAccelerometerInterval(float interval)
 {
 
 }
 
-void Accelerometer::update( double x,double y,double z,double timestamp ) 
+void CCAccelerometer::update( double x,double y,double z,double timestamp ) 
 {
-    if (_function)
+    if (m_pAccelDelegate)
     {
-        _accelerationValue.x            = x;
-        _accelerationValue.y            = y;
-        _accelerationValue.z            = z;
-        _accelerationValue.timestamp = timestamp;
+        m_obAccelerationValue.x            = x;
+        m_obAccelerationValue.y            = y;
+        m_obAccelerationValue.z            = z;
+        m_obAccelerationValue.timestamp = timestamp;
 
         // Delegate
-        _function(&_accelerationValue);
+        m_pAccelDelegate->didAccelerate(&m_obAccelerationValue);
     }    
 }
 

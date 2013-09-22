@@ -30,120 +30,124 @@ THE SOFTWARE.
 #include "../datas/CCDatas.h"
 
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 /**
- *  @brief  format and manage armature configuration and armature animation
+ *	@brief	format and manage armature configuration and armature animation
  */
-class  ArmatureDataManager : public Object 
+class  CCArmatureDataManager : public CCObject 
 {
 public:
-    static ArmatureDataManager *sharedArmatureDataManager();
+    static CCArmatureDataManager *sharedArmatureDataManager();
     static void purgeArmatureSystem();
 private:
-    ArmatureDataManager(void);
-    ~ArmatureDataManager(void);
+    CCArmatureDataManager(void);
+    ~CCArmatureDataManager(void);
 
 public:
-    /**
-     * Init ArmatureDataManager
+	/**
+     * Init CCArmatureDataManager
      */
     virtual bool init();
     
     /**
-     * @brief Add armature data.
-     *
-     * @param id            The id of the armature data.
-     * @param armatureData  The armature data to be added.
+     * Add armature data
+     * @param id The id of the armature data
+	 * @param armatureData CCArmatureData *
      */
-    void addArmatureData(const char *id, ArmatureData *armatureData);
+    void addArmatureData(const char *id, CCArmatureData *armatureData);
     
-    /**
-     * @brief Get armature data.
+	/**
+     *	@brief	get armature data
      *
-     * @param id   The id of the armature data you want to get.
-     *
-     * @return The ArmatureData whose id is @p id.
+     *	@param	id the id of the armature data you want to get
+	 *  
+	 *  @return	CCArmatureData *
      */
-    ArmatureData *getArmatureData(const char *id);
+    CCArmatureData *getArmatureData(const char *id);
 
     /**
-     *  @brief Add animation data.
+     *	@brief	add animation data 
      *
-     *  @param id               The id of the animation data.
-     *  @param animationData    The animation data to be added.
+     *	@param 	id the id of the animation data 
+	 *
+	 *  @return CCAnimationData *
      */
-    void addAnimationData(const char *id, AnimationData *animationData);
+    void addAnimationData(const char *id, CCAnimationData *animationData);
     
-    /**
-     * @brief Get animation data.
+	/**
+     *	@brief	get animation data from m_pAnimationDatas(CCDictionary)
      *
-     * @param id    The id of the animation data you want to get.
-     *
-     * @return The AnimationData whose id is @p id.
+     *	@param 	id the id of the animation data you want to get
+	 *  
+	 *  @return CCAnimationData *
      */
-    AnimationData *getAnimationData(const char *id);
+    CCAnimationData *getAnimationData(const char *id);
 
     /**
-     *  @brief Add texture data.
+     *	@brief	add texture data 
      *
-     *  @param id           The id of the texture data.
-     *  @param textureData  The texture data to be added.
+     *	@param 	id the id of the texture data
+	 *
+	 *  @return CCTextureData *
      */
-    void addTextureData(const char *id, TextureData *textureData);
+    void addTextureData(const char *id, CCTextureData *textureData);
+    
+	/**
+     *	@brief	get texture data
+     *
+     *	@param 	_id the id of the texture data you want to get
+	 *  
+	 *  @return CCTextureData *
+     */
+    CCTextureData *getTextureData(const char *id);
     
     /**
-     * @brief Get texture data.
-     *
-     * @param id   The id of the texture data you want to get.
-     *
-     * @return The TextureData whose id is @p id.
+	 *	@brief	Add ArmatureFileInfo, it is managed by CCArmatureDataManager.
      */
-    TextureData *getTextureData(const char *id);
-    
+	void addArmatureFileInfo(const char *armatureName, const char *useExistFileInfo, const char *imagePath, const char *plistPath, const char *configFilePath);
     /**
-     * @brief  Add ArmatureFileInfo, it is managed by ArmatureDataManager.
+	 *	@brief	Add ArmatureFileInfo, it is managed by CCArmatureDataManager.
      */
-    void addArmatureFileInfo(const char *armatureName, const char *useExistFileInfo, const char *imagePath, const char *plistPath, const char *configFilePath);
+	void addArmatureFileInfo(const char *imagePath, const char *plistPath, const char *configFilePath);
 
     /**
-     * @brief  Add ArmatureFileInfo, it is managed by ArmatureDataManager.
-     */
-    void addArmatureFileInfo(const char *imagePath, const char *plistPath, const char *configFilePath);
-
-    /**
-     * @brief  Add sprite frame to SpriteFrameCache, it will save display name and it's relative image name
+     *	@brief	Add sprite frame to CCSpriteFrameCache, it will save display name and it's relative image name
      */
     void addSpriteFrameFromFile(const char *plistPath, const char *imagePath);
-
-    /**
-     * @brief  Clear the data in the _armarureDatas and _animationDatas, and set _armarureDatas and _animationDatas to NULL
+    
+	
+	/**
+	 *	@brief	Clear the data in the m_pArmarureDatas and m_pAnimationDatas, and set m_pArmarureDatas and m_pAnimationDatas to NULL
      */
     void removeAll();
 
    
 private:
     /**
-     * Dictionary to save amature data.
-     * Key type is std::string, value type is ArmatureData *.
+	 *	@brief	save amature datas
+	 *  @key	std::string
+	 *  @value	CCArmatureData *
      */
-    CC_SYNTHESIZE_READONLY(Dictionary *, _armarureDatas, ArmarureDatas);
+	CC_SYNTHESIZE_READONLY(CCDictionary *, m_pArmarureDatas, ArmarureDatas);
 
     /**
-     * Dictionary to save animation data.
-     * Key type is std::string, value type is AnimationData *.
+	 *	@brief	save animation datas
+	 *  @key	std::string
+	 *  @value	CCAnimationData *
      */
-    CC_SYNTHESIZE_READONLY(Dictionary *, _animationDatas, AnimationDatas);
+	CC_SYNTHESIZE_READONLY(CCDictionary *, m_pAnimationDatas, AnimationDatas);
 
-    /**
-     * Dictionary to save texture data.
-     * Key type is std::string, value type is TextureData *.
+	/**
+	 *	@brief	save texture datas
+	 *  @key	std::string
+	 *  @value	CCTextureData *
      */
-    CC_SYNTHESIZE_READONLY(Dictionary *, _textureDatas, TextureDatas);
+	CC_SYNTHESIZE_READONLY(CCDictionary *, m_pTextureDatas, TextureDatas);
 
 };
 
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif/*__CCARMATUREDATAMANAGER_H__*/

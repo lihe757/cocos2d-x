@@ -30,19 +30,16 @@
 
 NS_CC_BEGIN
 
-class Set;
-class Touch;
-class Size;
+class CCSet;
+class CCTouch;
+class CCSize;
 
-class CC_DLL EGLView : public EGLViewProtocol
+class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
 public:
-    static EGLView* getInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static EGLView* sharedOpenGLView();
-
-    virtual ~EGLView(void);
+    static CCEGLView* sharedOpenGLView(void);
+    
+    virtual ~CCEGLView(void);
     
     virtual bool isOpenGLReady(void);
     virtual bool setContentScaleFactor(float contentScaleFactor);
@@ -58,9 +55,9 @@ public:
 	virtual void setMultiTouchMask(bool mask);
     
 private:
-    static EGLView* s_sharedView;
+    static CCEGLView* s_sharedView;
     
-    EGLView(void);
+    CCEGLView(void);
 };
 
 NS_CC_END   // end of namespace   cocos2d

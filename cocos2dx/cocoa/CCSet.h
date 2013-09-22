@@ -35,65 +35,65 @@ NS_CC_BEGIN
  * @{
  */
 
-typedef std::set<Object *>::iterator SetIterator;
+typedef std::set<CCObject *>::iterator CCSetIterator;
 
-class CC_DLL Set : public Object
+class CC_DLL CCSet : public CCObject
 {
 public:
-    Set(void);
-    Set(const Set &rSetObject);
-    virtual ~Set(void);
+    CCSet(void);
+    CCSet(const CCSet &rSetObject);
+    virtual ~CCSet(void);
 
     /**
     * @brief Create and return a new empty set.
     */
-    static Set * create();
+    static CCSet * create();
 
     /**
-    *@brief Return a copy of the Set, it will copy all the elements.
+    *@brief Return a copy of the CCSet, it will copy all the elements.
     */
-    Set* copy();
+    CCSet* copy();
     /**
     *@brief It is the same as copy().
     */
-    Set* mutableCopy();
+    CCSet* mutableCopy();
     /**
-    *@brief Return the number of elements the Set contains.
+    *@brief Return the number of elements the CCSet contains.
     */
     int count();
     /**
-    *@brief Add a element into Set, it will retain the element.
+    *@brief Add a element into CCSet, it will retain the element.
     */
-    void addObject(Object *pObject);
+    void addObject(CCObject *pObject);
     /**
     *@brief Remove the given element, nothing todo if no element equals pObject.
     */
-    void removeObject(Object *pObject);
+    void removeObject(CCObject *pObject);
     /**
      *@brief Remove all elements of the set
      */
     void removeAllObjects();
     /**
-    *@brief Check if Set contains a element equals pObject.
+    *@brief Check if CCSet contains a element equals pObject.
     */
-    bool containsObject(Object *pObject);
+    bool containsObject(CCObject *pObject);
     /**
     *@brief Return the iterator that points to the first element.
     */
-    SetIterator begin();
+    CCSetIterator begin();
     /**
     *@brief Return the iterator that points to the position after the last element.
     */
-    SetIterator end();
+    CCSetIterator end();
     /**
     *@brief Return the first element if it contains elements, or null if it doesn't contain any element.
     */
-    Object* anyObject();
+    CCObject* anyObject();
 
-    virtual void acceptVisitor(DataVisitor &visitor);
+    virtual void acceptVisitor(CCDataVisitor &visitor);
 
 private:
-    std::set<Object *> *_set;
+    std::set<CCObject *> *m_pSet;
 };
 
 // end of data_structure group

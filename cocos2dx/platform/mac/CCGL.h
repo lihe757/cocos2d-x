@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __PLATFORM_MAC_CCGL_H__
-#define __PLATFORM_MAC_CCGL_H__
+#ifndef __CCGL_H__
+#define __CCGL_H__
 
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
@@ -35,9 +35,6 @@ THE SOFTWARE.
 #define glDeleteVertexArrays            glDeleteVertexArraysAPPLE
 #define glGenVertexArrays               glGenVertexArraysAPPLE
 #define glBindVertexArray               glBindVertexArrayAPPLE
-#define glClearDepthf                   glClearDepth
-#define glDepthRangef                   glDepthRange
-#define glReleaseShaderCompiler(xxx)
 
 
-#endif // __PLATFORM_MAC_CCGL_H__
+#endif // __CCGL_H__

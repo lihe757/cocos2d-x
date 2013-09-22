@@ -32,7 +32,7 @@ PluginProtocol::~PluginProtocol()
     PluginUtilsIOS::erasePluginOCData(this);
 }
 
-std::string PluginProtocol::getPluginVersion()
+const char* PluginProtocol::getPluginVersion()
 {
     std::string verName;
     
@@ -51,10 +51,10 @@ std::string PluginProtocol::getPluginVersion()
         PluginUtilsIOS::outputLog("Plugin %p not right initilized", this);
     }
     
-    return verName;
+    return verName.c_str();
 }
 
-std::string PluginProtocol::getSDKVersion()
+const char* PluginProtocol::getSDKVersion()
 {
     std::string verName;
 
@@ -73,7 +73,7 @@ std::string PluginProtocol::getSDKVersion()
         PluginUtilsIOS::outputLog("Plugin %s not right initilized", this->getPluginName());
     }
 
-    return verName;
+    return verName.c_str();
 }
 
 void PluginProtocol::setDebugMode(bool isDebugMode)
@@ -153,14 +153,14 @@ void PluginProtocol::callFuncWithParam(const char* funcName, std::vector<PluginP
     }
 }
 
-std::string PluginProtocol::callStringFuncWithParam(const char* funcName, PluginParam* param, ...)
+const char* PluginProtocol::callStringFuncWithParam(const char* funcName, PluginParam* param, ...)
 {
     CALL_OC_FUNC_WITH_VALIST(String)
 }
     
-std::string PluginProtocol::callStringFuncWithParam(const char* funcName, std::vector<PluginParam*> params)
+const char* PluginProtocol::callStringFuncWithParam(const char* funcName, std::vector<PluginParam*> params)
 {
-    CALL_OC_FUNC(std::string, "", String)
+    CALL_OC_FUNC(const char*, "", String)
 }
 
 int PluginProtocol::callIntFuncWithParam(const char* funcName, PluginParam* param, ...)

@@ -2,25 +2,24 @@
 #define __TEXT_INPUT_TEST_H__
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 class KeyboardNotificationLayer;
 
 /**
 @brief    TextInputTest for retain prev, reset, next, main menu buttons.
 */
-class TextInputTest : public BaseTest
+class TextInputTest : public CCLayer
 {
-    KeyboardNotificationLayer * _notificationLayer;
+    KeyboardNotificationLayer * m_pNotificationLayer;
 public:
     TextInputTest();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
     std::string title();
-    void addKeyboardNotificationLayer(KeyboardNotificationLayer * layer);
+    void addKeyboardNotificationLayer(KeyboardNotificationLayer * pLayer);
     
     virtual void onEnter();
 };
@@ -29,7 +28,7 @@ public:
 // KeyboardNotificationLayer for test IME keyboard notification.
 //////////////////////////////////////////////////////////////////////////
 
-class KeyboardNotificationLayer : public Layer, public IMEDelegate
+class KeyboardNotificationLayer : public CCLayer, public CCIMEDelegate
 {
 public:
     KeyboardNotificationLayer();
@@ -38,15 +37,15 @@ public:
     virtual void onClickTrackNode(bool bClicked) = 0;
 
     virtual void registerWithTouchDispatcher();
-    virtual void keyboardWillShow(IMEKeyboardNotificationInfo& info);
+    virtual void keyboardWillShow(CCIMEKeyboardNotificationInfo& info);
 
-    // Layer
-    virtual bool ccTouchBegan(Touch  *touch, Event  *event);
-    virtual void ccTouchEnded(Touch  *touch, Event  *event);
+    // CCLayer
+    virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
 
 protected:
-    Node * _trackNode;
-    Point  _beginPos;
+    CCNode * m_pTrackNode;
+    CCPoint  m_beginPos;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +59,7 @@ public:
     virtual std::string subtitle();
     virtual void onClickTrackNode(bool bClicked);
 
-    // Layer
+    // CCLayer
     virtual void onEnter();
 };
 
@@ -68,30 +67,30 @@ public:
 // TextFieldTTFActionTest
 //////////////////////////////////////////////////////////////////////////
 
-class TextFieldTTFActionTest : public KeyboardNotificationLayer, public TextFieldDelegate
+class TextFieldTTFActionTest : public KeyboardNotificationLayer, public CCTextFieldDelegate
 {
-    TextFieldTTF *    _textField;
-    Action *          _textFieldAction;
-    bool                _action;
-    int                 _charLimit;       // the textfield max char limit
+    CCTextFieldTTF *    m_pTextField;
+    CCAction *          m_pTextFieldAction;
+    bool                m_bAction;
+    int                 m_nCharLimit;       // the textfield max char limit
 
 public:
-    void callbackRemoveNodeWhenDidAction(Node * node);
+    void callbackRemoveNodeWhenDidAction(CCNode * pNode);
 
     // KeyboardNotificationLayer
     virtual std::string subtitle();
     virtual void onClickTrackNode(bool bClicked);
 
-    // Layer
+    // CCLayer
     virtual void onEnter();
     virtual void onExit();
 
-    // TextFieldDelegate
-    virtual bool onTextFieldAttachWithIME(TextFieldTTF * sender);
-    virtual bool onTextFieldDetachWithIME(TextFieldTTF * sender);
-    virtual bool onTextFieldInsertText(TextFieldTTF * sender, const char * text, int nLen);
-    virtual bool onTextFieldDeleteBackward(TextFieldTTF * sender, const char * delText, int nLen);
-    virtual bool onDraw(TextFieldTTF * sender);
+    // CCTextFieldDelegate
+    virtual bool onTextFieldAttachWithIME(CCTextFieldTTF * pSender);
+    virtual bool onTextFieldDetachWithIME(CCTextFieldTTF * pSender);
+    virtual bool onTextFieldInsertText(CCTextFieldTTF * pSender, const char * text, int nLen);
+    virtual bool onTextFieldDeleteBackward(CCTextFieldTTF * pSender, const char * delText, int nLen);
+    virtual bool onDraw(CCTextFieldTTF * pSender);
 };
 
 class TextInputTestScene : public TestScene

@@ -55,43 +55,37 @@ void initExtensions() {
 
 NS_CC_BEGIN
 
-EGLView::EGLView()
+CCEGLView::CCEGLView()
 {
     initExtensions();
 }
 
-EGLView::~EGLView()
+CCEGLView::~CCEGLView()
 {
 
 }
 
-bool EGLView::isOpenGLReady()
+bool CCEGLView::isOpenGLReady()
 {
-    return (_screenSize.width != 0 && _screenSize.height != 0);
+    return (m_obScreenSize.width != 0 && m_obScreenSize.height != 0);
 }
 
-void EGLView::end()
+void CCEGLView::end()
 {
     terminateProcessJNI();
 }
 
-void EGLView::swapBuffers()
+void CCEGLView::swapBuffers()
 {
 }
 
-EGLView* EGLView::getInstance()
+CCEGLView* CCEGLView::sharedOpenGLView()
 {
-    static EGLView instance;
+    static CCEGLView instance;
     return &instance;
 }
 
-// XXX: deprecated
-EGLView* EGLView::sharedOpenGLView()
-{
-    return EGLView::getInstance();
-}
-
-void EGLView::setIMEKeyboardState(bool bOpen)
+void CCEGLView::setIMEKeyboardState(bool bOpen)
 {
     setKeyboardStateJNI((int)bOpen);
 }

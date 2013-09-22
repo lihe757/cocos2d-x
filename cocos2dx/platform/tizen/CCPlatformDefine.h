@@ -28,7 +28,6 @@ THE SOFTWARE.
 
 #include <string.h>
 #include <assert.h>
-#include <CCStdC.h>
 
 #define CC_DLL
 

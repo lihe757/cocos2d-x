@@ -12,15 +12,17 @@ public:
     PongScene();
 
     virtual void runThisTest();
+
+    virtual void MainMenuCallback(CCObject* pSender);
 };
 
 class Ball;
-class PongLayer : public Layer
+class PongLayer : public CCLayer
 {
 private:
-    Ball*       _ball;
-    Array*    _paddles;
-    Point     _ballStartingVelocity; 
+    Ball*       m_ball;
+    CCArray*    m_paddles;
+    CCPoint     m_ballStartingVelocity; 
 public:
     PongLayer();
     ~PongLayer();

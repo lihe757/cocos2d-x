@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include "CCAccelerometer.h"
 #include "CCApplication.h"
 
-#include <emscripten/emscripten.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
 #include <SDL/SDL_mixer.h>
@@ -57,8 +56,8 @@ static const int glutMouseUp = 1;
 
 NS_CC_BEGIN
 
-bool EGLView::_initializedFunctions = false;
-const GLubyte *EGLView::_extensions = 0;
+bool CCEGLView::m_initializedFunctions = false;
+const GLubyte *CCEGLView::m_extensions = 0;
 
 enum Orientation
 {
@@ -70,14 +69,14 @@ enum Orientation
 static Orientation orientation = LANDSCAPE;
 
 #define MAX_TOUCHES         4
-static EGLView* s_pInstance = NULL;
+static CCEGLView* s_pInstance = NULL;
 
 static bool buttonDepressed = false;
 extern "C" void mouseCB(int button, int state, int x, int y)
 {
     float fx = x;
     float fy = y;
-    EGLView* pEGLView = EGLView::getInstance();
+    CCEGLView* pEGLView = CCEGLView::sharedOpenGLView();
     int id = 0;
 
     if(button != glutLeftButton) return;
@@ -98,7 +97,7 @@ extern "C" void motionCB(int x, int y)
 {
     float fx = x;
     float fy = y;
-    EGLView* pEGLView = EGLView::getInstance();
+    CCEGLView* pEGLView = CCEGLView::sharedOpenGLView();
     int id = 0;
 
     if(buttonDepressed)
@@ -107,18 +106,18 @@ extern "C" void motionCB(int x, int y)
     }
 }
 
-EGLView::EGLView()
+CCEGLView::CCEGLView()
 {
-	_eglDisplay = EGL_NO_DISPLAY;
-	_eglContext = EGL_NO_CONTEXT;
-	_eglSurface = EGL_NO_SURFACE;
+	m_eglDisplay = EGL_NO_DISPLAY;
+	m_eglContext = EGL_NO_CONTEXT;
+	m_eglSurface = EGL_NO_SURFACE;
 
-    strcpy(_windowGroupID, "");
-    snprintf(_windowGroupID, sizeof(_windowGroupID), "%d", 1);
+    strcpy(m_windowGroupID, "");
+    snprintf(m_windowGroupID, sizeof(m_windowGroupID), "%d", 1);
 
-    _isGLInitialized = initGL();
+    m_isGLInitialized = initGL();
 
-    if (_isGLInitialized)
+    if (m_isGLInitialized)
     	initEGLFunctions();
 
     // Initialize SDL: used for font rendering, sprite loading and audio
@@ -141,96 +140,90 @@ EGLView::EGLView()
     glutPassiveMotionFunc(&motionCB);
 }
 
-EGLView::~EGLView()
+CCEGLView::~CCEGLView()
 {
 }
 
-const char* EGLView::getWindowGroupId() const
+const char* CCEGLView::getWindowGroupId() const
 {
-	return _windowGroupID;
+	return m_windowGroupID;
 }
 
-void EGLView::release()
+void CCEGLView::release()
 {
-    if (_eglDisplay != EGL_NO_DISPLAY)
+    if (m_eglDisplay != EGL_NO_DISPLAY)
     {
-        eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglMakeCurrent(m_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
 
-    if (_eglSurface != EGL_NO_SURFACE)
+    if (m_eglSurface != EGL_NO_SURFACE)
     {
-        eglDestroySurface(_eglDisplay, _eglSurface);
-        _eglSurface = EGL_NO_SURFACE;
+        eglDestroySurface(m_eglDisplay, m_eglSurface);
+        m_eglSurface = EGL_NO_SURFACE;
     }
 
-    if (_eglContext != EGL_NO_CONTEXT)
+    if (m_eglContext != EGL_NO_CONTEXT)
     {
-        eglDestroyContext(_eglDisplay, _eglContext);
-        _eglContext = EGL_NO_CONTEXT;
+        eglDestroyContext(m_eglDisplay, m_eglContext);
+        m_eglContext = EGL_NO_CONTEXT;
     }
 
-    if (_eglDisplay != EGL_NO_DISPLAY)
+    if (m_eglDisplay != EGL_NO_DISPLAY)
     {
-        eglTerminate(_eglDisplay);
-        _eglDisplay = EGL_NO_DISPLAY;
+        eglTerminate(m_eglDisplay);
+        m_eglDisplay = EGL_NO_DISPLAY;
     }
 
-	_isGLInitialized = false;
+	m_isGLInitialized = false;
 
 	exit(0);
 }
 
-void EGLView::initEGLFunctions()
+void CCEGLView::initEGLFunctions()
 {
-	_extensions = glGetString(GL_EXTENSIONS);
-	_initializedFunctions = true;
+	m_extensions = glGetString(GL_EXTENSIONS);
+	m_initializedFunctions = true;
 }
 
-bool EGLView::isOpenGLReady()
+bool CCEGLView::isOpenGLReady()
 {
-	return (_isGLInitialized && _screenSize.height != 0 && _screenSize.width != 0);
+	return (m_isGLInitialized && m_obScreenSize.height != 0 && m_obScreenSize.width != 0);
 }
 
-void EGLView::end()
+void CCEGLView::end()
 {
     release();
 }
 
-void EGLView::swapBuffers()
+void CCEGLView::swapBuffers()
 {
-	eglSwapBuffers(_eglDisplay, _eglSurface);
+	eglSwapBuffers(m_eglDisplay, m_eglSurface);
 }
 
-EGLView* EGLView::getInstance()
+CCEGLView* CCEGLView::sharedOpenGLView()
 {
 	if (!s_pInstance)
 	{
-		s_pInstance = new EGLView();
+		s_pInstance = new CCEGLView();
 	}
 
 	CCAssert(s_pInstance != NULL, "CCEGLView wasn't constructed yet");
 	return s_pInstance;
 }
 
-// XXX: deprecated
-EGLView* EGLView::sharedOpenGLView()
-{
-    return EGLView::getInstance();
-}
-
-void EGLView::showKeyboard()
+void CCEGLView::showKeyboard()
 {
 }
 
-void EGLView::hideKeyboard()
+void CCEGLView::hideKeyboard()
 {
 }
 
-void EGLView::setIMEKeyboardState(bool bOpen)
+void CCEGLView::setIMEKeyboardState(bool bOpen)
 {
 }
 
-bool EGLView::isGLExtension(const char *searchName) const
+bool CCEGLView::isGLExtension(const char *searchName) const
 {
 	const GLubyte *start;
 	GLubyte *where, *terminator;
@@ -238,7 +231,7 @@ bool EGLView::isGLExtension(const char *searchName) const
 	/* It takes a bit of care to be fool-proof about parsing the
 	 OpenGL extensions string. Don't be fooled by sub-strings,
 	 etc. */
-	start = _extensions;
+	start = m_extensions;
 	for (;;)
 	{
 		where = (GLubyte *) strstr((const char *) start, searchName);
@@ -283,7 +276,7 @@ static EGLenum checkErrorEGL(const char* msg)
     return error;
 }
 
-bool EGLView::initGL()
+bool CCEGLView::initGL()
 {
     EGLint eglConfigCount;
     EGLConfig config;
@@ -315,40 +308,40 @@ bool EGLView::initGL()
     };
 
     // Get the EGL display and initialize.
-    _eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (_eglDisplay == EGL_NO_DISPLAY)
+    m_eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (m_eglDisplay == EGL_NO_DISPLAY)
     {
         perror("eglGetDisplay");
         return false;
     }
 
-    if (eglInitialize(_eglDisplay, NULL, NULL) != EGL_TRUE)
+    if (eglInitialize(m_eglDisplay, NULL, NULL) != EGL_TRUE)
     {
         perror("eglInitialize");
         return false;
     }
 
-    if (eglChooseConfig(_eglDisplay, eglConfigAttrs, &config, 1, &eglConfigCount) != EGL_TRUE || eglConfigCount == 0)
+    if (eglChooseConfig(m_eglDisplay, eglConfigAttrs, &config, 1, &eglConfigCount) != EGL_TRUE || eglConfigCount == 0)
     {
         checkErrorEGL("eglChooseConfig");
         return false;
     }
 
-    _eglContext = eglCreateContext(_eglDisplay, config, EGL_NO_CONTEXT, eglContextAttrs);
-    if (_eglContext == EGL_NO_CONTEXT)
+    m_eglContext = eglCreateContext(m_eglDisplay, config, EGL_NO_CONTEXT, eglContextAttrs);
+    if (m_eglContext == EGL_NO_CONTEXT)
     {
         checkErrorEGL("eglCreateContext");
         return false;
     }
 
-    _eglSurface = eglCreateWindowSurface(_eglDisplay, config, NULL, eglSurfaceAttrs);
-    if (_eglSurface == EGL_NO_SURFACE)
+    m_eglSurface = eglCreateWindowSurface(m_eglDisplay, config, NULL, eglSurfaceAttrs);
+    if (m_eglSurface == EGL_NO_SURFACE)
     {
         checkErrorEGL("eglCreateWindowSurface");
         return false;
     }
 
-    if (eglMakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext) != EGL_TRUE)
+    if (eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext) != EGL_TRUE)
     {
         checkErrorEGL("eglMakeCurrent");
         return false;
@@ -358,14 +351,14 @@ bool EGLView::initGL()
     EGLint width;
     EGLint height;
 
-    if ((_eglDisplay == EGL_NO_DISPLAY) || (_eglSurface == EGL_NO_SURFACE) )
+    if ((m_eglDisplay == EGL_NO_DISPLAY) || (m_eglSurface == EGL_NO_SURFACE) )
     	return EXIT_FAILURE;
 
-	eglQuerySurface(_eglDisplay, _eglSurface, EGL_WIDTH, &width);
-    eglQuerySurface(_eglDisplay, _eglSurface, EGL_HEIGHT, &height);
+	eglQuerySurface(m_eglDisplay, m_eglSurface, EGL_WIDTH, &width);
+    eglQuerySurface(m_eglDisplay, m_eglSurface, EGL_HEIGHT, &height);
 
-    _screenSize.width = width;
-    _screenSize.height = height;
+    m_obScreenSize.width = width;
+    m_obScreenSize.height = height;
 
     glViewport(0, 0, width, height);
 
@@ -382,7 +375,7 @@ static long time2millis(struct timespec *times)
     return times->tv_sec*1000 + times->tv_nsec/1000000;
 }
 
-bool EGLView::handleEvents()
+bool CCEGLView::handleEvents()
 {
 	return true;
 }

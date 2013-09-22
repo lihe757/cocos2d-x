@@ -42,39 +42,39 @@ class b2Fixture;
 class b2Contact;
 class b2World;
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 class ContactListener;
 class GLESDebugDraw;
 
-class PhysicsWorld
+class CCPhysicsWorld
 {
 public:
-    static PhysicsWorld *sharedPhysicsWorld();
+    static CCPhysicsWorld *sharedPhysicsWorld();
     static void purgePhysicsWorld();
 
     void initNoGravityWorld();
 private:
-    PhysicsWorld();
-    ~PhysicsWorld();
+    CCPhysicsWorld();
+    ~CCPhysicsWorld();
 
 private:
-    static PhysicsWorld *s_PhysicsWorld;
+    static CCPhysicsWorld *s_PhysicsWorld;
 
-    b2World *_noGravityWorld;
+    b2World *m_pNoGravityWorld;
 
-    ContactListener *_contactListener;
+    ContactListener *m_pContactListener;
 
-    GLESDebugDraw *_debugDraw;
+    GLESDebugDraw *m_pDebugDraw;
 public:
     void update(float dt);
     void drawDebug();
 
     b2World *getNoGravityWorld();
 
-    sigslot::signal2<Bone *, Bone *> BoneColliderSignal;
+    sigslot::signal2<CCBone *, CCBone *> BoneColliderSignal;
 };
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif/*__CCPHYSICSWORLD_H__*/

@@ -31,20 +31,20 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class TextFieldTTF;
+class CCTextFieldTTF;
 
 /**
  * @addtogroup input
  * @{
  */
 
-class CC_DLL TextFieldDelegate
+class CC_DLL CCTextFieldDelegate
 {
 public:
     /**
     @brief    If the sender doesn't want to attach to the IME, return true;
     */
-    virtual bool onTextFieldAttachWithIME(TextFieldTTF * sender)
+    virtual bool onTextFieldAttachWithIME(CCTextFieldTTF * sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
@@ -53,7 +53,7 @@ public:
     /**
     @brief    If the sender doesn't want to detach from the IME, return true;
     */
-    virtual bool onTextFieldDetachWithIME(TextFieldTTF * sender)
+    virtual bool onTextFieldDetachWithIME(CCTextFieldTTF * sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
@@ -62,7 +62,7 @@ public:
     /**
     @brief    If the sender doesn't want to insert the text, return true;
     */
-    virtual bool onTextFieldInsertText(TextFieldTTF * sender, const char * text, int nLen)
+    virtual bool onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
     {
         CC_UNUSED_PARAM(sender);
         CC_UNUSED_PARAM(text);
@@ -73,7 +73,7 @@ public:
     /**
     @brief    If the sender doesn't want to delete the delText, return true;
     */
-    virtual bool onTextFieldDeleteBackward(TextFieldTTF * sender, const char * delText, int nLen)
+    virtual bool onTextFieldDeleteBackward(CCTextFieldTTF * sender, const char * delText, int nLen)
     {
         CC_UNUSED_PARAM(sender);
         CC_UNUSED_PARAM(delText);
@@ -84,7 +84,7 @@ public:
     /**
     @brief    If the sender doesn't want to draw, return true.
     */
-    virtual bool onDraw(TextFieldTTF * sender)
+    virtual bool onDraw(CCTextFieldTTF * sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
@@ -94,21 +94,21 @@ public:
 /**
 @brief    A simple text input field with TTF font.
 */
-class CC_DLL TextFieldTTF : public LabelTTF, public IMEDelegate
+class CC_DLL CCTextFieldTTF : public CCLabelTTF, public CCIMEDelegate
 {
 public:
-    TextFieldTTF();
-    virtual ~TextFieldTTF();
+    CCTextFieldTTF();
+    virtual ~CCTextFieldTTF();
 
     //char * description();
 
-    /** creates a TextFieldTTF from a fontname, alignment, dimension and font size */
-    static TextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const Size& dimensions, Label::HAlignment alignment, const char *fontName, float fontSize);
-    /** creates a LabelTTF from a fontname and font size */
-    static TextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const char *fontName, float fontSize);
-    /** initializes the TextFieldTTF with a font name, alignment, dimension and font size */
-    bool initWithPlaceHolder(const char *placeholder, const Size& dimensions, Label::HAlignment alignment, const char *fontName, float fontSize);
-    /** initializes the TextFieldTTF with a font name and font size */
+    /** creates a CCTextFieldTTF from a fontname, alignment, dimension and font size */
+    static CCTextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char *fontName, float fontSize);
+    /** creates a CCLabelTTF from a fontname and font size */
+    static CCTextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const char *fontName, float fontSize);
+    /** initializes the CCTextFieldTTF with a font name, alignment, dimension and font size */
+    bool initWithPlaceHolder(const char *placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char *fontName, float fontSize);
+    /** initializes the CCTextFieldTTF with a font name and font size */
     bool initWithPlaceHolder(const char *placeholder, const char *fontName, float fontSize);
 
     /**
@@ -125,22 +125,17 @@ public:
     // properties
     //////////////////////////////////////////////////////////////////////////
 
-    inline TextFieldDelegate* getDelegate() const { return _delegate; };
-    inline void setDelegate(TextFieldDelegate* delegate) { _delegate = delegate; };
-
-    inline int getCharCount() const { return _charCount; };
-    virtual const Color3B& getColorSpaceHolder();
-    virtual void setColorSpaceHolder(const Color3B& color);
+    CC_SYNTHESIZE(CCTextFieldDelegate *, m_pDelegate, Delegate);
+    CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
+    virtual const ccColor3B& getColorSpaceHolder();
+    virtual void setColorSpaceHolder(const ccColor3B& color);
 
     // input text property
 public:
     virtual void setString(const char *text);
-    virtual const char* getString(void) const;
+    virtual const char* getString(void);
 protected:
-    TextFieldDelegate * _delegate;
-    int _charCount;
-    
-    std::string * _inputText;
+    std::string * m_pInputText;
 
     // place holder text property
     // place holder text displayed when there is no text in the text field.
@@ -148,19 +143,19 @@ public:
     virtual void setPlaceHolder(const char * text);
     virtual const char * getPlaceHolder(void);
 protected:
-    std::string * _placeHolder;
-    Color3B _colorSpaceHolder;
+    std::string * m_pPlaceHolder;
+    ccColor3B m_ColorSpaceHolder;
 public:
     virtual void setSecureTextEntry(bool value);
     virtual bool isSecureTextEntry();
 protected:
-    bool _secureTextEntry;
+    bool m_bSecureTextEntry;
 protected:
 
     virtual void draw();
 
     //////////////////////////////////////////////////////////////////////////
-    // IMEDelegate interface
+    // CCIMEDelegate interface
     //////////////////////////////////////////////////////////////////////////
 
     virtual bool canAttachWithIME();
@@ -170,7 +165,7 @@ protected:
     virtual const char * getContentText();
 private:
     class LengthStack;
-    LengthStack * _lens;
+    LengthStack * m_pLens;
 };
 
 // end of input group

@@ -29,7 +29,7 @@ THE SOFTWARE.
 NS_CC_BEGIN
 using namespace Tizen::System;
 
-int Device::getDPI()
+int CCDevice::getDPI()
 {
     result r = E_SUCCESS;
     int dpi = -1;

@@ -35,30 +35,30 @@ THE SOFTWARE.
 #include "../physics/CCColliderDetector.h"
 #endif
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-class  DecorativeDisplay: public Object, public sigslot::has_slots<>
+class  CCDecorativeDisplay: public CCObject, public sigslot::has_slots<>
 {
 public:
-    static DecorativeDisplay *create();
+    static CCDecorativeDisplay *create();
 public:
-    DecorativeDisplay(void);
-    ~DecorativeDisplay(void);
+    CCDecorativeDisplay(void);
+    ~CCDecorativeDisplay(void);
 
     virtual bool init();
 
 protected:
 
-    CC_SYNTHESIZE_RETAIN(Node *, _display, Display);
-    CC_SYNTHESIZE_RETAIN(DisplayData *, _displayData, DisplayData);
+    CC_SYNTHESIZE_RETAIN(CCNode *, m_pDisplay, Display);
+    CC_SYNTHESIZE_RETAIN(CCDisplayData *, m_pDisplayData, DisplayData);
 
 #if ENABLE_PHYSICS_DETECT
-    CC_SYNTHESIZE_RETAIN(ColliderDetector *, _colliderDetector, ColliderDetector);
+    CC_SYNTHESIZE_RETAIN(CCColliderDetector *, m_pColliderDetector, ColliderDetector);
 #endif
 public:
     void anchorPointChanged(float pointX, float pointY);
 };
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif /*__CCDECORATIVEDISPLAY_H__*/

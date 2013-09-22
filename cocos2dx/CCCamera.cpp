@@ -35,109 +35,109 @@ using namespace std;
 
 NS_CC_BEGIN
 
-Camera::Camera(void)
+CCCamera::CCCamera(void)
 {
     init();
 }
 
-Camera::~Camera(void)
+CCCamera::~CCCamera(void)
 {
 }
 
-const char* Camera::description(void) const
+const char* CCCamera::description(void)
 {
-    return String::createWithFormat("<Camera | center = (%.2f,%.2f,%.2f)>", _centerX, _centerY, _centerZ)->getCString();
+    return CCString::createWithFormat("<CCCamera | center = (%.2f,%.2f,%.2f)>", m_fCenterX, m_fCenterY, m_fCenterZ)->getCString();
 }
 
-void Camera::init(void)
+void CCCamera::init(void)
 {
     restore();
 }
 
-void Camera::restore(void)
+void CCCamera::restore(void)
 {
-    _eyeX = _eyeY = 0.0f;
-    _eyeZ = getZEye();
+    m_fEyeX = m_fEyeY = 0.0f;
+    m_fEyeZ = getZEye();
 
-    _centerX = _centerY = _centerZ = 0.0f;
+    m_fCenterX = m_fCenterY = m_fCenterZ = 0.0f;
 
-    _upX = 0.0f;
-    _upY = 1.0f;
-    _upZ = 0.0f;
+    m_fUpX = 0.0f;
+    m_fUpY = 1.0f;
+    m_fUpZ = 0.0f;
 
-    kmMat4Identity( &_lookupMatrix );
+    kmMat4Identity( &m_lookupMatrix );
 
-    _dirty = false;
+    m_bDirty = false;
 }
 
-void Camera::locate(void)
+void CCCamera::locate(void)
 {
-    if (_dirty)
+    if (m_bDirty)
     {
         kmVec3 eye, center, up;
 
-        kmVec3Fill( &eye, _eyeX, _eyeY , _eyeZ );
-        kmVec3Fill( &center, _centerX, _centerY, _centerZ );
+        kmVec3Fill( &eye, m_fEyeX, m_fEyeY , m_fEyeZ );
+        kmVec3Fill( &center, m_fCenterX, m_fCenterY, m_fCenterZ );
 
-        kmVec3Fill( &up, _upX, _upY, _upZ);
-        kmMat4LookAt( &_lookupMatrix, &eye, &center, &up);
+        kmVec3Fill( &up, m_fUpX, m_fUpY, m_fUpZ);
+        kmMat4LookAt( &m_lookupMatrix, &eye, &center, &up);
 
-        _dirty = false;
+        m_bDirty = false;
     }
-    kmGLMultMatrix( &_lookupMatrix );
+    kmGLMultMatrix( &m_lookupMatrix );
 }
 
-float Camera::getZEye(void)
+float CCCamera::getZEye(void)
 {
     return FLT_EPSILON;
 }
 
-void Camera::setEyeXYZ(float fEyeX, float fEyeY, float fEyeZ)
+void CCCamera::setEyeXYZ(float fEyeX, float fEyeY, float fEyeZ)
 {
-    _eyeX = fEyeX;
-    _eyeY = fEyeY;
-    _eyeZ = fEyeZ;
+    m_fEyeX = fEyeX;
+    m_fEyeY = fEyeY;
+    m_fEyeZ = fEyeZ;
 
-    _dirty = true;
+    m_bDirty = true;
 }
 
-void Camera::setCenterXYZ(float fCenterX, float fCenterY, float fCenterZ)
+void CCCamera::setCenterXYZ(float fCenterX, float fCenterY, float fCenterZ)
 {
-    _centerX = fCenterX;
-    _centerY = fCenterY;
-    _centerZ = fCenterZ;
+    m_fCenterX = fCenterX;
+    m_fCenterY = fCenterY;
+    m_fCenterZ = fCenterZ;
 
-    _dirty = true;
+    m_bDirty = true;
 }
 
-void Camera::setUpXYZ(float fUpX, float fUpY, float fUpZ)
+void CCCamera::setUpXYZ(float fUpX, float fUpY, float fUpZ)
 {
-    _upX = fUpX;
-    _upY = fUpY;
-    _upZ = fUpZ;
+    m_fUpX = fUpX;
+    m_fUpY = fUpY;
+    m_fUpZ = fUpZ;
 
-    _dirty = true;
+    m_bDirty = true;
 }
 
-void Camera::getEyeXYZ(float *pEyeX, float *pEyeY, float *pEyeZ) const
+void CCCamera::getEyeXYZ(float *pEyeX, float *pEyeY, float *pEyeZ)
 {
-    *pEyeX = _eyeX;
-    *pEyeY = _eyeY;
-    *pEyeZ = _eyeZ;
+    *pEyeX = m_fEyeX;
+    *pEyeY = m_fEyeY;
+    *pEyeZ = m_fEyeZ;
 }
 
-void Camera::getCenterXYZ(float *pCenterX, float *pCenterY, float *pCenterZ) const
+void CCCamera::getCenterXYZ(float *pCenterX, float *pCenterY, float *pCenterZ)
 {
-    *pCenterX = _centerX;
-    *pCenterY = _centerY;
-    *pCenterZ = _centerZ;
+    *pCenterX = m_fCenterX;
+    *pCenterY = m_fCenterY;
+    *pCenterZ = m_fCenterZ;
 }
 
-void Camera::getUpXYZ(float *pUpX, float *pUpY, float *pUpZ) const
+void CCCamera::getUpXYZ(float *pUpX, float *pUpY, float *pUpZ)
 {
-    *pUpX = _upX;
-    *pUpY = _upY;
-    *pUpZ = _upZ;
+    *pUpX = m_fUpX;
+    *pUpY = m_fUpY;
+    *pUpZ = m_fUpZ;
 }
 
 NS_CC_END

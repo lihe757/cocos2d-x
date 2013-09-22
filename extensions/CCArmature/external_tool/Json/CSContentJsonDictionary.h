@@ -89,7 +89,7 @@ namespace cs {
         std::vector<std::string> getAllMemberNames();
 
     protected:
-        CSJson::Value _value;
+        CSJson::Value m_cValue;
 
     private:
         void initWithValue(CSJson::Value& value);

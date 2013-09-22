@@ -51,119 +51,116 @@ NS_CC_BEGIN;
  */
 
 /** An Array that contain control points.
- Used by CardinalSplineTo and (By) and CatmullRomTo (and By) actions.
+ Used by CCCardinalSplineTo and (By) and CCCatmullRomTo (and By) actions.
 @ingroup Actions
  */
-class CC_DLL PointArray : public Object, public Clonable
+class CC_DLL CCPointArray : public CCObject
 {
 public:
     
     /** creates and initializes a Points array with capacity */
-    static PointArray* create(unsigned int capacity);
+    static CCPointArray* create(unsigned int capacity);
 
-    virtual ~PointArray();
-    PointArray();
+    virtual ~CCPointArray();
+    CCPointArray();
     
     /** initializes a Catmull Rom config with a capacity hint */
     bool initWithCapacity(unsigned int capacity);
     
     /** appends a control point */
-    void addControlPoint(Point controlPoint);
+    void addControlPoint(CCPoint controlPoint);
     
     /** inserts a controlPoint at index */
-    void insertControlPoint(Point &controlPoint, unsigned int index);
+    void insertControlPoint(CCPoint &controlPoint, unsigned int index);
     
     /** replaces an existing controlPoint at index */
-    void replaceControlPoint(Point &controlPoint, unsigned int index);
+    void replaceControlPoint(CCPoint &controlPoint, unsigned int index);
     
     /** get the value of a controlPoint at a given index */
-    Point getControlPointAtIndex(unsigned int index);
+    CCPoint getControlPointAtIndex(unsigned int index);
     
     /** deletes a control point at a given index */
     void removeControlPointAtIndex(unsigned int index);
     
     /** returns the number of objects of the control point array */
-    unsigned int count() const;
+    unsigned int count();
     
     /** returns a new copy of the array reversed. User is responsible for releasing this copy */
-    PointArray* reverse() const;
+    CCPointArray* reverse();
     
     /** reverse the current control point array inline, without generating a new one */
     void reverseInline();
+    
+    virtual CCObject* copyWithZone(CCZone *zone);
+    
+    const std::vector<CCPoint*>* getControlPoints();
 
-    virtual PointArray* clone() const;
-
-    const std::vector<Point*>* getControlPoints() const;
-
-    void setControlPoints(std::vector<Point*> *controlPoints);
+    void setControlPoints(std::vector<CCPoint*> *controlPoints);
 private:
     /** Array that contains the control points */
-    std::vector<Point*> *_controlPoints;
+    std::vector<CCPoint*> *m_pControlPoints;
 };
 
 /** Cardinal Spline path.
  http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline
 @ingroup Actions
  */
-class CC_DLL CardinalSplineTo : public ActionInterval
+class CC_DLL CCCardinalSplineTo : public CCActionInterval
 {
 public:
 
     /** creates an action with a Cardinal Spline array of points and tension */
-    static CardinalSplineTo* create(float duration, PointArray* points, float tension);
+    static CCCardinalSplineTo* create(float duration, CCPointArray* points, float tension);
 
-    virtual ~CardinalSplineTo();
-    CardinalSplineTo();
+    virtual ~CCCardinalSplineTo();
+    CCCardinalSplineTo();
     
     /** initializes the action with a duration and an array of points */
-    bool initWithDuration(float duration, PointArray* points, float tension);
-
-    virtual void updatePosition(Point &newPos);
-
-    inline PointArray* getPoints() { return _points; }
-    inline void setPoints(PointArray* points)
+    bool initWithDuration(float duration, CCPointArray* points, float tension);
+    
+    // super virtual functions
+    virtual CCCardinalSplineTo* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse();
+    
+    virtual void updatePosition(CCPoint &newPos);
+    
+    inline CCPointArray* getPoints() { return m_pPoints; }
+    inline void  setPoints(CCPointArray* points) 
     {
         CC_SAFE_RETAIN(points);
-        CC_SAFE_RELEASE(_points);
-        _points = points;
+        CC_SAFE_RELEASE(m_pPoints);
+        m_pPoints = points;
     }
-
-    // Overrides
-	virtual CardinalSplineTo *clone() const override;
-    virtual CardinalSplineTo* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
-
+    
 protected:
     /** Array of control points */
-    PointArray *_points;
-    float _deltaT;
-    float _tension;
-    Point	_previousPosition;
-    Point	_accumulatedDiff;
+    CCPointArray *m_pPoints;
+    float m_fDeltaT;
+    float m_fTension;
+    CCPoint	m_previousPosition;
+    CCPoint	m_accumulatedDiff;
 };
 
 /** Cardinal Spline path.
  http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline
  @ingroup Actions
  */
-class CC_DLL CardinalSplineBy : public CardinalSplineTo 
+class CC_DLL CCCardinalSplineBy : public CCCardinalSplineTo 
 {
 public:
     
     /** creates an action with a Cardinal Spline array of points and tension */
-    static CardinalSplineBy* create(float duration, PointArray* points, float tension);
+    static CCCardinalSplineBy* create(float duration, CCPointArray* points, float tension);
 
-    CardinalSplineBy();
+    CCCardinalSplineBy();
     
-    // Overrides
-    virtual void startWithTarget(Node *target) override;
-    virtual void updatePosition(Point &newPos) override;
-	virtual CardinalSplineBy *clone() const override;
-    virtual CardinalSplineBy* reverse() const override;
-
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCActionInterval* reverse();
+    virtual void updatePosition(CCPoint &newPos);
 protected:
-    Point _startPosition;
+    CCPoint m_startPosition;
 };
 
 /** An action that moves the target with a CatmullRom curve to a destination point.
@@ -171,19 +168,15 @@ protected:
  http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline
  @ingroup Actions
  */
-class CC_DLL CatmullRomTo : public CardinalSplineTo
+class CC_DLL CCCatmullRomTo : public CCCardinalSplineTo
 {
 public:
     
     /** creates an action with a Cardinal Spline array of points and tension */
-    static CatmullRomTo* create(float dt, PointArray* points);
+    static CCCatmullRomTo* create(float dt, CCPointArray* points);
 
     /** initializes the action with a duration and an array of points */
-    bool initWithDuration(float dt, PointArray* points);
-
-    // Override
-	virtual CatmullRomTo *clone() const override;
-	virtual CatmullRomTo *reverse() const override;
+    bool initWithDuration(float dt, CCPointArray* points);
 };
 
 /** An action that moves the target with a CatmullRom curve by a certain distance.
@@ -191,23 +184,19 @@ public:
  http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline
  @ingroup Actions
  */
-class CC_DLL CatmullRomBy : public CardinalSplineBy
+class CC_DLL CCCatmullRomBy : public CCCardinalSplineBy
 {
 public:
+    
     /** creates an action with a Cardinal Spline array of points and tension */
-    static CatmullRomBy* create(float dt, PointArray* points);
+    static CCCatmullRomBy* create(float dt, CCPointArray* points);
 
     /** initializes the action with a duration and an array of points */
-    bool initWithDuration(float dt, PointArray* points);
-
-    // Override
-	virtual CatmullRomBy *clone() const override;
-	virtual CatmullRomBy *reverse() const override;
-
+    bool initWithDuration(float dt, CCPointArray* points);
 };
 
 /** Returns the Cardinal Spline position for a given set of control points, tension and time */
-extern CC_DLL Point ccCardinalSplineAt(Point &p0, Point &p1, Point &p2, Point &p3, float tension, float t);
+extern CC_DLL CCPoint ccCardinalSplineAt(CCPoint &p0, CCPoint &p1, CCPoint &p2, CCPoint &p3, float tension, float t);
 
 // end of actions group
 /// @}

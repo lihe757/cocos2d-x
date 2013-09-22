@@ -31,35 +31,28 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class GLProgram;
+class CCGLProgram;
 
 /**
  * @addtogroup shaders
  * @{
  */
 
-/** ShaderCache
+/** CCShaderCache
  Singleton that stores manages GL shaders
  @since v2.0
  */
-class CC_DLL ShaderCache : public Object 
+class CC_DLL CCShaderCache : public CCObject 
 {
 public:
-    ShaderCache();
+    CCShaderCache();
 
-    virtual ~ShaderCache();
-
+    virtual ~CCShaderCache();
     /** returns the shared instance */
-    static ShaderCache* getInstance();
+    static CCShaderCache* sharedShaderCache();
 
     /** purges the cache. It releases the retained instance. */
-    static void destroyInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static ShaderCache* sharedShaderCache();
-
-    /** @deprecated Use destroyInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static void purgeSharedShaderCache();
+    static void purgeSharedShaderCache();
 
     /** loads the default shaders */
     void loadDefaultShaders();
@@ -68,16 +61,16 @@ public:
     void reloadDefaultShaders();
 
     /** returns a GL program for a given key */
-    GLProgram * programForKey(const char* key);
+    CCGLProgram * programForKey(const char* key);
 
-    /** adds a GLProgram to the cache for a given name */
-    void addProgram(GLProgram* program, const char* key);
+    /** adds a CCGLProgram to the cache for a given name */
+    void addProgram(CCGLProgram* program, const char* key);
 
 private:
     bool init();
-    void loadDefaultShader(GLProgram *program, int type);
+    void loadDefaultShader(CCGLProgram *program, int type);
 
-    Dictionary* _programs;
+    CCDictionary* m_pPrograms;
 
 };
 

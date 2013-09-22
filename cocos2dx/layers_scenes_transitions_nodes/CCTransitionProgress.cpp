@@ -32,24 +32,25 @@ THE SOFTWARE.
 #include "CCLayer.h"
 #include "actions/CCActionInstant.h"
 #include "actions/CCActionProgressTimer.h"
+#include "support/CCPointExtension.h"
 
 NS_CC_BEGIN
 
 enum {
-    kSceneRadial = 0xc001,
+    kCCSceneRadial = 0xc001,
 };
 
-TransitionProgress::TransitionProgress()
-: _to(0.0f)
-, _from(0.0f)
-, _sceneToBeModified(NULL)
+CCTransitionProgress::CCTransitionProgress()
+: m_fTo(0.0f)
+, m_fFrom(0.0f)
+, m_pSceneToBeModified(NULL)
 {
 
 }
 
-TransitionProgress* TransitionProgress::create(float t, Scene* scene)
+CCTransitionProgress* CCTransitionProgress::create(float t, CCScene* scene)
 {
-    TransitionProgress* pScene = new TransitionProgress();
+    CCTransitionProgress* pScene = new CCTransitionProgress();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -59,101 +60,101 @@ TransitionProgress* TransitionProgress::create(float t, Scene* scene)
     return NULL;
 }
 
-// TransitionProgress
-void TransitionProgress::onEnter()
+// CCTransitionProgress
+void CCTransitionProgress::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
     setupTransition();
     
     // create a transparent color layer
     // in which we are going to add our rendertextures
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
 
     // create the second render texture for outScene
-    RenderTexture *texture = RenderTexture::create((int)size.width, (int)size.height);
-    texture->getSprite()->setAnchorPoint(Point(0.5f,0.5f));
-    texture->setPosition(Point(size.width/2, size.height/2));
-    texture->setAnchorPoint(Point(0.5f,0.5f));
+    CCRenderTexture *texture = CCRenderTexture::create((int)size.width, (int)size.height);
+    texture->getSprite()->setAnchorPoint(ccp(0.5f,0.5f));
+    texture->setPosition(ccp(size.width/2, size.height/2));
+    texture->setAnchorPoint(ccp(0.5f,0.5f));
 
     // render outScene to its texturebuffer
     texture->clear(0, 0, 0, 1);
     texture->begin();
-    _sceneToBeModified->visit();
+    m_pSceneToBeModified->visit();
     texture->end();
 
 
     //    Since we've passed the outScene to the texture we don't need it.
-    if (_sceneToBeModified == _outScene)
+    if (m_pSceneToBeModified == m_pOutScene)
     {
         hideOutShowIn();
     }
     //    We need the texture in RenderTexture.
-    ProgressTimer *pNode = progressTimerNodeWithRenderTexture(texture);
+    CCProgressTimer *pNode = progressTimerNodeWithRenderTexture(texture);
 
     // create the blend action
-    ActionInterval* layerAction = (ActionInterval*)Sequence::create(
-        ProgressFromTo::create(_duration, _from, _to),
-        CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+    CCActionInterval* layerAction = (CCActionInterval*)CCSequence::create(
+        CCProgressFromTo::create(m_fDuration, m_fFrom, m_fTo),
+        CCCallFunc::create(this, callfunc_selector(CCTransitionProgress::finish)), 
         NULL);
     // run the blend action
     pNode->runAction(layerAction);
 
     // add the layer (which contains our two rendertextures) to the scene
-    addChild(pNode, 2, kSceneRadial);
+    addChild(pNode, 2, kCCSceneRadial);
 }
 
 // clean up on exit
-void TransitionProgress::onExit()
+void CCTransitionProgress::onExit()
 {
     // remove our layer and release all containing objects
-    removeChildByTag(kSceneRadial, true);
-    TransitionScene::onExit();
+    removeChildByTag(kCCSceneRadial, true);
+    CCTransitionScene::onExit();
 }
 
-void TransitionProgress::sceneOrder()
+void CCTransitionProgress::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionProgress::setupTransition()
+void CCTransitionProgress::setupTransition()
 {
-    _sceneToBeModified = _outScene;
-    _from = 100;
-    _to = 0;
+    m_pSceneToBeModified = m_pOutScene;
+    m_fFrom = 100;
+    m_fTo = 0;
 }
 
-ProgressTimer* TransitionProgress::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgress::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {
-    CCASSERT(false, "override me - abstract class");
+    CCAssert(false, "override me - abstract class");
     return NULL;
 }
 
 
-// TransitionProgressRadialCCW
+// CCTransitionProgressRadialCCW
 
-ProgressTimer* TransitionProgressRadialCCW::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressRadialCCW::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
 
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
 
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType(ProgressTimer::Type::RADIAL);
+    pNode->setType(kCCProgressTimerTypeRadial);
 
     //    Return the radial type that we want to use
     pNode->setReverseDirection(false);
     pNode->setPercentage(100);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
     
     return pNode;
 }
 
-TransitionProgressRadialCCW* TransitionProgressRadialCCW::create(float t, Scene* scene)
+CCTransitionProgressRadialCCW* CCTransitionProgressRadialCCW::create(float t, CCScene* scene)
 {
-    TransitionProgressRadialCCW* pScene = new TransitionProgressRadialCCW();
+    CCTransitionProgressRadialCCW* pScene = new CCTransitionProgressRadialCCW();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -163,10 +164,10 @@ TransitionProgressRadialCCW* TransitionProgressRadialCCW::create(float t, Scene*
     return NULL;
 }
 
-// TransitionProgressRadialCW
-TransitionProgressRadialCW* TransitionProgressRadialCW::create(float t, Scene* scene)
+// CCTransitionProgressRadialCW
+CCTransitionProgressRadialCW* CCTransitionProgressRadialCW::create(float t, CCScene* scene)
 {
-    TransitionProgressRadialCW* pScene = new TransitionProgressRadialCW();
+    CCTransitionProgressRadialCW* pScene = new CCTransitionProgressRadialCW();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -176,29 +177,29 @@ TransitionProgressRadialCW* TransitionProgressRadialCW::create(float t, Scene* s
     return NULL;
 }
 
-ProgressTimer* TransitionProgressRadialCW::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressRadialCW::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
     
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
     
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType( ProgressTimer::Type::RADIAL );
+    pNode->setType( kCCProgressTimerTypeRadial );
     
     //    Return the radial type that we want to use
     pNode->setReverseDirection(true);
     pNode->setPercentage(100);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
     
     return pNode;
 }
 
-// TransitionProgressHorizontal
-TransitionProgressHorizontal* TransitionProgressHorizontal::create(float t, Scene* scene)
+// CCTransitionProgressHorizontal
+CCTransitionProgressHorizontal* CCTransitionProgressHorizontal::create(float t, CCScene* scene)
 {
-    TransitionProgressHorizontal* pScene = new TransitionProgressHorizontal();
+    CCTransitionProgressHorizontal* pScene = new CCTransitionProgressHorizontal();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -208,30 +209,30 @@ TransitionProgressHorizontal* TransitionProgressHorizontal::create(float t, Scen
     return NULL;
 }
 
-ProgressTimer* TransitionProgressHorizontal::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressHorizontal::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {    
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
 
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
     
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType( ProgressTimer::Type::BAR);
+    pNode->setType( kCCProgressTimerTypeBar);
     
-    pNode->setMidpoint(Point(1, 0));
-    pNode->setBarChangeRate(Point(1,0));
+    pNode->setMidpoint(ccp(1, 0));
+    pNode->setBarChangeRate(ccp(1,0));
     
     pNode->setPercentage(100);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
 
     return pNode;
 }
 
-// TransitionProgressVertical
-TransitionProgressVertical* TransitionProgressVertical::create(float t, Scene* scene)
+// CCTransitionProgressVertical
+CCTransitionProgressVertical* CCTransitionProgressVertical::create(float t, CCScene* scene)
 {
-    TransitionProgressVertical* pScene = new TransitionProgressVertical();
+    CCTransitionProgressVertical* pScene = new CCTransitionProgressVertical();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -241,31 +242,31 @@ TransitionProgressVertical* TransitionProgressVertical::create(float t, Scene* s
     return NULL;
 }
 
-ProgressTimer* TransitionProgressVertical::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressVertical::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {    
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
     
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
     
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType(ProgressTimer::Type::BAR);
+    pNode->setType(kCCProgressTimerTypeBar);
     
-    pNode->setMidpoint(Point(0, 0));
-    pNode->setBarChangeRate(Point(0,1));
+    pNode->setMidpoint(ccp(0, 0));
+    pNode->setBarChangeRate(ccp(0,1));
     
     pNode->setPercentage(100);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
     
     return pNode;
 }
 
 
-// TransitionProgressInOut
-TransitionProgressInOut* TransitionProgressInOut::create(float t, Scene* scene)
+// CCTransitionProgressInOut
+CCTransitionProgressInOut* CCTransitionProgressInOut::create(float t, CCScene* scene)
 {
-    TransitionProgressInOut* pScene = new TransitionProgressInOut();
+    CCTransitionProgressInOut* pScene = new CCTransitionProgressInOut();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -275,43 +276,43 @@ TransitionProgressInOut* TransitionProgressInOut::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionProgressInOut::sceneOrder()
+void CCTransitionProgressInOut::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionProgressInOut::setupTransition()
+void CCTransitionProgressInOut::setupTransition()
 {
-    _sceneToBeModified = _inScene;
-    _from = 0;
-    _to = 100;    
+    m_pSceneToBeModified = m_pInScene;
+    m_fFrom = 0;
+    m_fTo = 100;    
 }
 
-ProgressTimer* TransitionProgressInOut::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressInOut::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {    
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
     
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
     
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType( ProgressTimer::Type::BAR);
+    pNode->setType( kCCProgressTimerTypeBar);
     
-    pNode->setMidpoint(Point(0.5f, 0.5f));
-    pNode->setBarChangeRate(Point(1, 1));
+    pNode->setMidpoint(ccp(0.5f, 0.5f));
+    pNode->setBarChangeRate(ccp(1, 1));
     
     pNode->setPercentage(0);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
     
     return pNode;
 }
 
 
-// TransitionProgressOutIn
-TransitionProgressOutIn* TransitionProgressOutIn::create(float t, Scene* scene)
+// CCTransitionProgressOutIn
+CCTransitionProgressOutIn* CCTransitionProgressOutIn::create(float t, CCScene* scene)
 {
-    TransitionProgressOutIn* pScene = new TransitionProgressOutIn();
+    CCTransitionProgressOutIn* pScene = new CCTransitionProgressOutIn();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -321,22 +322,22 @@ TransitionProgressOutIn* TransitionProgressOutIn::create(float t, Scene* scene)
     return NULL;
 }
 
-ProgressTimer* TransitionProgressOutIn::progressTimerNodeWithRenderTexture(RenderTexture* texture)
+CCProgressTimer* CCTransitionProgressOutIn::progressTimerNodeWithRenderTexture(CCRenderTexture* texture)
 {    
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
     
-    ProgressTimer* pNode = ProgressTimer::create(texture->getSprite());
+    CCProgressTimer* pNode = CCProgressTimer::create(texture->getSprite());
     
     // but it is flipped upside down so we flip the sprite
     pNode->getSprite()->setFlipY(true);
-    pNode->setType( ProgressTimer::Type::BAR );
+    pNode->setType( kCCProgressTimerTypeBar );
     
-    pNode->setMidpoint(Point(0.5f, 0.5f));
-    pNode->setBarChangeRate(Point(1, 1));
+    pNode->setMidpoint(ccp(0.5f, 0.5f));
+    pNode->setBarChangeRate(ccp(1, 1));
     
     pNode->setPercentage(100);
-    pNode->setPosition(Point(size.width/2, size.height/2));
-    pNode->setAnchorPoint(Point(0.5f,0.5f));
+    pNode->setPosition(ccp(size.width/2, size.height/2));
+    pNode->setAnchorPoint(ccp(0.5f,0.5f));
     
     return pNode;
 }

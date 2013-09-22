@@ -12,25 +12,25 @@ static void PVRFrameEnableControlWindow(bool bEnable);
 NS_CC_BEGIN
 
 // sharedApplication pointer
-Application * Application::sm_pSharedApplication = 0;
+CCApplication * CCApplication::sm_pSharedApplication = 0;
 
-Application::Application()
-: _instance(NULL)
-, _accelTable(NULL)
+CCApplication::CCApplication()
+: m_hInstance(NULL)
+, m_hAccelTable(NULL)
 {
-    _instance    = GetModuleHandle(NULL);
-    _animationInterval.QuadPart = 0;
+    m_hInstance    = GetModuleHandle(NULL);
+    m_nAnimationInterval.QuadPart = 0;
     CC_ASSERT(! sm_pSharedApplication);
     sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
     CC_ASSERT(this == sm_pSharedApplication);
     sm_pSharedApplication = NULL;
 }
 
-int Application::run()
+int CCApplication::run()
 {
     PVRFrameEnableControlWindow(false);
 
@@ -49,7 +49,7 @@ int Application::run()
         return 0;
     }
 
-    EGLView* pMainWnd = EGLView::getInstance();
+    CCEGLView* pMainWnd = CCEGLView::sharedOpenGLView();
     pMainWnd->centerWindow();
     ShowWindow(pMainWnd->getHWnd(), SW_SHOW);
 
@@ -61,10 +61,10 @@ int Application::run()
             QueryPerformanceCounter(&nNow);
 
             // If it's the time to draw next frame, draw it, else sleep a while.
-            if (nNow.QuadPart - nLast.QuadPart > _animationInterval.QuadPart)
+            if (nNow.QuadPart - nLast.QuadPart > m_nAnimationInterval.QuadPart)
             {
                 nLast.QuadPart = nNow.QuadPart;
-                Director::getInstance()->mainLoop();
+                CCDirector::sharedDirector()->mainLoop();
             }
             else
             {
@@ -80,7 +80,7 @@ int Application::run()
         }
 
         // Deal with windows message.
-        if (! _accelTable || ! TranslateAccelerator(msg.hwnd, _accelTable, &msg))
+        if (! m_hAccelTable || ! TranslateAccelerator(msg.hwnd, m_hAccelTable, &msg))
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -90,31 +90,25 @@ int Application::run()
     return (int) msg.wParam;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
     LARGE_INTEGER nFreq;
     QueryPerformanceFrequency(&nFreq);
-    _animationInterval.QuadPart = (LONGLONG)(interval * nFreq.QuadPart);
+    m_nAnimationInterval.QuadPart = (LONGLONG)(interval * nFreq.QuadPart);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
     CC_ASSERT(sm_pSharedApplication);
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
-{
-    LanguageType ret = LanguageType::ENGLISH;
+    ccLanguageType ret = kLanguageEnglish;
 
     LCID localeID = GetUserDefaultLCID();
     unsigned short primaryLanguageID = localeID & 0xFF;
@@ -122,80 +116,74 @@ LanguageType Application::getCurrentLanguage()
     switch (primaryLanguageID)
     {
         case LANG_CHINESE:
-            ret = LanguageType::CHINESE;
+            ret = kLanguageChinese;
             break;
         case LANG_ENGLISH:
-            ret = LanguageType::ENGLISH;
+            ret = kLanguageEnglish;
             break;
         case LANG_FRENCH:
-            ret = LanguageType::FRENCH;
+            ret = kLanguageFrench;
             break;
         case LANG_ITALIAN:
-            ret = LanguageType::ITALIAN;
+            ret = kLanguageItalian;
             break;
         case LANG_GERMAN:
-            ret = LanguageType::GERMAN;
+            ret = kLanguageGerman;
             break;
         case LANG_SPANISH:
-            ret = LanguageType::SPANISH;
+            ret = kLanguageSpanish;
             break;
         case LANG_RUSSIAN:
-            ret = LanguageType::RUSSIAN;
+            ret = kLanguageRussian;
             break;
         case LANG_KOREAN:
-            ret = LanguageType::KOREAN;
+            ret = kLanguageKorean;
             break;
         case LANG_JAPANESE:
-            ret = LanguageType::JAPANESE;
+            ret = kLanguageJapanese;
             break;
         case LANG_HUNGARIAN:
-            ret = LanguageType::HUNGARIAN;
+            ret = kLanguageHungarian;
             break;
         case LANG_PORTUGUESE:
-            ret = LanguageType::PORTUGUESE;
+            ret = kLanguagePortuguese;
             break;
         case LANG_ARABIC:
-            ret = LanguageType::ARABIC;
-            break;
-	    case LANG_NORWEGIAN:
-            ret = LanguageType::NORWEGIAN;
-            break;
- 	    case LANG_POLISH:
-            ret = LanguageType::POLISH;
+            ret = kLanguageArabic;
             break;
     }
 
     return ret;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_WINDOWS;
+    return kTargetWindows;
 }
 
-void Application::setResourceRootPath(const std::string& rootResDir)
+void CCApplication::setResourceRootPath(const std::string& rootResDir)
 {
-    _resourceRootPath = rootResDir;
-    std::replace(_resourceRootPath.begin(), _resourceRootPath.end(), '\\', '/');
-    if (_resourceRootPath[_resourceRootPath.length() - 1] != '/')
+    m_resourceRootPath = rootResDir;
+    std::replace(m_resourceRootPath.begin(), m_resourceRootPath.end(), '\\', '/');
+    if (m_resourceRootPath[m_resourceRootPath.length() - 1] != '/')
     {
-        _resourceRootPath += '/';
+        m_resourceRootPath += '/';
     }
-    FileUtils* pFileUtils = FileUtils::getInstance();
+    CCFileUtils* pFileUtils = CCFileUtils::sharedFileUtils();
     std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
-    searchPaths.insert(searchPaths.begin(), _resourceRootPath);
+    searchPaths.insert(searchPaths.begin(), m_resourceRootPath);
     pFileUtils->setSearchPaths(searchPaths);
 }
 
-const std::string& Application::getResourceRootPath(void)
+const std::string& CCApplication::getResourceRootPath(void)
 {
-    return _resourceRootPath;
+    return m_resourceRootPath;
 }
 
-void Application::setStartupScriptFilename(const std::string& startupScriptFile)
+void CCApplication::setStartupScriptFilename(const std::string& startupScriptFile)
 {
-    _startupScriptFilename = startupScriptFile;
-    std::replace(_startupScriptFilename.begin(), _startupScriptFilename.end(), '\\', '/');
+    m_startupScriptFilename = startupScriptFile;
+    std::replace(m_startupScriptFilename.begin(), m_startupScriptFilename.end(), '\\', '/');
 }
 
 NS_CC_END

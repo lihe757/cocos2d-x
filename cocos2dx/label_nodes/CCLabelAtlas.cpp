@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "CCLabelAtlas.h"
 #include "textures/CCTextureAtlas.h"
 #include "textures/CCTextureCache.h"
+#include "support/CCPointExtension.h"
 #include "draw_nodes/CCDrawingPrimitives.h"
 #include "ccConfig.h"
 #include "shaders/CCShaderCache.h"
@@ -42,9 +43,9 @@ NS_CC_BEGIN
 
 //CCLabelAtlas - Creation & Init
 
-LabelAtlas* LabelAtlas::create(const char *string, const char *charMapFile, unsigned int itemWidth, int unsigned itemHeight, unsigned int startCharMap)
+CCLabelAtlas* CCLabelAtlas::create(const char *string, const char *charMapFile, unsigned int itemWidth, int unsigned itemHeight, unsigned int startCharMap)
 {
-    LabelAtlas *pRet = new LabelAtlas();
+    CCLabelAtlas *pRet = new CCLabelAtlas();
     if(pRet && pRet->initWithString(string, charMapFile, itemWidth, itemHeight, startCharMap))
     {
         pRet->autorelease();
@@ -54,27 +55,27 @@ LabelAtlas* LabelAtlas::create(const char *string, const char *charMapFile, unsi
     return NULL;
 }
 
-bool LabelAtlas::initWithString(const char *string, const char *charMapFile, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap)
+bool CCLabelAtlas::initWithString(const char *string, const char *charMapFile, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap)
 {
-    Texture2D *texture = TextureCache::getInstance()->addImage(charMapFile);
+    CCTexture2D *texture = CCTextureCache::sharedTextureCache()->addImage(charMapFile);
 	return initWithString(string, texture, itemWidth, itemHeight, startCharMap);
 }
 
-bool LabelAtlas::initWithString(const char *string, Texture2D* texture, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap)
+bool CCLabelAtlas::initWithString(const char *string, CCTexture2D* texture, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap)
 {
-    CCASSERT(string != NULL, "");
-    if (AtlasNode::initWithTexture(texture, itemWidth, itemHeight, strlen(string)))
+    CCAssert(string != NULL, "");
+    if (CCAtlasNode::initWithTexture(texture, itemWidth, itemHeight, strlen(string)))
     {
-        _mapStartChar = startCharMap;
+        m_uMapStartChar = startCharMap;
         this->setString(string);
         return true;
     }
     return false;
 }
 
-LabelAtlas* LabelAtlas::create(const char *string, const char *fntFile)
+CCLabelAtlas* CCLabelAtlas::create(const char *string, const char *fntFile)
 {    
-    LabelAtlas *ret = new LabelAtlas();
+    CCLabelAtlas *ret = new CCLabelAtlas();
     if (ret)
     {
         if (ret->initWithString(string, fntFile))
@@ -90,19 +91,19 @@ LabelAtlas* LabelAtlas::create(const char *string, const char *fntFile)
     return ret;
 }
 
-bool LabelAtlas::initWithString(const char *theString, const char *fntFile)
+bool CCLabelAtlas::initWithString(const char *theString, const char *fntFile)
 {
-  std::string pathStr = FileUtils::getInstance()->fullPathForFilename(fntFile);
+  std::string pathStr = CCFileUtils::sharedFileUtils()->fullPathForFilename(fntFile);
   std::string relPathStr = pathStr.substr(0, pathStr.find_last_of("/"))+"/";
-  Dictionary *dict = Dictionary::createWithContentsOfFile(pathStr.c_str());
+  CCDictionary *dict = CCDictionary::createWithContentsOfFile(pathStr.c_str());
   
-  CCASSERT(((String*)dict->objectForKey("version"))->intValue() == 1, "Unsupported version. Upgrade cocos2d version");
+  CCAssert(((CCString*)dict->objectForKey("version"))->intValue() == 1, "Unsupported version. Upgrade cocos2d version");
     
-  std::string texturePathStr = relPathStr + ((String*)dict->objectForKey("textureFilename"))->getCString();
-  String *textureFilename = String::create(texturePathStr);
-  unsigned int width = ((String*)dict->objectForKey("itemWidth"))->intValue() / CC_CONTENT_SCALE_FACTOR();
-  unsigned int height = ((String*)dict->objectForKey("itemHeight"))->intValue() / CC_CONTENT_SCALE_FACTOR();
-  unsigned int startChar = ((String*)dict->objectForKey("firstChar"))->intValue();
+  std::string texturePathStr = relPathStr + ((CCString*)dict->objectForKey("textureFilename"))->getCString();
+  CCString *textureFilename = CCString::create(texturePathStr);
+  unsigned int width = ((CCString*)dict->objectForKey("itemWidth"))->intValue() / CC_CONTENT_SCALE_FACTOR();
+  unsigned int height = ((CCString*)dict->objectForKey("itemHeight"))->intValue() / CC_CONTENT_SCALE_FACTOR();
+  unsigned int startChar = ((CCString*)dict->objectForKey("firstChar"))->intValue();
   
 
   this->initWithString(theString, textureFilename->getCString(), width, height, startChar);
@@ -111,30 +112,30 @@ bool LabelAtlas::initWithString(const char *theString, const char *fntFile)
 }
 
 //CCLabelAtlas - Atlas generation
-void LabelAtlas::updateAtlasValues()
+void CCLabelAtlas::updateAtlasValues()
 {
-    int n = _string.length();
+    unsigned int n = m_sString.length();
 
-    const unsigned char *s = (unsigned char*)_string.c_str();
+    const unsigned char *s = (unsigned char*)m_sString.c_str();
 
-    Texture2D *texture = _textureAtlas->getTexture();
+    CCTexture2D *texture = m_pTextureAtlas->getTexture();
     float textureWide = (float) texture->getPixelsWide();
     float textureHigh = (float) texture->getPixelsHigh();
-    float itemWidthInPixels = _itemWidth * CC_CONTENT_SCALE_FACTOR();
-    float itemHeightInPixels = _itemHeight * CC_CONTENT_SCALE_FACTOR();
-    if (_ignoreContentScaleFactor)
+    float itemWidthInPixels = m_uItemWidth * CC_CONTENT_SCALE_FACTOR();
+    float itemHeightInPixels = m_uItemHeight * CC_CONTENT_SCALE_FACTOR();
+    if (m_bIgnoreContentScaleFactor)
     {
-        itemWidthInPixels = _itemWidth;
-        itemHeightInPixels = _itemHeight;
+        itemWidthInPixels = m_uItemWidth;
+        itemHeightInPixels = m_uItemHeight;
     }
 
-    CCASSERT( n <= _textureAtlas->getCapacity(), "updateAtlasValues: Invalid String length");
-    V3F_C4B_T2F_Quad* quads = _textureAtlas->getQuads();
-    for(int i = 0; i < n; i++) {
+    CCAssert( n <= m_pTextureAtlas->getCapacity(), "updateAtlasValues: Invalid String length");
+    ccV3F_C4B_T2F_Quad* quads = m_pTextureAtlas->getQuads();
+    for(unsigned int i = 0; i < n; i++) {
 
-        unsigned char a = s[i] - _mapStartChar;
-        float row = (float) (a % _itemsPerRow);
-        float col = (float) (a / _itemsPerRow);
+        unsigned char a = s[i] - m_uMapStartChar;
+        float row = (float) (a % m_uItemsPerRow);
+        float col = (float) (a / m_uItemsPerRow);
 
 #if CC_FIX_ARTIFACTS_BY_STRECHING_TEXEL
         // Issue #938. Don't use texStepX & texStepY
@@ -158,68 +159,68 @@ void LabelAtlas::updateAtlasValues()
         quads[i].br.texCoords.u = right;
         quads[i].br.texCoords.v = bottom;
 
-        quads[i].bl.vertices.x = (float) (i * _itemWidth);
+        quads[i].bl.vertices.x = (float) (i * m_uItemWidth);
         quads[i].bl.vertices.y = 0;
         quads[i].bl.vertices.z = 0.0f;
-        quads[i].br.vertices.x = (float)(i * _itemWidth + _itemWidth);
+        quads[i].br.vertices.x = (float)(i * m_uItemWidth + m_uItemWidth);
         quads[i].br.vertices.y = 0;
         quads[i].br.vertices.z = 0.0f;
-        quads[i].tl.vertices.x = (float)(i * _itemWidth);
-        quads[i].tl.vertices.y = (float)(_itemHeight);
+        quads[i].tl.vertices.x = (float)(i * m_uItemWidth);
+        quads[i].tl.vertices.y = (float)(m_uItemHeight);
         quads[i].tl.vertices.z = 0.0f;
-        quads[i].tr.vertices.x = (float)(i * _itemWidth + _itemWidth);
-        quads[i].tr.vertices.y = (float)(_itemHeight);
+        quads[i].tr.vertices.x = (float)(i * m_uItemWidth + m_uItemWidth);
+        quads[i].tr.vertices.y = (float)(m_uItemHeight);
         quads[i].tr.vertices.z = 0.0f;
-        Color4B c(_displayedColor.r, _displayedColor.g, _displayedColor.b, _displayedOpacity);
+        ccColor4B c = { _displayedColor.r, _displayedColor.g, _displayedColor.b, _displayedOpacity };
         quads[i].tl.colors = c;
         quads[i].tr.colors = c;
         quads[i].bl.colors = c;
         quads[i].br.colors = c;
     }
     if (n > 0 ){
-        _textureAtlas->setDirty(true);
-        int totalQuads = _textureAtlas->getTotalQuads();
+        m_pTextureAtlas->setDirty(true);
+        unsigned int totalQuads = m_pTextureAtlas->getTotalQuads();
         if (n > totalQuads) {
-            _textureAtlas->increaseTotalQuadsWith(n - totalQuads);
+            m_pTextureAtlas->increaseTotalQuadsWith(n - totalQuads);
         }
     }
 }
 
-//CCLabelAtlas - LabelProtocol
-void LabelAtlas::setString(const char *label)
+//CCLabelAtlas - CCLabelProtocol
+void CCLabelAtlas::setString(const char *label)
 {
-    int len = strlen(label);
-    if (len > _textureAtlas->getTotalQuads())
+    unsigned int len = strlen(label);
+    if (len > m_pTextureAtlas->getTotalQuads())
     {
-        _textureAtlas->resizeCapacity(len);
+        m_pTextureAtlas->resizeCapacity(len);
     }
-    _string.clear();
-    _string = label;
+    m_sString.clear();
+    m_sString = label;
     this->updateAtlasValues();
 
-    Size s = Size(len * _itemWidth, _itemHeight);
+    CCSize s = CCSizeMake(len * m_uItemWidth, m_uItemHeight);
 
     this->setContentSize(s);
 
-    _quadsToDraw = len;
+    m_uQuadsToDraw = len;
 }
 
-const char* LabelAtlas::getString(void) const
+const char* CCLabelAtlas::getString(void)
 {
-    return _string.c_str();
+    return m_sString.c_str();
 }
 
 //CCLabelAtlas - draw
 
 #if CC_LABELATLAS_DEBUG_DRAW    
-void LabelAtlas::draw()
+void CCLabelAtlas::draw()
 {
-    AtlasNode::draw();
+    CCAtlasNode::draw();
 
-    const Size& s = this->getContentSize();
-    Point vertices[4]={
-        Point(0,0),Point(s.width,0),
-        Point(s.width,s.height),Point(0,s.height),
+    const CCSize& s = this->getContentSize();
+    CCPoint vertices[4]={
+        ccp(0,0),ccp(s.width,0),
+        ccp(s.width,s.height),ccp(0,s.height),
     };
     ccDrawPoly(vertices, 4, true);
 }

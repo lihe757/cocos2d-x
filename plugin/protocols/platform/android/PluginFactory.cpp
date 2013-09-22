@@ -27,8 +27,6 @@ THE SOFTWARE.
 #include "ProtocolAds.h"
 #include "ProtocolAnalytics.h"
 #include "ProtocolIAP.h"
-#include "ProtocolShare.h"
-#include "ProtocolUser.h"
 #include "ProtocolSocial.h"
 
 namespace cocos2d { namespace plugin {
@@ -37,8 +35,6 @@ enum {
 	kPluginAds = 1,
 	kPluginAnalytics,
 	kPluginIAP,
-	kPluginShare,
-	kPluginUser,
 	kPluginSocial,
 };
 
@@ -130,15 +126,9 @@ PluginProtocol* PluginFactory::createPlugin(const char* name)
 		case kPluginIAP:
 			pRet = new ProtocolIAP();
 			break;
-		case kPluginShare:
-			pRet = new ProtocolShare();
-			break;
-		case kPluginUser:
-		    pRet = new ProtocolUser();
-		    break;
 		case kPluginSocial:
-		    pRet = new ProtocolSocial();
-		    break;
+			pRet = new ProtocolSocial();
+			break;
 		default:
 			break;
 		}

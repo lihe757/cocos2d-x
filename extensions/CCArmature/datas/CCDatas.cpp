@@ -25,10 +25,10 @@ THE SOFTWARE.
 #include "CCDatas.h"
 #include "CCArmature/utils/CCUtilMath.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 
-	BaseData::BaseData()
+	CCBaseData::CCBaseData()
 	: x(0.0f)
 	, y(0.0f)
 	, zOrder(0)
@@ -48,11 +48,11 @@ namespace cocos2d { namespace extension { namespace armature {
 {
 }
 
-BaseData::~BaseData()
+CCBaseData::~CCBaseData()
 {
 }
 
-void BaseData::copy(const BaseData *node )
+void CCBaseData::copy(const CCBaseData *node )
 {
 	x = node->x;
 	y = node->y;
@@ -73,7 +73,7 @@ void BaseData::copy(const BaseData *node )
 }
 
 
-void BaseData::subtract(BaseData *from, BaseData *to)
+void CCBaseData::subtract(CCBaseData *from, CCBaseData *to)
 {
 	x = to->x - from->x;
 	y = to->y - from->y;
@@ -119,7 +119,7 @@ void BaseData::subtract(BaseData *from, BaseData *to)
 }
 
 
-const char *DisplayData::changeDisplayToTexture(const char *displayName)
+const char *CCDisplayData::changeDisplayToTexture(const char *displayName)
 {
     // remove .xxx
     std::string textureName = displayName;
@@ -133,67 +133,67 @@ const char *DisplayData::changeDisplayToTexture(const char *displayName)
     return textureName.c_str();
 }
 
-DisplayData::DisplayData(void)
+CCDisplayData::CCDisplayData(void)
     : displayType(CS_DISPLAY_SPRITE)
 {
 }
 
-DisplayData::~DisplayData(void)
+CCDisplayData::~CCDisplayData(void)
 {
 }
 
-SpriteDisplayData::SpriteDisplayData(void)
+CCSpriteDisplayData::CCSpriteDisplayData(void)
     : displayName("")
 {
     displayType = CS_DISPLAY_SPRITE;
 }
 
-SpriteDisplayData::~SpriteDisplayData()
+CCSpriteDisplayData::~CCSpriteDisplayData()
 {
 }
 
-void SpriteDisplayData::copy(SpriteDisplayData *displayData)
+void CCSpriteDisplayData::copy(CCSpriteDisplayData *displayData)
 {
     displayName = displayData->displayName;
     displayType = displayData->displayType;
 }
 
-ArmatureDisplayData::ArmatureDisplayData(void)
+CCArmatureDisplayData::CCArmatureDisplayData(void)
     : displayName("")
 {
     displayType = CS_DISPLAY_ARMATURE;
 }
 
-ArmatureDisplayData::~ArmatureDisplayData()
+CCArmatureDisplayData::~CCArmatureDisplayData()
 {
 }
 
-void ArmatureDisplayData::copy(ArmatureDisplayData *displayData)
+void CCArmatureDisplayData::copy(CCArmatureDisplayData *displayData)
 {
     displayName = displayData->displayName;
     displayType = displayData->displayType;
 }
 
-ParticleDisplayData::ParticleDisplayData(void)
+CCParticleDisplayData::CCParticleDisplayData(void)
     : plist("")
 {
     displayType = CS_DISPLAY_PARTICLE;
 }
 
-void ParticleDisplayData::copy(ParticleDisplayData *displayData)
+void CCParticleDisplayData::copy(CCParticleDisplayData *displayData)
 {
     plist = displayData->plist;
     displayType = displayData->displayType;
 }
 
-ShaderDisplayData::ShaderDisplayData(void)
+CCShaderDisplayData::CCShaderDisplayData(void)
     : vert("")
     , frag("")
 {
     displayType = CS_DISPLAY_SHADER;
 }
 
-void ShaderDisplayData::copy(ShaderDisplayData *displayData)
+void CCShaderDisplayData::copy(CCShaderDisplayData *displayData)
 {
     vert = displayData->vert;
     frag = displayData->frag;
@@ -201,82 +201,82 @@ void ShaderDisplayData::copy(ShaderDisplayData *displayData)
 }
 
 
-BoneData::BoneData(void)
+CCBoneData::CCBoneData(void)
     : name("")
     , parentName("")
 {
 }
 
-BoneData::~BoneData(void)
+CCBoneData::~CCBoneData(void)
 {
 }
 
-bool BoneData::init()
+bool CCBoneData::init()
 {
     displayDataList.init();
     return true;
 }
 
-void BoneData::addDisplayData(DisplayData *displayData)
+void CCBoneData::addDisplayData(CCDisplayData *displayData)
 {
     displayDataList.addObject(displayData);
 }
 
-DisplayData *BoneData::getDisplayData(int index)
+CCDisplayData *CCBoneData::getDisplayData(int index)
 {
-    return (DisplayData *)displayDataList.objectAtIndex(index);
+    return (CCDisplayData *)displayDataList.objectAtIndex(index);
 }
 
-ArmatureData::ArmatureData()
-{
-}
-
-ArmatureData::~ArmatureData()
+CCArmatureData::CCArmatureData()
 {
 }
 
-bool ArmatureData::init()
+CCArmatureData::~CCArmatureData()
+{
+}
+
+bool CCArmatureData::init()
 {
     return boneList.init();
 }
 
-void ArmatureData::addBoneData(BoneData *boneData)
+void CCArmatureData::addBoneData(CCBoneData *boneData)
 {
     boneDataDic.setObject(boneData, boneData->name);
     boneList.addObject(boneData);
 }
 
-BoneData *ArmatureData::getBoneData(const char *boneName)
+CCBoneData *CCArmatureData::getBoneData(const char *boneName)
 {
-    return (BoneData *)boneDataDic.objectForKey(boneName);
+    return (CCBoneData *)boneDataDic.objectForKey(boneName);
 }
 
-FrameData::FrameData(void)
+CCFrameData::CCFrameData(void)
     : duration(1)
     , tweenEasing(Linear)
     , displayIndex(0)
 
-    , _movement("")
-    , _event("")
-    , _sound("")
-    , _soundEffect("")
+    , m_strMovement("")
+    , m_strEvent("")
+    , m_strSound("")
+    , m_strSoundEffect("")
 {
 }
 
-FrameData::~FrameData(void)
+CCFrameData::~CCFrameData(void)
 {
 }
 
-void FrameData::copy(FrameData *frameData)
+void CCFrameData::copy(CCFrameData *frameData)
 {
-    BaseData::copy(frameData);
+    CCBaseData::copy(frameData);
 
     duration = frameData->duration;
     displayIndex = frameData->displayIndex;
     tweenEasing = frameData->tweenEasing;
 }
 
-MovementBoneData::MovementBoneData()
+CCMovementBoneData::CCMovementBoneData()
     : delay(0.0f)
     , scale(1.0f)
     , duration(0)
@@ -284,29 +284,29 @@ MovementBoneData::MovementBoneData()
 {
 }
 
-MovementBoneData::~MovementBoneData(void)
+CCMovementBoneData::~CCMovementBoneData(void)
 {
 }
 
-bool MovementBoneData::init()
+bool CCMovementBoneData::init()
 {
     return frameList.init();
 }
 
-void MovementBoneData::addFrameData(FrameData *frameData)
+void CCMovementBoneData::addFrameData(CCFrameData *frameData)
 {
     frameList.addObject(frameData);
     duration += frameData->duration;
 }
 
-FrameData *MovementBoneData::getFrameData(int index)
+CCFrameData *CCMovementBoneData::getFrameData(int index)
 {
-    return (FrameData *)frameList.objectAtIndex(index);
+    return (CCFrameData *)frameList.objectAtIndex(index);
 }
 
 
 
-MovementData::MovementData(void)
+CCMovementData::CCMovementData(void)
     : name("")
     , duration(0)
     , durationTo(0)
@@ -316,72 +316,72 @@ MovementData::MovementData(void)
 {
 }
 
-MovementData::~MovementData(void)
+CCMovementData::~CCMovementData(void)
 {
 }
 
-void MovementData::addMovementBoneData(MovementBoneData *movBoneData)
+void CCMovementData::addMovementBoneData(CCMovementBoneData *movBoneData)
 {
     movBoneDataDic.setObject(movBoneData, movBoneData->name);
 }
 
-MovementBoneData *MovementData::getMovementBoneData(const char *boneName)
+CCMovementBoneData *CCMovementData::getMovementBoneData(const char *boneName)
 {
-    return (MovementBoneData *)movBoneDataDic.objectForKey(boneName);
+    return (CCMovementBoneData *)movBoneDataDic.objectForKey(boneName);
 }
 
 
 
-AnimationData::AnimationData(void)
+CCAnimationData::CCAnimationData(void)
 {
 }
 
-AnimationData::~AnimationData(void)
+CCAnimationData::~CCAnimationData(void)
 {
 }
 
-void AnimationData::release()
+void CCAnimationData::release()
 {
-    Object::release();
+    CCObject::release();
 }
 
-void AnimationData::retain()
+void CCAnimationData::retain()
 {
-    Object::retain();
+    CCObject::retain();
 }
 
-void AnimationData::addMovement(MovementData *movData)
+void CCAnimationData::addMovement(CCMovementData *movData)
 {
     movementDataDic.setObject(movData, movData->name);
     movementNames.push_back(movData->name);
 }
 
-MovementData *AnimationData::getMovement(const char *movementName)
+CCMovementData *CCAnimationData::getMovement(const char *movementName)
 {
-    return (MovementData *)movementDataDic.objectForKey(movementName);
+    return (CCMovementData *)movementDataDic.objectForKey(movementName);
 }
 
-int AnimationData::getMovementCount()
+int CCAnimationData::getMovementCount()
 {
     return movementDataDic.count();
 }
 
 
 
-ContourData::ContourData()
+CCContourData::CCContourData()
 {
 }
 
-ContourData::~ContourData()
+CCContourData::~CCContourData()
 {
 }
 
-bool ContourData::init()
+bool CCContourData::init()
 {
     return vertexList.init();
 }
 
-TextureData::TextureData()
+CCTextureData::CCTextureData()
     : height(0.0f)
     , width(0.0f)
     , pivotX(0.5f)
@@ -390,24 +390,24 @@ TextureData::TextureData()
 {
 }
 
-TextureData::~TextureData()
+CCTextureData::~CCTextureData()
 {
 }
 
-bool TextureData::init()
+bool CCTextureData::init()
 {
     return contourDataList.init();
 }
 
-void TextureData::addContourData(ContourData *contourData)
+void CCTextureData::addContourData(CCContourData *contourData)
 {
     contourDataList.addObject(contourData);
 }
 
-ContourData *TextureData::getContourData(int index)
+CCContourData *CCTextureData::getContourData(int index)
 {
-    return (ContourData *)contourDataList.objectAtIndex(index);
+    return (CCContourData *)contourDataList.objectAtIndex(index);
 }
 
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

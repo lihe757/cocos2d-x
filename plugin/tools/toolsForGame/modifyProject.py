@@ -29,8 +29,6 @@ if nodeLinkRes != None:
     if linkNodes != None and len(linkNodes) > 0:
         for node in linkNodes:
             locNode = node.find('locationURI')
-            if locNode == None:
-                continue
             tempText = locNode.text
             tempText = tempText.strip(' \n\r\t')
             if tempText == targetPath:

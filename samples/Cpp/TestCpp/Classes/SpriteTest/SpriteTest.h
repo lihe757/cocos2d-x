@@ -3,13 +3,12 @@
 
 #include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 #include <string>
 
-class SpriteTestDemo : public BaseTest
+class SpriteTestDemo : public CCLayer
 {
 protected:
-    std::string    _title;
+    std::string    m_strTitle;
 
 public:
     SpriteTestDemo(void);
@@ -19,9 +18,9 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class Sprite1 : public SpriteTestDemo
@@ -30,16 +29,16 @@ public:
     Sprite1();
     virtual std::string title();
 
-    void addNewSpriteWithCoords(Point p);
-    void ccTouchesEnded(Set* touches, Event* event);
+    void addNewSpriteWithCoords(CCPoint p);
+    void ccTouchesEnded(CCSet* touches, CCEvent* event);
 };
 
 class SpriteBatchNode1: public SpriteTestDemo
 {
 public:
     SpriteBatchNode1();
-    void addNewSpriteWithCoords(Point p);
-    virtual void ccTouchesEnded(Set* touches, Event* event);
+    void addNewSpriteWithCoords(CCPoint p);
+    virtual void ccTouchesEnded(CCSet* touches, CCEvent* event);
     virtual std::string title();
 };
 
@@ -61,7 +60,7 @@ public:
 
 class SpriteZOrder : public SpriteTestDemo
 {
-    int        _dir;
+    int        m_dir;
 public:
     SpriteZOrder();
     void reorderSprite(float dt);
@@ -70,7 +69,7 @@ public:
 
 class SpriteBatchNodeZOrder: public SpriteTestDemo
 {
-    int        _dir;
+    int        m_dir;
 public:
     SpriteBatchNodeZOrder();
     void reorderSprite(float dt);
@@ -100,13 +99,13 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
     void reorderSprite(float dt);
-    Sprite* makeSpriteZ(int aZ);
+    CCSprite* makeSpriteZ(int aZ);
 
 private:
-    SpriteBatchNode *batchNode;
-    Sprite *sprite1;
-    Sprite *sprite2;
-    Sprite *sprite3;    
+    CCSpriteBatchNode *batchNode;
+    CCSprite *sprite1;
+    CCSprite *sprite2;
+    CCSprite *sprite3;    
 };
 
 class SpriteBatchNodeReorderIssue767 : public SpriteTestDemo
@@ -120,8 +119,8 @@ public:
 
 class SpriteZVertex: public SpriteTestDemo
 {
-    int        _dir;
-    float    _time;
+    int        m_dir;
+    float    m_time;
 public:
     virtual void onEnter();
     virtual void onExit();
@@ -131,8 +130,8 @@ public:
 
 class SpriteBatchNodeZVertex: public SpriteTestDemo
 {
-    int        _dir;
-    float    _time;
+    int        m_dir;
+    float    m_time;
 public:
     virtual void onEnter();
     virtual void onExit();
@@ -197,28 +196,28 @@ public:
 
 class SpriteNewTexture : public SpriteTestDemo
 {
-    bool                        _usingTexture1;
-    Texture2D*    _texture1;
-    Texture2D*    _texture2; 
+    bool                        m_usingTexture1;
+    CCTexture2D*    m_texture1;
+    CCTexture2D*    m_texture2; 
 
 public:
     SpriteNewTexture();
     virtual ~SpriteNewTexture();
     void addNewSprite();
-    void ccTouchesEnded(Set* touches, Event* event);
+    void ccTouchesEnded(CCSet* touches, CCEvent* event);
     virtual std::string title();
 };
 
 class SpriteBatchNodeNewTexture : public SpriteTestDemo
 {
-    Texture2D*    _texture1;
-    Texture2D*    _texture2; 
+    CCTexture2D*    m_texture1;
+    CCTexture2D*    m_texture2; 
 
 public:
     SpriteBatchNodeNewTexture();
     virtual ~SpriteBatchNodeNewTexture();
     void addNewSprite();
-    void ccTouchesEnded(Set* touches, Event* event);
+    void ccTouchesEnded(CCSet* touches, CCEvent* event);
     virtual std::string title();
 };
 
@@ -233,9 +232,9 @@ public:
     void startIn05Secs(float dt);
     void flipSprites(float dt);
 private:
-    Sprite *_sprite1;
-    Sprite *_sprite2;
-    int      _counter;
+    CCSprite *m_pSprite1;
+    CCSprite *m_pSprite2;
+    int      m_nCounter;
 };
 
 class SpriteFrameAliasNameTest : public SpriteTestDemo
@@ -371,7 +370,7 @@ public:
 
 class SpriteHybrid: public SpriteTestDemo
 {
-    bool     _usingSpriteBatchNode; 
+    bool     m_usingSpriteBatchNode; 
 public:
     SpriteHybrid();
     void reparentSprite(float dt);
@@ -466,10 +465,10 @@ public:
     virtual std::string subtitle();
 };
 
-class AnimationCacheTest : public SpriteTestDemo
+class AnimationCache : public SpriteTestDemo
 {
 public:
-    AnimationCacheTest();
+    AnimationCache();
     virtual std::string title();
     virtual std::string subtitle();
 };
@@ -484,12 +483,12 @@ public:
     void reorderSprite(float dt);
 
 private:
-    Node *_node;
-    Sprite *_sprite1;
-    Sprite *_sprite2;
-    Sprite *_sprite3;
-    Sprite *_sprite4;
-    Sprite *_sprite5;
+    CCNode *m_pNode;
+    CCSprite *m_pSprite1;
+    CCSprite *m_pSprite2;
+    CCSprite *m_pSprite3;
+    CCSprite *m_pSprite4;
+    CCSprite *m_pSprite5;
 };
 
 class SpriteBatchNodeReorderSameIndex : public SpriteTestDemo
@@ -502,12 +501,12 @@ public:
     void reorderSprite(float dt);
 
 private:
-    SpriteBatchNode *_batchNode;
-    Sprite *_sprite1;
-    Sprite *_sprite2;
-    Sprite *_sprite3;
-    Sprite *_sprite4;
-    Sprite *_sprite5;
+    CCSpriteBatchNode *m_pBatchNode;
+    CCSprite *m_pSprite1;
+    CCSprite *m_pSprite2;
+    CCSprite *m_pSprite3;
+    CCSprite *m_pSprite4;
+    CCSprite *m_pSprite5;
 };
 
 class SpriteBatchNodeReorderOneChild : public SpriteTestDemo
@@ -517,8 +516,8 @@ public:
     void reorderSprite(float dt);
     virtual std::string title();
 private:
-    SpriteBatchNode *_batchNode;
-    Sprite *_reorderSprite;
+    CCSpriteBatchNode *m_pBatchNode;
+    CCSprite *m_pReorderSprite;
 };
 
 class SpriteBatchNodeSkewNegativeScaleChildren : public SpriteTestDemo

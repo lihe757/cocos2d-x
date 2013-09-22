@@ -28,7 +28,7 @@ KeyboardNotificationLayer* createTextInputTest(int nIndex)
     }
 }
 
-Layer* restartTextInputTest()
+CCLayer* restartTextInputTest()
 {
     TextInputTest* pContainerLayer = new TextInputTest;
     pContainerLayer->autorelease();
@@ -40,7 +40,7 @@ Layer* restartTextInputTest()
     return pContainerLayer;
 }
 
-Layer* nextTextInputTest()
+CCLayer* nextTextInputTest()
 {
     testIdx++;
     testIdx = testIdx % kTextInputTestsCount;
@@ -48,7 +48,7 @@ Layer* nextTextInputTest()
     return restartTextInputTest();
 }
 
-Layer* backTextInputTest()
+CCLayer* backTextInputTest()
 {
     testIdx--;
     int total = kTextInputTestsCount;
@@ -58,11 +58,11 @@ Layer* backTextInputTest()
     return restartTextInputTest();
 }
 
-static Rect getRect(Node * node)
+static CCRect getRect(CCNode * pNode)
 {
-    Rect rc;
-    rc.origin = node->getPosition();
-    rc.size = node->getContentSize();
+    CCRect rc;
+    rc.origin = pNode->getPosition();
+    rc.size = pNode->getContentSize();
     rc.origin.x -= rc.size.width / 2;
     rc.origin.y -= rc.size.height / 2;
     return rc;
@@ -73,40 +73,40 @@ static Rect getRect(Node * node)
 //////////////////////////////////////////////////////////////////////////
 
 TextInputTest::TextInputTest()
-: _notificationLayer(0)
+: m_pNotificationLayer(0)
 {
     
 }
 
-void TextInputTest::restartCallback(Object* sender)
+void TextInputTest::restartCallback(CCObject* pSender)
 {
-    Scene* s = new TextInputTestScene();
+    CCScene* s = new TextInputTestScene();
     s->addChild(restartTextInputTest()); 
 
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void TextInputTest::nextCallback(Object* sender)
+void TextInputTest::nextCallback(CCObject* pSender)
 {
-    Scene* s = new TextInputTestScene();
+    CCScene* s = new TextInputTestScene();
     s->addChild( nextTextInputTest() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void TextInputTest::backCallback(Object* sender)
+void TextInputTest::backCallback(CCObject* pSender)
 {
-    Scene* s = new TextInputTestScene();
+    CCScene* s = new TextInputTestScene();
     s->addChild( backTextInputTest() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void TextInputTest::addKeyboardNotificationLayer(KeyboardNotificationLayer * layer)
+void TextInputTest::addKeyboardNotificationLayer(KeyboardNotificationLayer * pLayer)
 {
-    _notificationLayer = layer;
-    addChild(layer);
+    m_pNotificationLayer = pLayer;
+    addChild(pLayer);
 }
 
 std::string TextInputTest::title()
@@ -116,7 +116,33 @@ std::string TextInputTest::title()
 
 void TextInputTest::onEnter()
 {
-    BaseTest::onEnter();
+    CCLayer::onEnter();
+
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+
+    CCLabelTTF* label = CCLabelTTF::create(title().c_str(), "Arial", 24);
+    addChild(label);
+    label->setPosition(ccp(s.width/2, s.height-50));
+
+    std::string subTitle = m_pNotificationLayer->subtitle();
+    if(! subTitle.empty())
+    {
+        CCLabelTTF* l = CCLabelTTF::create(subTitle.c_str(), "Thonburi", 16);
+        addChild(l, 1);
+        l->setPosition(ccp(s.width/2, s.height-80));
+    }
+
+    CCMenuItemImage *item1 = CCMenuItemImage::create("Images/b1.png", "Images/b2.png", this, menu_selector(TextInputTest::backCallback));
+    CCMenuItemImage *item2 = CCMenuItemImage::create("Images/r1.png","Images/r2.png", this, menu_selector(TextInputTest::restartCallback) );
+    CCMenuItemImage *item3 = CCMenuItemImage::create("Images/f1.png", "Images/f2.png", this, menu_selector(TextInputTest::nextCallback) );
+
+    CCMenu *menu = CCMenu::create(item1, item2, item3, NULL);
+    menu->setPosition(CCPointZero);
+    item1->setPosition(ccp(VisibleRect::center().x - item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item2->setPosition(ccp(VisibleRect::center().x, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item3->setPosition(ccp(VisibleRect::center().x + item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+
+    addChild(menu, 1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,28 +150,28 @@ void TextInputTest::onEnter()
 //////////////////////////////////////////////////////////////////////////
 
 KeyboardNotificationLayer::KeyboardNotificationLayer()
-: _trackNode(0)
+: m_pTrackNode(0)
 {
     setTouchEnabled(true);
 }
 
 void KeyboardNotificationLayer::registerWithTouchDispatcher()
 {
-    Director* director = Director::getInstance();
-    director->getTouchDispatcher()->addTargetedDelegate(this, 0, false);
+    CCDirector* pDirector = CCDirector::sharedDirector();
+    pDirector->getTouchDispatcher()->addTargetedDelegate(this, 0, false);
 }
 
-void KeyboardNotificationLayer::keyboardWillShow(IMEKeyboardNotificationInfo& info)
+void KeyboardNotificationLayer::keyboardWillShow(CCIMEKeyboardNotificationInfo& info)
 {
     CCLOG("TextInputTest:keyboardWillShowAt(origin:%f,%f, size:%f,%f)",
         info.end.origin.x, info.end.origin.y, info.end.size.width, info.end.size.height);
 
-    if (! _trackNode)
+    if (! m_pTrackNode)
     {
         return;
     }
 
-    Rect rectTracked = getRect(_trackNode);
+    CCRect rectTracked = getRect(m_pTrackNode);
     CCLOG("TextInputTest:trackingNodeAt(origin:%f,%f, size:%f,%f)",
         rectTracked.origin.x, rectTracked.origin.y, rectTracked.size.width, rectTracked.size.height);
 
@@ -160,52 +186,52 @@ void KeyboardNotificationLayer::keyboardWillShow(IMEKeyboardNotificationInfo& in
     CCLOG("TextInputTest:needAdjustVerticalPosition(%f)", adjustVert);
 
     // move all the children node of KeyboardNotificationLayer
-    Array * children = getChildren();
-    Node * node = 0;
+    CCArray * children = getChildren();
+    CCNode * node = 0;
     int count = children->count();
-    Point pos;
+    CCPoint pos;
     for (int i = 0; i < count; ++i)
     {
-        node = (Node*)children->objectAtIndex(i);
+        node = (CCNode*)children->objectAtIndex(i);
         pos = node->getPosition();
         pos.y += adjustVert;
         node->setPosition(pos);
     }
 }
 
-// Layer function
+// CCLayer function
 
-bool KeyboardNotificationLayer::ccTouchBegan(Touch  *touch, Event  *event)
+bool KeyboardNotificationLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent)
 {
     CCLOG("++++++++++++++++++++++++++++++++++++++++++++");
-    _beginPos = touch->getLocation();    
+    m_beginPos = pTouch->getLocation();    
     return true;
 }
 
-void KeyboardNotificationLayer::ccTouchEnded(Touch  *touch, Event  *event)
+void KeyboardNotificationLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent)
 {
-    if (! _trackNode)
+    if (! m_pTrackNode)
     {
         return;
     }
     
-    Point endPos = touch->getLocation();    
+    CCPoint endPos = pTouch->getLocation();    
 
     float delta = 5.0f;
-    if (::abs(endPos.x - _beginPos.x) > delta
-        || ::abs(endPos.y - _beginPos.y) > delta)
+    if (::abs(endPos.x - m_beginPos.x) > delta
+        || ::abs(endPos.y - m_beginPos.y) > delta)
     {
         // not click
-        _beginPos.x = _beginPos.y = -1;
+        m_beginPos.x = m_beginPos.y = -1;
         return;
     }
 
     // decide the trackNode is clicked.
-    Rect rect;
-    Point point = convertTouchToNodeSpaceAR(touch);
+    CCRect rect;
+    CCPoint point = convertTouchToNodeSpaceAR(pTouch);
     CCLOG("KeyboardNotificationLayer:clickedAt(%f,%f)", point.x, point.y);
 
-    rect = getRect(_trackNode);
+    rect = getRect(m_pTrackNode);
     CCLOG("KeyboardNotificationLayer:TrackNode at(origin:%f,%f, size:%f,%f)",
         rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
 
@@ -224,17 +250,17 @@ std::string TextFieldTTFDefaultTest::subtitle()
 
 void TextFieldTTFDefaultTest::onClickTrackNode(bool bClicked)
 {
-    TextFieldTTF * pTextField = (TextFieldTTF*)_trackNode;
+    CCTextFieldTTF * pTextField = (CCTextFieldTTF*)m_pTrackNode;
     if (bClicked)
     {
         // TextFieldTTFTest be clicked
-        CCLOG("TextFieldTTFDefaultTest:TextFieldTTF attachWithIME");
+        CCLOG("TextFieldTTFDefaultTest:CCTextFieldTTF attachWithIME");
         pTextField->attachWithIME();
     }
     else
     {
         // TextFieldTTFTest not be clicked
-        CCLOG("TextFieldTTFDefaultTest:TextFieldTTF detachWithIME");
+        CCLOG("TextFieldTTFDefaultTest:CCTextFieldTTF detachWithIME");
         pTextField->detachWithIME();
     }
 }
@@ -243,23 +269,23 @@ void TextFieldTTFDefaultTest::onEnter()
 {
     KeyboardNotificationLayer::onEnter();
 
-    // add TextFieldTTF
-    Size s = Director::getInstance()->getWinSize();
+    // add CCTextFieldTTF
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
-    TextFieldTTF * pTextField = TextFieldTTF::textFieldWithPlaceHolder("<click here for input>",
+    CCTextFieldTTF * pTextField = CCTextFieldTTF::textFieldWithPlaceHolder("<click here for input>",
         FONT_NAME,
         FONT_SIZE);
     addChild(pTextField);
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)    
-    // on android, TextFieldTTF cannot auto adjust its position when soft-keyboard pop up
+    // on android, CCTextFieldTTF cannot auto adjust its position when soft-keyboard pop up
     // so we had to set a higher position to make it visable
-    pTextField->setPosition(Point(s.width / 2, s.height/2 + 50));
+    pTextField->setPosition(ccp(s.width / 2, s.height/2 + 50));
 #else
-    pTextField->setPosition(Point(s.width / 2, s.height / 2));
+    pTextField->setPosition(ccp(s.width / 2, s.height / 2));
 #endif
 
-    _trackNode = pTextField;
+    m_pTrackNode = pTextField;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -273,17 +299,17 @@ std::string TextFieldTTFActionTest::subtitle()
 
 void TextFieldTTFActionTest::onClickTrackNode(bool bClicked)
 {
-    TextFieldTTF * pTextField = (TextFieldTTF*)_trackNode;
+    CCTextFieldTTF * pTextField = (CCTextFieldTTF*)m_pTrackNode;
     if (bClicked)
     {
         // TextFieldTTFTest be clicked
-        CCLOG("TextFieldTTFActionTest:TextFieldTTF attachWithIME");
+        CCLOG("TextFieldTTFActionTest:CCTextFieldTTF attachWithIME");
         pTextField->attachWithIME();
     }
     else
     {
         // TextFieldTTFTest not be clicked
-        CCLOG("TextFieldTTFActionTest:TextFieldTTF detachWithIME");
+        CCLOG("TextFieldTTFActionTest:CCTextFieldTTF detachWithIME");
         pTextField->detachWithIME();
     }
 }
@@ -292,67 +318,67 @@ void TextFieldTTFActionTest::onEnter()
 {
     KeyboardNotificationLayer::onEnter();
 
-    _charLimit = 12;
+    m_nCharLimit = 12;
 
-    _textFieldAction = RepeatForever::create(
-        Sequence::create(
-            FadeOut::create(0.25),
-            FadeIn::create(0.25),
-            NULL
+    m_pTextFieldAction = CCRepeatForever::create(
+        CCSequence::create(
+            CCFadeOut::create(0.25),
+            CCFadeIn::create(0.25),
+            0
         ));
-    _textFieldAction->retain();
-    _action = false;
+    m_pTextFieldAction->retain();
+    m_bAction = false;
 
-    // add TextFieldTTF
-    Size s = Director::getInstance()->getWinSize();
+    // add CCTextFieldTTF
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
-    _textField = TextFieldTTF::textFieldWithPlaceHolder("<click here for input>",
+    m_pTextField = CCTextFieldTTF::textFieldWithPlaceHolder("<click here for input>",
         FONT_NAME,
         FONT_SIZE);
-    addChild(_textField);
+    addChild(m_pTextField);
 
-    _textField->setDelegate(this);
+    m_pTextField->setDelegate(this);
     
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)    
-    // on android, TextFieldTTF cannot auto adjust its position when soft-keyboard pop up
+    // on android, CCTextFieldTTF cannot auto adjust its position when soft-keyboard pop up
     // so we had to set a higher position
-    _textField->setPosition(Point(s.width / 2, s.height/2 + 50));
+    m_pTextField->setPosition(ccp(s.width / 2, s.height/2 + 50));
 #else
-    _textField->setPosition(Point(s.width / 2, s.height / 2));
+    m_pTextField->setPosition(ccp(s.width / 2, s.height / 2));
 #endif
 
-    _trackNode = _textField;
+    m_pTrackNode = m_pTextField;
 }
 
 void TextFieldTTFActionTest::onExit()
 {
     KeyboardNotificationLayer::onExit();
-    _textFieldAction->release();
+    m_pTextFieldAction->release();
 }
 
-// TextFieldDelegate protocol
-bool TextFieldTTFActionTest::onTextFieldAttachWithIME(TextFieldTTF * sender)
+// CCTextFieldDelegate protocol
+bool TextFieldTTFActionTest::onTextFieldAttachWithIME(CCTextFieldTTF * pSender)
 {
-    if (! _action)
+    if (! m_bAction)
     {
-        _textField->runAction(_textFieldAction);
-        _action = true;
+        m_pTextField->runAction(m_pTextFieldAction);
+        m_bAction = true;
     }
     return false;
 }
 
-bool TextFieldTTFActionTest::onTextFieldDetachWithIME(TextFieldTTF * sender)
+bool TextFieldTTFActionTest::onTextFieldDetachWithIME(CCTextFieldTTF * pSender)
 {
-    if (_action)
+    if (m_bAction)
     {
-        _textField->stopAction(_textFieldAction);
-        _textField->setOpacity(255);
-        _action = false;
+        m_pTextField->stopAction(m_pTextFieldAction);
+        m_pTextField->setOpacity(255);
+        m_bAction = false;
     }
     return false;
 }
 
-bool TextFieldTTFActionTest::onTextFieldInsertText(TextFieldTTF * sender, const char * text, int nLen)
+bool TextFieldTTFActionTest::onTextFieldInsertText(CCTextFieldTTF * pSender, const char * text, int nLen)
 {
     // if insert enter, treat as default to detach with ime
     if ('\n' == *text)
@@ -360,85 +386,85 @@ bool TextFieldTTFActionTest::onTextFieldInsertText(TextFieldTTF * sender, const 
         return false;
     }
     
-    // if the textfield's char count more than _charLimit, doesn't insert text anymore.
-    if (sender->getCharCount() >= _charLimit)
+    // if the textfield's char count more than m_nCharLimit, doesn't insert text anymore.
+    if (pSender->getCharCount() >= m_nCharLimit)
     {
         return true;
     }
 
     // create a insert text sprite and do some action
-    LabelTTF * label = LabelTTF::create(text, FONT_NAME, FONT_SIZE);
+    CCLabelTTF * label = CCLabelTTF::create(text, FONT_NAME, FONT_SIZE);
     this->addChild(label);
-    Color3B color(226, 121, 7);
+    ccColor3B color = { 226, 121, 7};
     label->setColor(color);
 
     // move the sprite from top to position
-    Point endPos = sender->getPosition();
-    if (sender->getCharCount())
+    CCPoint endPos = pSender->getPosition();
+    if (pSender->getCharCount())
     {
-        endPos.x += sender->getContentSize().width / 2;
+        endPos.x += pSender->getContentSize().width / 2;
     }
-    Size  inputTextSize = label->getContentSize();
-    Point beginPos(endPos.x, Director::getInstance()->getWinSize().height - inputTextSize.height * 2); 
+    CCSize  inputTextSize = label->getContentSize();
+    CCPoint beginPos(endPos.x, CCDirector::sharedDirector()->getWinSize().height - inputTextSize.height * 2); 
 
     float duration = 0.5;
     label->setPosition(beginPos);
     label->setScale(8);
 
-    Action * seq = Sequence::create(
-        Spawn::create(
-            MoveTo::create(duration, endPos),
-            ScaleTo::create(duration, 1),
-            FadeOut::create(duration),
-            NULL),
-        CallFuncN::create(CC_CALLBACK_1(TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction, this)),
-        NULL);
+    CCAction * seq = CCSequence::create(
+        CCSpawn::create(
+            CCMoveTo::create(duration, endPos),
+            CCScaleTo::create(duration, 1),
+            CCFadeOut::create(duration),
+        0),
+        CCCallFuncN::create(this, callfuncN_selector(TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction)),
+        0);
     label->runAction(seq);
     return false;
 }
 
-bool TextFieldTTFActionTest::onTextFieldDeleteBackward(TextFieldTTF * sender, const char * delText, int nLen)
+bool TextFieldTTFActionTest::onTextFieldDeleteBackward(CCTextFieldTTF * pSender, const char * delText, int nLen)
 {
     // create a delete text sprite and do some action
-    LabelTTF * label = LabelTTF::create(delText, FONT_NAME, FONT_SIZE);
+    CCLabelTTF * label = CCLabelTTF::create(delText, FONT_NAME, FONT_SIZE);
     this->addChild(label);
 
     // move the sprite to fly out
-    Point beginPos = sender->getPosition();
-    Size textfieldSize = sender->getContentSize();
-    Size labelSize = label->getContentSize();
+    CCPoint beginPos = pSender->getPosition();
+    CCSize textfieldSize = pSender->getContentSize();
+    CCSize labelSize = label->getContentSize();
     beginPos.x += (textfieldSize.width - labelSize.width) / 2.0f;
     
-    Size winSize = Director::getInstance()->getWinSize();
-    Point endPos(- winSize.width / 4.0f, winSize.height * (0.5 + (float)rand() / (2.0f * RAND_MAX)));
+    CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+    CCPoint endPos(- winSize.width / 4.0f, winSize.height * (0.5 + (float)rand() / (2.0f * RAND_MAX)));
 
     float duration = 1;
     float rotateDuration = 0.2f;
     int repeatTime = 5; 
     label->setPosition(beginPos);
 
-    Action * seq = Sequence::create(
-        Spawn::create(
-            MoveTo::create(duration, endPos),
-            Repeat::create(
-                RotateBy::create(rotateDuration, (rand()%2) ? 360 : -360),
+    CCAction * seq = CCSequence::create(
+        CCSpawn::create(
+            CCMoveTo::create(duration, endPos),
+            CCRepeat::create(
+                CCRotateBy::create(rotateDuration, (rand()%2) ? 360 : -360),
                 repeatTime),
-            FadeOut::create(duration),
-        NULL),
-        CallFuncN::create(CC_CALLBACK_1(TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction, this)),
-        NULL);
+            CCFadeOut::create(duration),
+        0),
+        CCCallFuncN::create(this, callfuncN_selector(TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction)),
+        0);
     label->runAction(seq);
     return false;
 }
 
-bool TextFieldTTFActionTest::onDraw(TextFieldTTF * sender)
+bool TextFieldTTFActionTest::onDraw(CCTextFieldTTF * pSender)
 {
     return false;
 }
 
-void TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction(Node * node)
+void TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction(CCNode * pNode)
 {
-    this->removeChild(node, true);
+    this->removeChild(pNode, true);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -447,8 +473,8 @@ void TextFieldTTFActionTest::callbackRemoveNodeWhenDidAction(Node * node)
 
 void TextInputTestScene::runThisTest()
 {
-    Layer* layer = nextTextInputTest();
-    addChild(layer);
+    CCLayer* pLayer = nextTextInputTest();
+    addChild(pLayer);
 
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }

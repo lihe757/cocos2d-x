@@ -32,14 +32,14 @@ AppDelegate::~AppDelegate()
 bool AppDelegate::applicationDidFinishLaunching()
 {
     // initialize director
-    Director *director = Director::getInstance();
-    director->setOpenGLView(EGLView::getInstance());
+    CCDirector *pDirector = CCDirector::sharedDirector();
+    pDirector->setOpenGLView(CCEGLView::sharedOpenGLView());
 
     // turn on display FPS
-    //director->setDisplayStats(true);
+    //pDirector->setDisplayStats(true);
 
     // set FPS. the default value is 1.0/60 if you don't call this
-    director->setAnimationInterval(1.0 / 60);
+    pDirector->setAnimationInterval(1.0 / 60);
 
     ScriptingCore* sc = ScriptingCore::getInstance();
     sc->addRegisterCallback(register_all_cocos2dx);
@@ -47,12 +47,12 @@ bool AppDelegate::applicationDidFinishLaunching()
     
     sc->start();
     
-    Scene *scene = Scene::create();
+    CCScene *scene = CCScene::create();
     UpdateLayer *updateLayer = new UpdateLayer();
     scene->addChild(updateLayer);
     updateLayer->release();
     
-    director->runWithScene(scene);
+    pDirector->runWithScene(scene);
     
     return true;
 }
@@ -60,17 +60,17 @@ bool AppDelegate::applicationDidFinishLaunching()
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void AppDelegate::applicationDidEnterBackground()
 {
-    Director::getInstance()->stopAnimation();
-	SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
-    SimpleAudioEngine::getInstance()->pauseAllEffects();
+    CCDirector::sharedDirector()->stopAnimation();
+    SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
+    SimpleAudioEngine::sharedEngine()->pauseAllEffects();
 }
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground()
 {
-    Director::getInstance()->startAnimation();
-    SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
-    SimpleAudioEngine::getInstance()->resumeAllEffects();
+    CCDirector::sharedDirector()->startAnimation();
+    SimpleAudioEngine::sharedEngine()->resumeBackgroundMusic();
+    SimpleAudioEngine::sharedEngine()->resumeAllEffects();
 }
 
 UpdateLayer::UpdateLayer()
@@ -89,7 +89,7 @@ UpdateLayer::~UpdateLayer()
     CC_SAFE_DELETE(pAssetsManager);
 }
 
-void UpdateLayer::update(cocos2d::Object *pSender)
+void UpdateLayer::update(cocos2d::CCObject *pSender)
 {
     pProgressLabel->setString("");
     
@@ -99,7 +99,7 @@ void UpdateLayer::update(cocos2d::Object *pSender)
     isUpdateItemClicked = true;
 }
 
-void UpdateLayer::reset(cocos2d::Object *pSender)
+void UpdateLayer::reset(cocos2d::CCObject *pSender)
 {
     pProgressLabel->setString(" ");
     
@@ -121,44 +121,44 @@ void UpdateLayer::reset(cocos2d::Object *pSender)
     createDownloadedDir();
 }
 
-void UpdateLayer::enter(cocos2d::Object *pSender)
+void UpdateLayer::enter(cocos2d::CCObject *pSender)
 {
     // Should set search resource path before running script if "update" is not clicked.
     // Because AssetsManager will set 
     if (! isUpdateItemClicked)
     {
-        vector<string> searchPaths = FileUtils::getInstance()->getSearchPaths();
+        vector<string> searchPaths = CCFileUtils::sharedFileUtils()->getSearchPaths();
         searchPaths.insert(searchPaths.begin(), pathToSave);
-        FileUtils::getInstance()->setSearchPaths(searchPaths);
+        CCFileUtils::sharedFileUtils()->setSearchPaths(searchPaths);
     }
     
-    ScriptEngineProtocol *pEngine = ScriptingCore::getInstance();
-    ScriptEngineManager::getInstance()->setScriptEngine(pEngine);
+    CCScriptEngineProtocol *pEngine = ScriptingCore::getInstance();
+    CCScriptEngineManager::sharedManager()->setScriptEngine(pEngine);
     ScriptingCore::getInstance()->runScript("main.js");
 }
 
 bool UpdateLayer::init()
 {
-    Layer::init();
+    CCLayer::init();
     
     createDownloadedDir();
     
-    Size size = Director::getInstance()->getWinSize();
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
 
-    pItemReset = MenuItemFont::create("reset", CC_CALLBACK_1(UpdateLayer::reset,this));
-    pItemEnter = MenuItemFont::create("enter", CC_CALLBACK_1(UpdateLayer::enter, this));
-    pItemUpdate = MenuItemFont::create("update", CC_CALLBACK_1(UpdateLayer::update, this));
+    pItemReset = CCMenuItemFont::create("reset", this, menu_selector(UpdateLayer::reset));
+    pItemEnter = CCMenuItemFont::create("enter", this, menu_selector(UpdateLayer::enter));
+    pItemUpdate = CCMenuItemFont::create("update", this, menu_selector(UpdateLayer::update));
     
-    pItemEnter->setPosition(Point(size.width/2, size.height/2 + 50));
-    pItemReset->setPosition(Point(size.width/2, size.height/2));
-    pItemUpdate->setPosition(Point(size.width/2, size.height/2 - 50));
+    pItemEnter->setPosition(ccp(size.width/2, size.height/2 + 50));
+    pItemReset->setPosition(ccp(size.width/2, size.height/2));
+    pItemUpdate->setPosition(ccp(size.width/2, size.height/2 - 50));
     
-    Menu *menu = Menu::create(pItemUpdate, pItemEnter, pItemReset, NULL);
-    menu->setPosition(Point(0,0));
+    CCMenu *menu = CCMenu::create(pItemUpdate, pItemEnter, pItemReset, NULL);
+    menu->setPosition(ccp(0,0));
     addChild(menu);
     
-    pProgressLabel = LabelTTF::create("", "Arial", 20);
-    pProgressLabel->setPosition(Point(100, 50));
+    pProgressLabel = CCLabelTTF::create("", "Arial", 20);
+    pProgressLabel->setPosition(ccp(100, 50));
     addChild(pProgressLabel);
     
     return true;
@@ -182,7 +182,7 @@ AssetsManager* UpdateLayer::getAssetsManager()
 
 void UpdateLayer::createDownloadedDir()
 {
-    pathToSave = FileUtils::getInstance()->getWritablePath();
+    pathToSave = CCFileUtils::sharedFileUtils()->getWritablePath();
     pathToSave += "tmpdir";
     
     // Create the folder if it doesn't exist
@@ -204,12 +204,12 @@ void UpdateLayer::createDownloadedDir()
 
 void UpdateLayer::onError(AssetsManager::ErrorCode errorCode)
 {
-    if (errorCode == AssetsManager::ErrorCode::NO_NEW_VERSION)
+    if (errorCode == AssetsManager::kNoNewVersion)
     {
         pProgressLabel->setString("no new version");
     }
     
-    if (errorCode == AssetsManager::ErrorCode::NETWORK)
+    if (errorCode == AssetsManager::kNetwork)
     {
         pProgressLabel->setString("network error");
     }

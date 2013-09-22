@@ -24,70 +24,70 @@
 
 #include "CCControlPotentiometerTest.h"
 
-ControlPotentiometerTest::ControlPotentiometerTest()
-: _displayValueLabel(NULL)
+CCControlPotentiometerTest::CCControlPotentiometerTest()
+: m_pDisplayValueLabel(NULL)
 {
 
 }
 
-ControlPotentiometerTest::~ControlPotentiometerTest()
+CCControlPotentiometerTest::~CCControlPotentiometerTest()
 {
-    CC_SAFE_RELEASE(_displayValueLabel);
+    CC_SAFE_RELEASE(m_pDisplayValueLabel);
 }
 
-bool ControlPotentiometerTest::init()
+bool CCControlPotentiometerTest::init()
 {
-    if (ControlScene::init())
+    if (CCControlScene::init())
     {
-        Size screenSize = Director::getInstance()->getWinSize();
+        CCSize screenSize = CCDirector::sharedDirector()->getWinSize();
         
-        Node *layer = Node::create();
-        layer->setPosition(Point(screenSize.width / 2, screenSize.height / 2));
+        CCNode *layer = CCNode::create();
+        layer->setPosition(ccp (screenSize.width / 2, screenSize.height / 2));
         this->addChild(layer, 1);
         
         double layer_width = 0;
         
         // Add the black background for the text
-        Scale9Sprite *background  = Scale9Sprite::create("extensions/buttonBackground.png");
-        background->setContentSize(Size(80, 50));
-        background->setPosition(Point(layer_width + background->getContentSize().width / 2.0f, 0));
+        CCScale9Sprite *background  = CCScale9Sprite::create("extensions/buttonBackground.png");
+        background->setContentSize(CCSizeMake(80, 50));
+        background->setPosition(ccp(layer_width + background->getContentSize().width / 2.0f, 0));
         layer->addChild(background);
         
         layer_width += background->getContentSize().width;
         
-        this->setDisplayValueLabel(LabelTTF::create("", "HelveticaNeue-Bold", 30));
+        this->setDisplayValueLabel(CCLabelTTF::create("", "HelveticaNeue-Bold", 30));
 
-        _displayValueLabel->setPosition(background->getPosition());
-        layer->addChild(_displayValueLabel);
+        m_pDisplayValueLabel->setPosition(background->getPosition());
+        layer->addChild(m_pDisplayValueLabel);
 		
         // Add the slider
-        ControlPotentiometer *potentiometer = ControlPotentiometer::create("extensions/potentiometerTrack.png"
+        CCControlPotentiometer *potentiometer = CCControlPotentiometer::create("extensions/potentiometerTrack.png"
                                                                                 ,"extensions/potentiometerProgress.png"
                                                                                 ,"extensions/potentiometerButton.png");
-        potentiometer->setPosition(Point(layer_width + 10 + potentiometer->getContentSize().width / 2, 0));
+        potentiometer->setPosition(ccp (layer_width + 10 + potentiometer->getContentSize().width / 2, 0));
 
         // When the value of the slider will change, the given selector will be call
-        potentiometer->addTargetWithActionForControlEvents(this, cccontrol_selector(ControlPotentiometerTest::valueChanged), Control::EventType::VALUE_CHANGED);
+        potentiometer->addTargetWithActionForControlEvents(this, cccontrol_selector(CCControlPotentiometerTest::valueChanged), CCControlEventValueChanged);
         
 		layer->addChild(potentiometer);
         
         layer_width += potentiometer->getContentSize().width;
         
         // Set the layer size
-        layer->setContentSize(Size(layer_width, 0));
-        layer->setAnchorPoint(Point(0.5f, 0.5f));
+        layer->setContentSize(CCSizeMake(layer_width, 0));
+        layer->setAnchorPoint(ccp (0.5f, 0.5f));
         
         // Update the value label
-        this->valueChanged(potentiometer, Control::EventType::VALUE_CHANGED);
+        this->valueChanged(potentiometer, CCControlEventValueChanged);
         return true;
 	}
 	return false;
 }
 
-void ControlPotentiometerTest::valueChanged(Object *sender, Control::EventType controlEvent)
+void CCControlPotentiometerTest::valueChanged(CCObject *sender, CCControlEvent controlEvent)
 {
-    ControlPotentiometer* pControl = (ControlPotentiometer*)sender;
+    CCControlPotentiometer* pControl = (CCControlPotentiometer*)sender;
 	// Change value of label.
-    _displayValueLabel->setString(String::createWithFormat("%.02f", pControl->getValue())->getCString());	
+    m_pDisplayValueLabel->setString(CCString::createWithFormat("%.02f", pControl->getValue())->getCString());	
 }
 

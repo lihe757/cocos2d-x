@@ -32,7 +32,7 @@ public:
     virtual std::string subtitle();
     void performTestsPNG(const char* filename);
 
-    static Scene* scene();
+    static CCScene* scene();
 };
 
 void runTextureTest();

@@ -6,9 +6,9 @@ enum
     kTagTileMap = 1,
 };
 
-Layer* nextTileMapAction();
-Layer* backTileMapAction();
-Layer* restartTileMapAction();
+CCLayer* nextTileMapAction();
+CCLayer* backTileMapAction();
+CCLayer* restartTileMapAction();
 
 //------------------------------------------------------------------
 //
@@ -17,11 +17,11 @@ Layer* restartTileMapAction();
 //------------------------------------------------------------------
 TileMapTest::TileMapTest()
 {
-    TileMapAtlas* map = TileMapAtlas::create(s_TilesPng,  s_LevelMapTga, 16, 16);
+    CCTileMapAtlas* map = CCTileMapAtlas::create(s_TilesPng,  s_LevelMapTga, 16, 16);
     // Convert it to "alias" (GL_LINEAR filtering)
     map->getTexture()->setAntiAliasTexParameters();
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 
     // If you are not going to use the Map, you can free it now
@@ -30,14 +30,14 @@ TileMapTest::TileMapTest()
     
     addChild(map, 0, kTagTileMap);
     
-    map->setAnchorPoint( Point(0, 0.5f) );
+    map->setAnchorPoint( ccp(0, 0.5f) );
 
-    ScaleBy *scale = ScaleBy::create(4, 0.8f);
-    ActionInterval *scaleBack = scale->reverse();
+    CCScaleBy *scale = CCScaleBy::create(4, 0.8f);
+    CCActionInterval *scaleBack = scale->reverse();
 
-    Sequence* seq = Sequence::create(scale, scaleBack, NULL);
+    CCSequence* seq = CCSequence::create(scale, scaleBack, NULL);
 
-    map->runAction(RepeatForever::create(seq));
+    map->runAction(CCRepeatForever::create(seq));
 }
 
 std::string TileMapTest::title()
@@ -52,11 +52,11 @@ std::string TileMapTest::title()
 //------------------------------------------------------------------
 TileMapEditTest::TileMapEditTest()
 {
-    TileMapAtlas* map = TileMapAtlas::create(s_TilesPng, s_LevelMapTga, 16, 16);
+    CCTileMapAtlas* map = CCTileMapAtlas::create(s_TilesPng, s_LevelMapTga, 16, 16);
     // Create an Aliased Atlas
     map->getTexture()->setAliasTexParameters();
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     // If you are not going to use the Map, you can free it now
@@ -66,8 +66,8 @@ TileMapEditTest::TileMapEditTest()
     
     addChild(map, 0, kTagTileMap);
     
-    map->setAnchorPoint( Point(0, 0) );
-    map->setPosition( Point(-20,-200) );
+    map->setAnchorPoint( ccp(0, 0) );
+    map->setPosition( ccp(-20,-200) );
 }
 
 void TileMapEditTest::updateMap(float dt)
@@ -76,7 +76,7 @@ void TileMapEditTest::updateMap(float dt)
     //   The only limitation is that you cannot change an empty, or assign an empty tile to a tile
     //   The value 0 not rendered so don't assign or change a tile with value 0
 
-    TileMapAtlas* tilemap = (TileMapAtlas*) getChildByTag(kTagTileMap);
+    CCTileMapAtlas* tilemap = (CCTileMapAtlas*) getChildByTag(kTagTileMap);
     
     //
     // For example you can iterate over all the tiles
@@ -84,7 +84,7 @@ void TileMapEditTest::updateMap(float dt)
     // over all your tiles in every frame. It's very expensive
     //    for(int x=0; x < tilemap.tgaInfo->width; x++) {
     //        for(int y=0; y < tilemap.tgaInfo->height; y++) {
-    //            Color3B c =[tilemap tileAt:Size(x,y));
+    //            ccColor3B c =[tilemap tileAt:CCSizeMake(x,y));
     //            if( c.r != 0 ) {
     //                ////----CCLOG("%d,%d = %d", x,y,c.r);
     //            }
@@ -92,14 +92,14 @@ void TileMapEditTest::updateMap(float dt)
     //    }
     
     // NEW since v0.7
-    Color3B c = tilemap->getTileAt(Point(13,21));        
+    ccColor3B c = tilemap->tileAt(ccp(13,21));        
     c.r++;
     c.r %= 50;
     if( c.r==0)
         c.r=1;
     
     // NEW since v0.7
-    tilemap->setTile(c, Point(13,21) );             
+    tilemap->setTile(c, ccp(13,21) );             
 }
 
 std::string TileMapEditTest::title()
@@ -119,21 +119,21 @@ TMXOrthoTest::TMXOrthoTest()
     //
     // it should not flicker. No artifacts should appear
     //
-    //CCLayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    //CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     //addChild(color, -1);
 
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
-    Array * pChildrenArray = map->getChildren();
-    SpriteBatchNode* child = NULL;
-    Object* pObject = NULL;
+    CCArray * pChildrenArray = map->getChildren();
+    CCSpriteBatchNode* child = NULL;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(pChildrenArray, pObject)
     {
-        child = static_cast<SpriteBatchNode*>(pObject);
+        child = (CCSpriteBatchNode*)pObject;
 
         if(!child)
             break;
@@ -150,12 +150,12 @@ void TMXOrthoTest::onEnter()
 {
     TileDemo::onEnter();
 
-    Director::getInstance()->setProjection(Director::Projection::_3D);
+    CCDirector::sharedDirector()->setProjection(kCCDirectorProjection3D);
 }
 
 void TMXOrthoTest::onExit()
 {
-    Director::getInstance()->setProjection(Director::Projection::_2D);
+    CCDirector::sharedDirector()->setProjection(kCCDirectorProjection2D);
     TileDemo::onExit();
 }
 
@@ -171,18 +171,18 @@ std::string TMXOrthoTest::title()
 //------------------------------------------------------------------
 TMXOrthoTest2::TMXOrthoTest2()
 {
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/orthogonal-test1.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/orthogonal-test1.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 
-    Array* pChildrenArray = map->getChildren();
-    SpriteBatchNode* child = NULL;
-    Object* pObject = NULL;
+    CCArray* pChildrenArray = map->getChildren();
+    CCSpriteBatchNode* child = NULL;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(pChildrenArray, pObject)
     {
-        child = static_cast<SpriteBatchNode*>(pObject);
+        child = (CCSpriteBatchNode*)pObject;
 
         if(!child)
             break;
@@ -190,7 +190,7 @@ TMXOrthoTest2::TMXOrthoTest2()
         child->getTexture()->setAntiAliasTexParameters();
     }
 
-    map->runAction( ScaleBy::create(2, 0.5f) ) ;
+    map->runAction( CCScaleBy::create(2, 0.5f) ) ;
 }
 
 std::string TMXOrthoTest2::title()
@@ -205,18 +205,18 @@ std::string TMXOrthoTest2::title()
 //------------------------------------------------------------------
 TMXOrthoTest3::TMXOrthoTest3()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test3.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test3.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
-    Array* pChildrenArray = map->getChildren();
-    SpriteBatchNode* child = NULL;
-    Object* pObject = NULL;
+    CCArray* pChildrenArray = map->getChildren();
+    CCSpriteBatchNode* child = NULL;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(pChildrenArray, pObject)
     {
-        child = static_cast<SpriteBatchNode*>(pObject);
+        child = (CCSpriteBatchNode*)pObject;
 
         if(!child)
             break;
@@ -225,7 +225,7 @@ TMXOrthoTest3::TMXOrthoTest3()
     }
     
     map->setScale(0.2f);
-    map->setAnchorPoint( Point(0.5f, 0.5f) );
+    map->setAnchorPoint( ccp(0.5f, 0.5f) );
 }
 
 std::string TMXOrthoTest3::title()
@@ -240,18 +240,18 @@ std::string TMXOrthoTest3::title()
 //------------------------------------------------------------------
 TMXOrthoTest4::TMXOrthoTest4()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test4.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test4.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s1 = map->getContentSize();
+    CCSize CC_UNUSED s1 = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s1.width,s1.height);
     
-    Array* pChildrenArray = map->getChildren();
-    SpriteBatchNode* child = NULL;
-    Object* pObject = NULL;
+    CCArray* pChildrenArray = map->getChildren();
+    CCSpriteBatchNode* child = NULL;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(pChildrenArray, pObject)
     {
-        child = static_cast<SpriteBatchNode*>(pObject);
+        child = (CCSpriteBatchNode*)pObject;
 
         if(!child)
             break;
@@ -259,19 +259,19 @@ TMXOrthoTest4::TMXOrthoTest4()
         child->getTexture()->setAntiAliasTexParameters();
     }
     
-    map->setAnchorPoint(Point(0, 0));
+    map->setAnchorPoint(ccp(0, 0));
 
-    auto layer = map->getLayer("Layer 0");
-    Size s = layer->getLayerSize();
+    CCTMXLayer* layer = map->layerNamed("Layer 0");
+    CCSize s = layer->getLayerSize();
     
-    Sprite* sprite;
-    sprite = layer->getTileAt(Point(0,0));
+    CCSprite* sprite;
+    sprite = layer->tileAt(ccp(0,0));
     sprite->setScale(2);
-    sprite = layer->getTileAt(Point(s.width-1,0));
+    sprite = layer->tileAt(ccp(s.width-1,0));
     sprite->setScale(2);
-    sprite = layer->getTileAt(Point(0,s.height-1));
+    sprite = layer->tileAt(ccp(0,s.height-1));
     sprite->setScale(2);
-    sprite = layer->getTileAt(Point(s.width-1,s.height-1));
+    sprite = layer->tileAt(ccp(s.width-1,s.height-1));
     sprite->setScale(2);
 
     schedule( schedule_selector(TMXOrthoTest4::removeSprite), 2 );
@@ -282,11 +282,11 @@ void TMXOrthoTest4::removeSprite(float dt)
 {
     unschedule(schedule_selector(TMXOrthoTest4::removeSprite));
 
-    auto map = static_cast<TMXTiledMap*>( getChildByTag(kTagTileMap) );
-    auto layer = map->getLayer("Layer 0");
-    Size s = layer->getLayerSize();
+    CCTMXTiledMap *map = (CCTMXTiledMap*)getChildByTag(kTagTileMap);
+    CCTMXLayer* layer = map->layerNamed("Layer 0");
+    CCSize s = layer->getLayerSize();
 
-    Sprite* sprite = layer->getTileAt( Point(s.width-1,0) );
+    CCSprite* sprite = layer->tileAt( ccp(s.width-1,0) );
     layer->removeChild(sprite, true);
 }
 
@@ -309,40 +309,40 @@ enum
 
 TMXReadWriteTest::TMXReadWriteTest()
 {
-    _gid = 0;
+    m_gid = 0;
     
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 
     
-    TMXLayer* layer = map->getLayer("Layer 0");
+    CCTMXLayer* layer = map->layerNamed("Layer 0");
     layer->getTexture()->setAntiAliasTexParameters();
 
     map->setScale( 1 );
 
-    Sprite *tile0 = layer->getTileAt(Point(1,63));
-    Sprite *tile1 = layer->getTileAt(Point(2,63));
-    Sprite *tile2 = layer->getTileAt(Point(3,62));//Point(1,62));
-    Sprite *tile3 = layer->getTileAt(Point(2,62));
-    tile0->setAnchorPoint( Point(0.5f, 0.5f) );
-    tile1->setAnchorPoint( Point(0.5f, 0.5f) );
-    tile2->setAnchorPoint( Point(0.5f, 0.5f) );
-    tile3->setAnchorPoint( Point(0.5f, 0.5f) );
+    CCSprite *tile0 = layer->tileAt(ccp(1,63));
+    CCSprite *tile1 = layer->tileAt(ccp(2,63));
+    CCSprite *tile2 = layer->tileAt(ccp(3,62));//ccp(1,62));
+    CCSprite *tile3 = layer->tileAt(ccp(2,62));
+    tile0->setAnchorPoint( ccp(0.5f, 0.5f) );
+    tile1->setAnchorPoint( ccp(0.5f, 0.5f) );
+    tile2->setAnchorPoint( ccp(0.5f, 0.5f) );
+    tile3->setAnchorPoint( ccp(0.5f, 0.5f) );
 
-    ActionInterval* move = MoveBy::create(0.5f, Point(0,160));
-    ActionInterval* rotate = RotateBy::create(2, 360);
-    ActionInterval* scale = ScaleBy::create(2, 5);
-    ActionInterval* opacity = FadeOut::create(2);
-    ActionInterval* fadein = FadeIn::create(2);
-    ActionInterval* scaleback = ScaleTo::create(1, 1);
-    ActionInstant* finish = CallFuncN::create(CC_CALLBACK_1(TMXReadWriteTest::removeSprite, this));
-    Sequence* seq0 = Sequence::create(move, rotate, scale, opacity, fadein, scaleback, finish, NULL);
-    ActionInterval* seq1 = seq0->clone();
-    ActionInterval* seq2 = seq0->clone();
-    ActionInterval* seq3 = seq0->clone();
+    CCActionInterval* move = CCMoveBy::create(0.5f, ccp(0,160));
+    CCActionInterval* rotate = CCRotateBy::create(2, 360);
+    CCActionInterval* scale = CCScaleBy::create(2, 5);
+    CCActionInterval* opacity = CCFadeOut::create(2);
+    CCActionInterval* fadein = CCFadeIn::create(2);
+    CCActionInterval* scaleback = CCScaleTo::create(1, 1);
+    CCActionInstant* finish = CCCallFuncN::create(this, callfuncN_selector(TMXReadWriteTest::removeSprite));
+    CCSequence* seq0 = CCSequence::create(move, rotate, scale, opacity, fadein, scaleback, finish, NULL);
+    CCActionInterval* seq1 = (CCActionInterval*)(seq0->copy()->autorelease());
+    CCActionInterval* seq2 = (CCActionInterval*)(seq0->copy()->autorelease());
+    CCActionInterval* seq3 = (CCActionInterval*)(seq0->copy()->autorelease());
     
     tile0->runAction(seq0);
     tile1->runAction(seq1);
@@ -350,8 +350,8 @@ TMXReadWriteTest::TMXReadWriteTest()
     tile3->runAction(seq3);
     
     
-    _gid = layer->getTileGIDAt(Point(0,63));
-    ////----CCLOG("Tile GID at:(0,63) is: %d", _gid);
+    m_gid = layer->tileGIDAt(ccp(0,63));
+    ////----CCLOG("Tile GID at:(0,63) is: %d", m_gid);
 
     schedule(schedule_selector(TMXReadWriteTest::updateCol), 2.0f); 
     schedule(schedule_selector(TMXReadWriteTest::repaintWithGID), 2.05f);
@@ -360,17 +360,17 @@ TMXReadWriteTest::TMXReadWriteTest()
     ////----CCLOG("++++atlas quantity: %d", layer->textureAtlas()->getTotalQuads());
     ////----CCLOG("++++children: %d", layer->getChildren()->count() );
     
-    _gid2 = 0;
+    m_gid2 = 0;
 }
 
-void TMXReadWriteTest::removeSprite(Node* sender)
+void TMXReadWriteTest::removeSprite(CCNode* sender)
 {
     ////----CCLOG("removing tile: %x", sender);
-    Node* p = ((Node*)sender)->getParent();
+    CCNode* p = ((CCNode*)sender)->getParent();
 
     if (p)
     {
-        p->removeChild((Node*)sender, true);
+        p->removeChild((CCNode*)sender, true);
     }    
     
     //////----CCLOG("atlas quantity: %d", p->textureAtlas()->totalQuads());
@@ -378,36 +378,36 @@ void TMXReadWriteTest::removeSprite(Node* sender)
 
 void TMXReadWriteTest::updateCol(float dt)
 {    
-    TMXTiledMap* map = (TMXTiledMap*)getChildByTag(kTagTileMap);
-    TMXLayer *layer = (TMXLayer*)map->getChildByTag(0);
+    CCTMXTiledMap* map = (CCTMXTiledMap*)getChildByTag(kTagTileMap);
+    CCTMXLayer *layer = (CCTMXLayer*)map->getChildByTag(0);
 
     ////----CCLOG("++++atlas quantity: %d", layer->textureAtlas()->getTotalQuads());
     ////----CCLOG("++++children: %d", layer->getChildren()->count() );
 
 
-    Size s = layer->getLayerSize();
+    CCSize s = layer->getLayerSize();
 
     for( int y=0; y< s.height; y++ ) 
     {
-        layer->setTileGID(_gid2, Point((float)3, (float)y));
+        layer->setTileGID(m_gid2, ccp((float)3, (float)y));
     }
     
-    _gid2 = (_gid2 + 1) % 80;
+    m_gid2 = (m_gid2 + 1) % 80;
 }
 
 void TMXReadWriteTest::repaintWithGID(float dt)
 {
 //    unschedule:_cmd);
     
-    TMXTiledMap* map = (TMXTiledMap*)getChildByTag(kTagTileMap);
-    TMXLayer *layer = (TMXLayer*)map->getChildByTag(0);
+    CCTMXTiledMap* map = (CCTMXTiledMap*)getChildByTag(kTagTileMap);
+    CCTMXLayer *layer = (CCTMXLayer*)map->getChildByTag(0);
     
-    Size s = layer->getLayerSize();
+    CCSize s = layer->getLayerSize();
     for( int x=0; x<s.width;x++) 
     {
         int y = (int)s.height-1;
-        unsigned int tmpgid = layer->getTileGIDAt( Point((float)x, (float)y) );
-        layer->setTileGID(tmpgid+1, Point((float)x, (float)y));
+        unsigned int tmpgid = layer->tileGIDAt( ccp((float)x, (float)y) );
+        layer->setTileGID(tmpgid+1, ccp((float)x, (float)y));
     }
 }
 
@@ -415,13 +415,13 @@ void TMXReadWriteTest::removeTiles(float dt)
 {
     unschedule(schedule_selector(TMXReadWriteTest::removeTiles));
 
-    TMXTiledMap* map = (TMXTiledMap*)getChildByTag(kTagTileMap);
-    TMXLayer *layer = (TMXLayer*)map->getChildByTag(0);
-    Size s = layer->getLayerSize();
+    CCTMXTiledMap* map = (CCTMXTiledMap*)getChildByTag(kTagTileMap);
+    CCTMXLayer *layer = (CCTMXLayer*)map->getChildByTag(0);
+    CCSize s = layer->getLayerSize();
 
     for( int y=0; y< s.height; y++ ) 
     {
-        layer->removeTileAt( Point(5.0, (float)y) );
+        layer->removeTileAt( ccp(5.0, (float)y) );
     }
 }
 
@@ -439,13 +439,13 @@ std::string TMXReadWriteTest::title()
 //------------------------------------------------------------------
 TMXHexTest::TMXHexTest()
 {
-    LayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     addChild(color, -1);
     
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/hexa-test.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/hexa-test.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 }
 
@@ -461,16 +461,16 @@ std::string TMXHexTest::title()
 //------------------------------------------------------------------
 TMXIsoTest::TMXIsoTest()
 {
-    LayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     addChild(color, -1);
     
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/iso-test.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/iso-test.tmx");
     addChild(map, 0, kTagTileMap);        
     
     // move map to the center of the screen
-    Size ms = map->getMapSize();
-    Size ts = map->getTileSize();
-    map->runAction( MoveTo::create(1.0f, Point( -ms.width * ts.width/2, -ms.height * ts.height/2 )) ); 
+    CCSize ms = map->getMapSize();
+    CCSize ts = map->getTileSize();
+    map->runAction( CCMoveTo::create(1.0f, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 )) ); 
 }
 
 std::string TMXIsoTest::title()
@@ -485,16 +485,16 @@ std::string TMXIsoTest::title()
 //------------------------------------------------------------------
 TMXIsoTest1::TMXIsoTest1()
 {
-    LayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     addChild(color, -1);
     
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test1.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test1.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
-    map->setAnchorPoint(Point(0.5f, 0.5f));
+    map->setAnchorPoint(ccp(0.5f, 0.5f));
 }
 
 std::string TMXIsoTest1::title()
@@ -509,19 +509,19 @@ std::string TMXIsoTest1::title()
 //------------------------------------------------------------------
 TMXIsoTest2::TMXIsoTest2()
 {
-    LayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     addChild(color, -1);
     
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test2.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test2.tmx");
     addChild(map, 0, kTagTileMap);    
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     // move map to the center of the screen
-    Size ms = map->getMapSize();
-    Size ts = map->getTileSize();
-    map->runAction( MoveTo::create(1.0f, Point( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ));
+    CCSize ms = map->getMapSize();
+    CCSize ts = map->getTileSize();
+    map->runAction( CCMoveTo::create(1.0f, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ));
 }
 
 std::string TMXIsoTest2::title()
@@ -536,27 +536,27 @@ std::string TMXIsoTest2::title()
 //------------------------------------------------------------------
 TMXUncompressedTest::TMXUncompressedTest()
 {
-    LayerColor* color = LayerColor::create( Color4B(64,64,64,255) );
+    CCLayerColor* color = CCLayerColor::create( ccc4(64,64,64,255) );
     addChild(color, -1);
     
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test2-uncompressed.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test2-uncompressed.tmx");
     addChild(map, 0, kTagTileMap);    
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     // move map to the center of the screen
-    Size ms = map->getMapSize();
-    Size ts = map->getTileSize();
-    map->runAction(MoveTo::create(1.0f, Point( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ));
+    CCSize ms = map->getMapSize();
+    CCSize ts = map->getTileSize();
+    map->runAction(CCMoveTo::create(1.0f, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ));
     
     // testing release map
-    Array* pChildrenArray = map->getChildren();
-    TMXLayer* layer;
-    Object* pObject = NULL;
+    CCArray* pChildrenArray = map->getChildren();
+    CCTMXLayer* layer;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(pChildrenArray, pObject)
     {
-        layer= static_cast<TMXLayer*>(pObject);
+        layer= (CCTMXLayer*)pObject;
 
         if(!layer)
             break;
@@ -578,20 +578,20 @@ std::string TMXUncompressedTest::title()
 //------------------------------------------------------------------
 TMXTilesetTest::TMXTilesetTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
-    TMXLayer* layer;
-    layer = map->getLayer("Layer 0");
+    CCTMXLayer* layer;
+    layer = map->layerNamed("Layer 0");
     layer->getTexture()->setAntiAliasTexParameters();
     
-    layer = map->getLayer("Layer 1");
+    layer = map->layerNamed("Layer 1");
     layer->getTexture()->setAntiAliasTexParameters();
 
-    layer = map->getLayer("Layer 2");
+    layer = map->layerNamed("Layer 2");
     layer->getTexture()->setAntiAliasTexParameters();
 }
 
@@ -607,21 +607,21 @@ std::string TMXTilesetTest::title()
 //------------------------------------------------------------------
 TMXOrthoObjectsTest::TMXOrthoObjectsTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/ortho-objects.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/ortho-objects.tmx");
     addChild(map, -1, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     ////----CCLOG("----> Iterating over all the group objets");
-    auto group = map->getObjectGroup("Object Group 1");
-    Array* objects = group->getObjects();
+    CCTMXObjectGroup* group = map->objectGroupNamed("Object Group 1");
+    CCArray* objects = group->getObjects();
 
-    Dictionary* dict = NULL;
-    Object* pObj = NULL;
+    CCDictionary* dict = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(objects, pObj)
     {
-        dict = static_cast<Dictionary*>(pObj);
+        dict = (CCDictionary*)pObj;//dynamic_cast<CCStringToStringDictionary*>(*it);
 
         if(!dict)
             break;
@@ -630,39 +630,39 @@ TMXOrthoObjectsTest::TMXOrthoObjectsTest()
     }
     
     ////----CCLOG("----> Fetching 1 object by name");
-    // StringToStringDictionary* platform = group->objectNamed("platform");
+    // CCStringToStringDictionary* platform = group->objectNamed("platform");
     ////----CCLOG("platform: %x", platform);
 }
 
 void TMXOrthoObjectsTest::draw()
 {
-    auto map = static_cast<TMXTiledMap*>( getChildByTag(kTagTileMap) );
-    auto group = map->getObjectGroup("Object Group 1");
+    CCTMXTiledMap* map = (CCTMXTiledMap*) getChildByTag(kTagTileMap);
+    CCTMXObjectGroup* group = map->objectGroupNamed("Object Group 1");
 
-    Array* objects = group->getObjects();
-    Dictionary* dict = NULL;
-    Object* pObj = NULL;
+    CCArray* objects = group->getObjects();
+    CCDictionary* dict = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(objects, pObj)
     {
-        dict = static_cast<Dictionary*>(pObj);
+        dict = (CCDictionary*)pObj;//dynamic_cast<CCStringToStringDictionary*>(*it);
         
         if(!dict)
             break;
         const char* key = "x";
-        int x = ((String*)dict->objectForKey(key))->intValue();
+        int x = ((CCString*)dict->objectForKey(key))->intValue();
         key = "y";
-        int y = ((String*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("y"))->getNumber();
+        int y = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("y"))->getNumber();
         key = "width";
-        int width = ((String*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("width"))->getNumber();
+        int width = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("width"))->getNumber();
         key = "height";
-        int height = ((String*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("height"))->getNumber();
+        int height = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("height"))->getNumber();
         
         glLineWidth(3);
         
-        DrawPrimitives::drawLine( Point((float)x, (float)y), Point((float)(x+width), (float)y) );
-        DrawPrimitives::drawLine( Point((float)(x+width), (float)y), Point((float)(x+width), (float)(y+height)) );
-        DrawPrimitives::drawLine( Point((float)(x+width), (float)(y+height)), Point((float)x, (float)(y+height)) );
-        DrawPrimitives::drawLine( Point((float)x, (float)(y+height)), Point((float)x, (float)y) );
+        ccDrawLine( ccp((float)x, (float)y), ccp((float)(x+width), (float)y) );
+        ccDrawLine( ccp((float)(x+width), (float)y), ccp((float)(x+width), (float)(y+height)) );
+        ccDrawLine( ccp((float)(x+width), (float)(y+height)), ccp((float)x, (float)(y+height)) );
+        ccDrawLine( ccp((float)x, (float)(y+height)), ccp((float)x, (float)y) );
         
         glLineWidth(1);
     }
@@ -687,22 +687,22 @@ std::string TMXOrthoObjectsTest::subtitle()
 
 TMXIsoObjectsTest::TMXIsoObjectsTest()
 {
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/iso-test-objectgroup.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/iso-test-objectgroup.tmx");
     addChild(map, -1, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 
-    TMXObjectGroup* group = map->getObjectGroup("Object Group 1");
+    CCTMXObjectGroup* group = map->objectGroupNamed("Object Group 1");
 
     //UxMutableArray* objects = group->objects();
-    Array* objects = group->getObjects();
+    CCArray* objects = group->getObjects();
     //UxMutableDictionary<std::string>* dict;
-    Dictionary* dict;
-    Object* pObj = NULL;
+    CCDictionary* dict;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(objects, pObj)
     {
-        dict = static_cast<Dictionary*>(pObj);
+        dict = (CCDictionary*)pObj;
 
         if(!dict)
             break;
@@ -713,33 +713,33 @@ TMXIsoObjectsTest::TMXIsoObjectsTest()
 
 void TMXIsoObjectsTest::draw()
 {
-    TMXTiledMap *map = (TMXTiledMap*) getChildByTag(kTagTileMap);
-    TMXObjectGroup *group = map->getObjectGroup("Object Group 1");
+    CCTMXTiledMap *map = (CCTMXTiledMap*) getChildByTag(kTagTileMap);
+    CCTMXObjectGroup *group = map->objectGroupNamed("Object Group 1");
 
-    Array* objects = group->getObjects();
-    Dictionary* dict;
-    Object* pObj = NULL;
+    CCArray* objects = group->getObjects();
+    CCDictionary* dict;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(objects, pObj)
     {
-        dict = static_cast<Dictionary*>(pObj);
+        dict = (CCDictionary*)pObj;//dynamic_cast<CCStringToStringDictionary*>(*it);
 
         if(!dict)
             break;
         const char* key = "x";
-        int x = static_cast<String*>(dict->objectForKey(key))->intValue();
+        int x = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("x"))->getNumber();
         key = "y";
-        int y = static_cast<String*>(dict->objectForKey(key))->intValue();
+        int y = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("y"))->getNumber();
         key = "width";
-        int width = static_cast<String*>(dict->objectForKey(key))->intValue();
+        int width = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("width"))->getNumber();
         key = "height";
-        int height = static_cast<String*>(dict->objectForKey(key))->intValue();
+        int height = ((CCString*)dict->objectForKey(key))->intValue();//dynamic_cast<NSNumber*>(dict->objectForKey("height"))->getNumber();
         
         glLineWidth(3);
         
-        DrawPrimitives::drawLine( Point(x,y), Point(x+width,y) );
-        DrawPrimitives::drawLine( Point(x+width,y), Point(x+width,y+height) );
-        DrawPrimitives::drawLine( Point(x+width,y+height), Point(x,y+height) );
-        DrawPrimitives::drawLine( Point(x,y+height), Point(x,y) );
+        ccDrawLine( ccp(x,y), ccp(x+width,y) );
+        ccDrawLine( ccp(x+width,y), ccp(x+width,y+height) );
+        ccDrawLine( ccp(x+width,y+height), ccp(x,y+height) );
+        ccDrawLine( ccp(x,y+height), ccp(x,y) );
         
         glLineWidth(1);
     }
@@ -764,21 +764,21 @@ std::string TMXIsoObjectsTest::subtitle()
 
 TMXResizeTest::TMXResizeTest()
 {
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 
-    TMXLayer* layer;
-    layer = map->getLayer("Layer 0");
+    CCTMXLayer* layer;
+    layer = map->layerNamed("Layer 0");
 
-    Size ls = layer->getLayerSize();
+    CCSize ls = layer->getLayerSize();
     for (unsigned int y = 0; y < ls.height; y++) 
     {
         for (unsigned int x = 0; x < ls.width; x++) 
         {
-            layer->setTileGID(1, Point( x, y ) );
+            layer->setTileGID(1, ccp( x, y ) );
         }
     }        
 }
@@ -801,32 +801,32 @@ std::string TMXResizeTest::subtitle()
 //------------------------------------------------------------------
 TMXIsoZorder::TMXIsoZorder()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test-zorder.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test-zorder.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size s = map->getContentSize();
+    CCSize s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
-    map->setPosition(Point(-s.width/2,0));
+    map->setPosition(ccp(-s.width/2,0));
     
-    _tamara = Sprite::create(s_pathSister1);
-    map->addChild(_tamara, map->getChildren()->count() );
-    _tamara->retain();
+    m_tamara = CCSprite::create(s_pPathSister1);
+    map->addChild(m_tamara, map->getChildren()->count() );
+    m_tamara->retain();
     int mapWidth = map->getMapSize().width * map->getTileSize().width;
-    _tamara->setPosition(CC_POINT_PIXELS_TO_POINTS(Point( mapWidth/2,0)));
-    _tamara->setAnchorPoint(Point(0.5f,0));
+    m_tamara->setPosition(CC_POINT_PIXELS_TO_POINTS(ccp( mapWidth/2,0)));
+    m_tamara->setAnchorPoint(ccp(0.5f,0));
 
     
-    ActionInterval* move = MoveBy::create(10, Point(300,250));
-    ActionInterval* back = move->reverse();
-    Sequence* seq = Sequence::create(move, back,NULL);
-    _tamara->runAction( RepeatForever::create(seq) );
+    CCActionInterval* move = CCMoveBy::create(10, ccp(300,250));
+    CCActionInterval* back = move->reverse();
+    CCSequence* seq = CCSequence::create(move, back,NULL);
+    m_tamara->runAction( CCRepeatForever::create(seq) );
     
     schedule( schedule_selector(TMXIsoZorder::repositionSprite) );
 }
 
 TMXIsoZorder::~TMXIsoZorder()
 {
-    _tamara->release();
+    m_tamara->release();
 }
 
 void TMXIsoZorder::onExit()
@@ -837,9 +837,9 @@ void TMXIsoZorder::onExit()
 
 void TMXIsoZorder::repositionSprite(float dt)
 {
-    Point p = _tamara->getPosition();
+    CCPoint p = m_tamara->getPosition();
     p = CC_POINT_POINTS_TO_PIXELS(p);
-    Node *map = getChildByTag(kTagTileMap);
+    CCNode *map = getChildByTag(kTagTileMap);
     
     // there are only 4 layers. (grass and 3 trees layers)
     // if tamara < 48, z=4
@@ -849,7 +849,7 @@ void TMXIsoZorder::repositionSprite(float dt)
     int newZ = 4 - (p.y / 48);
     newZ = max(newZ,0);
     
-    map->reorderChild(_tamara, newZ);    
+    map->reorderChild(m_tamara, newZ);    
 }
 
 std::string TMXIsoZorder::title()
@@ -870,36 +870,36 @@ std::string TMXIsoZorder::subtitle()
 //------------------------------------------------------------------
 TMXOrthoZorder::TMXOrthoZorder()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test-zorder.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test-zorder.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
-    _tamara = Sprite::create(s_pathSister1);
-    map->addChild(_tamara,  map->getChildren()->count());
-    _tamara->retain();
-    _tamara->setAnchorPoint(Point(0.5f,0));
+    m_tamara = CCSprite::create(s_pPathSister1);
+    map->addChild(m_tamara,  map->getChildren()->count());
+    m_tamara->retain();
+    m_tamara->setAnchorPoint(ccp(0.5f,0));
 
     
-    ActionInterval* move = MoveBy::create(10, Point(400,450));
-    ActionInterval* back = move->reverse();
-    Sequence* seq = Sequence::create(move, back,NULL);
-    _tamara->runAction( RepeatForever::create(seq));
+    CCActionInterval* move = CCMoveBy::create(10, ccp(400,450));
+    CCActionInterval* back = move->reverse();
+    CCSequence* seq = CCSequence::create(move, back,NULL);
+    m_tamara->runAction( CCRepeatForever::create(seq));
     
     schedule( schedule_selector(TMXOrthoZorder::repositionSprite));
 }
 
 TMXOrthoZorder::~TMXOrthoZorder()
 {
-    _tamara->release();
+    m_tamara->release();
 }
 
 void TMXOrthoZorder::repositionSprite(float dt)
 {
-    Point p = _tamara->getPosition();
+    CCPoint p = m_tamara->getPosition();
     p = CC_POINT_POINTS_TO_PIXELS(p);
-    Node* map = getChildByTag(kTagTileMap);
+    CCNode* map = getChildByTag(kTagTileMap);
     
     // there are only 4 layers. (grass and 3 trees layers)
     // if tamara < 81, z=4
@@ -910,7 +910,7 @@ void TMXOrthoZorder::repositionSprite(float dt)
     int newZ = 4 - ( (p.y-10) / 81);
     newZ = max(newZ,0);
 
-    map->reorderChild(_tamara, newZ);
+    map->reorderChild(m_tamara, newZ);
 }
 
 std::string TMXOrthoZorder::title()
@@ -931,23 +931,23 @@ std::string TMXOrthoZorder::subtitle()
 //------------------------------------------------------------------
 TMXIsoVertexZ::TMXIsoVertexZ()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test-vertexz.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test-vertexz.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size s = map->getContentSize();
-    map->setPosition( Point(-s.width/2,0) );
+    CCSize s = map->getContentSize();
+    map->setPosition( ccp(-s.width/2,0) );
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     // because I'm lazy, I'm reusing a tile as an sprite, but since this method uses vertexZ, you
-    // can use any Sprite and it will work OK.
-    TMXLayer* layer = map->getLayer("Trees");
-    _tamara = layer->getTileAt( Point(29,29) );
-    _tamara->retain();
+    // can use any CCSprite and it will work OK.
+    CCTMXLayer* layer = map->layerNamed("Trees");
+    m_tamara = layer->tileAt( ccp(29,29) );
+    m_tamara->retain();
     
-    ActionInterval* move = MoveBy::create(10, Point(300,250) * (1/CC_CONTENT_SCALE_FACTOR()));
-    ActionInterval* back = move->reverse();
-    Sequence* seq = Sequence::create(move, back,NULL);
-    _tamara->runAction( RepeatForever::create(seq) );
+    CCActionInterval* move = CCMoveBy::create(10, ccpMult( ccp(300,250), 1/CC_CONTENT_SCALE_FACTOR() ) );
+    CCActionInterval* back = move->reverse();
+    CCSequence* seq = CCSequence::create(move, back,NULL);
+    m_tamara->runAction( CCRepeatForever::create(seq) );
     
     schedule( schedule_selector(TMXIsoVertexZ::repositionSprite));
     
@@ -955,17 +955,17 @@ TMXIsoVertexZ::TMXIsoVertexZ()
 
 TMXIsoVertexZ::~TMXIsoVertexZ()
 {
-    _tamara->release();
+    m_tamara->release();
 }
 
 void TMXIsoVertexZ::repositionSprite(float dt)
 {
     // tile height is 64x32
     // map size: 30x30
-    Point p = _tamara->getPosition();
+    CCPoint p = m_tamara->getPosition();
     p = CC_POINT_POINTS_TO_PIXELS(p);
     float newZ = -(p.y+32) /16;
-    _tamara->setVertexZ( newZ );
+    m_tamara->setVertexZ( newZ );
 }
 
 void TMXIsoVertexZ::onEnter()
@@ -973,13 +973,13 @@ void TMXIsoVertexZ::onEnter()
     TileDemo::onEnter();
     
     // TIP: 2d projection should be used
-    Director::getInstance()->setProjection(Director::Projection::_2D);
+    CCDirector::sharedDirector()->setProjection(kCCDirectorProjection2D);
 }
 
 void TMXIsoVertexZ::onExit()
 {
     // At exit use any other projection. 
-    //    Director::getInstance()->setProjection:Director::Projection::_3D);
+    //    CCDirector::sharedDirector()->setProjection:kCCDirectorProjection3D);
     TileDemo::onExit();
 }
 
@@ -1001,23 +1001,23 @@ std::string TMXIsoVertexZ::subtitle()
 //------------------------------------------------------------------
 TMXOrthoVertexZ::TMXOrthoVertexZ()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test-vertexz.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test-vertexz.tmx");
     addChild(map, 0, kTagTileMap);
     
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
     
     // because I'm lazy, I'm reusing a tile as an sprite, but since this method uses vertexZ, you
-    // can use any Sprite and it will work OK.
-    TMXLayer* layer = map->getLayer("trees");
-    _tamara = layer->getTileAt(Point(0,11));
-    CCLOG("%p vertexZ: %f", _tamara, _tamara->getVertexZ());
-    _tamara->retain();
+    // can use any CCSprite and it will work OK.
+    CCTMXLayer* layer = map->layerNamed("trees");
+    m_tamara = layer->tileAt(ccp(0,11));
+    CCLOG("%p vertexZ: %f", m_tamara, m_tamara->getVertexZ());
+    m_tamara->retain();
 
-    ActionInterval* move = MoveBy::create(10, Point(400,450) * (1/CC_CONTENT_SCALE_FACTOR()));
-    ActionInterval* back = move->reverse();
-    Sequence* seq = Sequence::create(move, back,NULL);
-    _tamara->runAction( RepeatForever::create(seq));
+    CCActionInterval* move = CCMoveBy::create(10, ccpMult( ccp(400,450), 1/CC_CONTENT_SCALE_FACTOR()));
+    CCActionInterval* back = move->reverse();
+    CCSequence* seq = CCSequence::create(move, back,NULL);
+    m_tamara->runAction( CCRepeatForever::create(seq));
     
     schedule(schedule_selector(TMXOrthoVertexZ::repositionSprite));
     
@@ -1025,16 +1025,16 @@ TMXOrthoVertexZ::TMXOrthoVertexZ()
 
 TMXOrthoVertexZ::~TMXOrthoVertexZ()
 {
-    _tamara->release();
+    m_tamara->release();
 }
 
 void TMXOrthoVertexZ::repositionSprite(float dt)
 {
     // tile height is 101x81
     // map size: 12x12
-    Point p = _tamara->getPosition();
+    CCPoint p = m_tamara->getPosition();
     p = CC_POINT_POINTS_TO_PIXELS(p);
-    _tamara->setVertexZ( -( (p.y+81) /81) );
+    m_tamara->setVertexZ( -( (p.y+81) /81) );
 }
 
 void TMXOrthoVertexZ::onEnter()
@@ -1042,13 +1042,13 @@ void TMXOrthoVertexZ::onEnter()
     TileDemo::onEnter();
     
     // TIP: 2d projection should be used
-    Director::getInstance()->setProjection(Director::Projection::_2D);
+    CCDirector::sharedDirector()->setProjection(kCCDirectorProjection2D);
 }
 
 void TMXOrthoVertexZ::onExit()
 {
     // At exit use any other projection. 
-    //    Director::getInstance()->setProjection:Director::Projection::_3D);
+    //    CCDirector::sharedDirector()->setProjection:kCCDirectorProjection3D);
     TileDemo::onExit();
 }
 
@@ -1070,12 +1070,12 @@ std::string TMXOrthoVertexZ::subtitle()
 //------------------------------------------------------------------
 TMXIsoMoveLayer::TMXIsoMoveLayer()
 {
-    TMXTiledMap* map = TMXTiledMap::create("TileMaps/iso-test-movelayer.tmx");
+    CCTMXTiledMap* map = CCTMXTiledMap::create("TileMaps/iso-test-movelayer.tmx");
     addChild(map, 0, kTagTileMap);
     
-    map->setPosition(Point(-700,-50));
+    map->setPosition(ccp(-700,-50));
 
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 }
 
@@ -1097,10 +1097,10 @@ std::string TMXIsoMoveLayer::subtitle()
 //------------------------------------------------------------------
 TMXOrthoMoveLayer::TMXOrthoMoveLayer()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test-movelayer.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test-movelayer.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s.width,s.height);
 }
 
@@ -1122,11 +1122,11 @@ std::string TMXOrthoMoveLayer::subtitle()
 
 TMXTilePropertyTest::TMXTilePropertyTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/ortho-tile-property.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/ortho-tile-property.tmx");
     addChild(map ,0 ,kTagTileMap);
 
     for(int i=1;i<=20;i++){
-        log("GID:%i, Properties:%p", i, map->getPropertiesForGID(i));
+        CCLog("GID:%i, Properties:%p", i, map->propertiesForGID(i));
     }
 }
 
@@ -1148,20 +1148,20 @@ std::string TMXTilePropertyTest::subtitle()
 
 TMXOrthoFlipTest::TMXOrthoFlipTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/ortho-rotation-test.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/ortho-rotation-test.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size CC_UNUSED s = map->getContentSize();
-    log("ContentSize: %f, %f", s.width,s.height);
+    CCSize CC_UNUSED s = map->getContentSize();
+    CCLog("ContentSize: %f, %f", s.width,s.height);
 
-    Object* pObj = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(map->getChildren(), pObj)
     {
-        SpriteBatchNode* child = static_cast<SpriteBatchNode*>(pObj);
+        CCSpriteBatchNode* child = (CCSpriteBatchNode*)pObj;
         child->getTexture()->setAntiAliasTexParameters();
     }
 
-    ScaleBy* action = ScaleBy::create(2, 0.5f);
+    CCScaleBy* action = CCScaleBy::create(2, 0.5f);
     map->runAction(action);
 }
 
@@ -1178,20 +1178,20 @@ std::string TMXOrthoFlipTest::title()
 
 TMXOrthoFlipRunTimeTest::TMXOrthoFlipRunTimeTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/ortho-rotation-test.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/ortho-rotation-test.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size s = map->getContentSize();
-    log("ContentSize: %f, %f", s.width,s.height);
+    CCSize s = map->getContentSize();
+    CCLog("ContentSize: %f, %f", s.width,s.height);
 
-    Object* pObj = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(map->getChildren(), pObj)
     {
-        SpriteBatchNode* child = static_cast<SpriteBatchNode*>(pObj);
+        CCSpriteBatchNode* child = (CCSpriteBatchNode*)pObj;
         child->getTexture()->setAntiAliasTexParameters();
     }
 
-    ScaleBy* action = ScaleBy::create(2, 0.5f);
+    CCScaleBy* action = CCScaleBy::create(2, 0.5f);
     map->runAction(action);
 
     schedule(schedule_selector(TMXOrthoFlipRunTimeTest::flipIt), 1.0f);
@@ -1209,38 +1209,38 @@ std::string TMXOrthoFlipRunTimeTest::subtitle()
 
 void TMXOrthoFlipRunTimeTest::flipIt(float dt)
 {
-    TMXTiledMap *map = (TMXTiledMap*) getChildByTag(kTagTileMap); 
-    TMXLayer *layer = map->getLayer("Layer 0");
+    CCTMXTiledMap *map = (CCTMXTiledMap*) getChildByTag(kTagTileMap); 
+    CCTMXLayer *layer = map->layerNamed("Layer 0"); 
 
     //blue diamond 
-    Point tileCoord = Point(1,10);
+    CCPoint tileCoord = ccp(1,10);
     int flags;
-    unsigned int GID = layer->getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
+    unsigned int GID = layer->tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
     // Vertical
-    if( flags & kTMXTileVerticalFlag )
-        flags &= ~kTMXTileVerticalFlag;
+    if( flags & kCCTMXTileVerticalFlag )
+        flags &= ~kCCTMXTileVerticalFlag;
     else
-        flags |= kTMXTileVerticalFlag;
+        flags |= kCCTMXTileVerticalFlag;
     layer->setTileGID(GID ,tileCoord, (ccTMXTileFlags)flags);
 
 
-    tileCoord = Point(1,8);    
-    GID = layer->getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
+    tileCoord = ccp(1,8);    
+    GID = layer->tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
     // Vertical
-    if( flags & kTMXTileVerticalFlag )
-        flags &= ~kTMXTileVerticalFlag;
+    if( flags & kCCTMXTileVerticalFlag )
+        flags &= ~kCCTMXTileVerticalFlag;
     else
-        flags |= kTMXTileVerticalFlag;    
+        flags |= kCCTMXTileVerticalFlag;    
     layer->setTileGID(GID ,tileCoord, (ccTMXTileFlags)flags);
 
 
-    tileCoord = Point(2,8);
-    GID = layer->getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
+    tileCoord = ccp(2,8);
+    GID = layer->tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags);
     // Horizontal
-    if( flags & kTMXTileHorizontalFlag )
-        flags &= ~kTMXTileHorizontalFlag;
+    if( flags & kCCTMXTileHorizontalFlag )
+        flags &= ~kCCTMXTileHorizontalFlag;
     else
-        flags |= kTMXTileHorizontalFlag;    
+        flags |= kCCTMXTileHorizontalFlag;    
     layer->setTileGID(GID, tileCoord, (ccTMXTileFlags)flags);    
 }
 //------------------------------------------------------------------
@@ -1254,23 +1254,23 @@ TMXOrthoFromXMLTest::TMXOrthoFromXMLTest()
     string resources = "TileMaps";        // partial paths are OK as resource paths.
     string file = resources + "/orthogonal-test1.tmx";
 
-    String* str = String::createWithContentsOfFile(FileUtils::getInstance()->fullPathForFilename(file.c_str()).c_str());
-    CCASSERT(str != NULL, "Unable to open file");
+    CCString* str = CCString::createWithContentsOfFile(CCFileUtils::sharedFileUtils()->fullPathForFilename(file.c_str()).c_str());
+    CCAssert(str != NULL, "Unable to open file");
 
-    TMXTiledMap *map = TMXTiledMap::createWithXML(str->getCString() ,resources.c_str());
+    CCTMXTiledMap *map = CCTMXTiledMap::createWithXML(str->getCString() ,resources.c_str());
     addChild(map, 0, kTagTileMap);
 
-    Size s = map->getContentSize();
-    log("ContentSize: %f, %f", s.width,s.height);
+    CCSize s = map->getContentSize();
+    CCLog("ContentSize: %f, %f", s.width,s.height);
 
-    Object* pObj = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(map->getChildren(), pObj)
     {
-        SpriteBatchNode* child = static_cast<SpriteBatchNode*>(pObj);
+        CCSpriteBatchNode* child = (CCSpriteBatchNode*)pObj;
         child->getTexture()->setAntiAliasTexParameters();
     }
 
-    ScaleBy* action = ScaleBy::create(2, 0.5f);
+    CCScaleBy* action = CCScaleBy::create(2, 0.5f);
     map->runAction(action);
 }
 
@@ -1286,25 +1286,25 @@ std::string TMXOrthoFromXMLTest::title()
 //------------------------------------------------------------------
 TMXBug987::TMXBug987()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/orthogonal-test6.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/orthogonal-test6.tmx");
     addChild(map, 0, kTagTileMap);
 
-    Size CC_UNUSED s1 = map->getContentSize();
+    CCSize CC_UNUSED s1 = map->getContentSize();
     CCLOG("ContentSize: %f, %f", s1.width,s1.height);
 
-    Array* childs = map->getChildren();
-    TMXLayer* node;
-    Object* pObject = NULL;
+    CCArray* childs = map->getChildren();
+    CCTMXLayer* pNode;
+    CCObject* pObject = NULL;
     CCARRAY_FOREACH(childs, pObject)
     {
-        node = static_cast<TMXLayer*>(pObject);
-        CC_BREAK_IF(!node);
-        node->getTexture()->setAntiAliasTexParameters();
+        pNode = (CCTMXLayer*) pObject;
+        CC_BREAK_IF(!pNode);
+        pNode->getTexture()->setAntiAliasTexParameters();
     }
 
-    map->setAnchorPoint(Point(0, 0));
-    TMXLayer *layer = map->getLayer("Tile Layer 1");
-    layer->setTileGID(3, Point(2,2));
+    map->setAnchorPoint(ccp(0, 0));
+    CCTMXLayer *layer = map->layerNamed("Tile Layer 1");
+    layer->setTileGID(3, ccp(2,2));
 }
 
 std::string TMXBug987::title()
@@ -1324,7 +1324,7 @@ std::string TMXBug987::subtitle()
 //------------------------------------------------------------------
 TMXBug787::TMXBug787()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/iso-test-bug787.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/iso-test-bug787.tmx");
     addChild(map, 0, kTagTileMap);
 
     map->setScale(0.25f);
@@ -1357,7 +1357,7 @@ static int sceneIdx = -1;
 
 #define MAX_LAYER    28
 
-Layer* createTileMalayer(int nIndex)
+CCLayer* createTileMapLayer(int nIndex)
 {
     switch(nIndex)
     {
@@ -1394,47 +1394,79 @@ Layer* createTileMalayer(int nIndex)
     return NULL;
 }
 
-Layer* nextTileMapAction()
+CCLayer* nextTileMapAction()
 {
     sceneIdx++;
     sceneIdx = sceneIdx % MAX_LAYER;
 
-    Layer* layer = createTileMalayer(sceneIdx);
-    layer->autorelease();
+    CCLayer* pLayer = createTileMapLayer(sceneIdx);
+    pLayer->autorelease();
 
-    return layer;
+    return pLayer;
 }
 
-Layer* backTileMapAction()
+CCLayer* backTileMapAction()
 {
     sceneIdx--;
     int total = MAX_LAYER;
     if( sceneIdx < 0 )
         sceneIdx += total;    
     
-    Layer* layer = createTileMalayer(sceneIdx);
-    layer->autorelease();
+    CCLayer* pLayer = createTileMapLayer(sceneIdx);
+    pLayer->autorelease();
 
-    return layer;
+    return pLayer;
 }
 
-Layer* restartTileMapAction()
+CCLayer* restartTileMapAction()
 {
-    Layer* layer = createTileMalayer(sceneIdx);
-    layer->autorelease();
+    CCLayer* pLayer = createTileMapLayer(sceneIdx);
+    pLayer->autorelease();
 
-    return layer;
+    return pLayer;
 } 
 
 
 TileDemo::TileDemo(void)
-: BaseTest()
 {
     setTouchEnabled( true );
+
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+
+    m_label = CCLabelTTF::create("", "Arial", 28);
+    addChild(m_label, 1);
+    m_label->setPosition( ccp(s.width/2, s.height-50) );
+    m_label->retain();
+
+    std::string strSubtitle = subtitle();
+    if( ! strSubtitle.empty() ) 
+    {
+        CCLabelTTF* l = CCLabelTTF::create(strSubtitle.c_str(), "Thonburi", 16);
+        addChild(l, 1);
+        l->setPosition( ccp(s.width/2, s.height-80) );
+
+        m_subtitle = l;
+        m_subtitle->retain();
+    }    
+
+    CCMenuItemImage *item1 = CCMenuItemImage::create(s_pPathB1, s_pPathB2, this, menu_selector(TileDemo::backCallback) );
+    CCMenuItemImage *item2 = CCMenuItemImage::create(s_pPathR1, s_pPathR2, this, menu_selector(TileDemo::restartCallback) );
+    CCMenuItemImage *item3 = CCMenuItemImage::create(s_pPathF1, s_pPathF2, this, menu_selector(TileDemo::nextCallback) );
+
+    CCMenu *menu = CCMenu::create(item1, item2, item3, NULL);
+
+    menu->setPosition( CCPointZero );
+    item1->setPosition(ccp(VisibleRect::center().x - item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item2->setPosition(ccp(VisibleRect::center().x, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item3->setPosition(ccp(VisibleRect::center().x + item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    
+    addChild(menu, 1);    
 }
 
 TileDemo::~TileDemo(void)
 {
+    m_label->release();
+    m_subtitle->release();
 }
 
 std::string TileDemo::title()
@@ -1449,63 +1481,66 @@ std::string TileDemo::subtitle()
 
 void TileDemo::onEnter()
 {
-    BaseTest::onEnter();
+    CCLayer::onEnter();
+
+    m_label->setString(title().c_str());
+    m_subtitle->setString(subtitle().c_str());
 }
 
-void TileDemo::restartCallback(Object* sender)
+void TileDemo::restartCallback(CCObject* pSender)
 {
-    Scene* s = new TileMapTestScene();
+    CCScene* s = new TileMapTestScene();
     s->addChild(restartTileMapAction()); 
 
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void TileDemo::nextCallback(Object* sender)
+void TileDemo::nextCallback(CCObject* pSender)
 {
-    Scene* s = new TileMapTestScene();
+    CCScene* s = new TileMapTestScene();
     s->addChild( nextTileMapAction() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void TileDemo::backCallback(Object* sender)
+void TileDemo::backCallback(CCObject* pSender)
 {
-    Scene* s = new TileMapTestScene();
+    CCScene* s = new TileMapTestScene();
     s->addChild( backTileMapAction() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 } 
 
-void TileDemo::ccTouchesMoved(Set  *touches, Event  *event)
+void TileDemo::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
 {
-    Touch *touch = static_cast<Touch*>(touches->anyObject());
+    CCTouch *touch = (CCTouch*)pTouches->anyObject();
     
-    Point diff = touch->getDelta();
-    Node *node = getChildByTag(kTagTileMap);
-    Point currentPos = node->getPosition();
-    node->setPosition(currentPos + diff);
+    CCPoint diff = touch->getDelta();
+    CCNode *node = getChildByTag(kTagTileMap);
+    CCPoint currentPos = node->getPosition();
+    node->setPosition( ccpAdd(currentPos, diff) );
 }
 
 void TileMapTestScene::runThisTest()
 {
-    Layer* layer = nextTileMapAction();
-    addChild(layer);
+    CCLayer* pLayer = nextTileMapAction();
+    addChild(pLayer);
 
     // fix bug #486, #419. 
-    // "test" is the default value in Director::setGLDefaultValues()
+    // "test" is the default value in CCDirector::setGLDefaultValues()
     // but TransitionTest may setDepthTest(false), we should revert it here
-    Director::getInstance()->setDepthTest(true);
+    CCDirector::sharedDirector()->setDepthTest(true);
     
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }
 
 TMXGIDObjectsTest::TMXGIDObjectsTest()
 {
-    TMXTiledMap *map = TMXTiledMap::create("TileMaps/test-object-layer.tmx");
+    CCTMXTiledMap *map = CCTMXTiledMap::create("TileMaps/test-object-layer.tmx");
     addChild(map, -1, kTagTileMap);
 
-    Size CC_UNUSED s = map->getContentSize();
+    CCSize CC_UNUSED s = map->getContentSize();
     CCLOG("Contentsize: %f, %f", s.width, s.height);
 
     CCLOG("----> Iterating over all the group objets");
@@ -1515,35 +1550,35 @@ TMXGIDObjectsTest::TMXGIDObjectsTest()
 
 void TMXGIDObjectsTest::draw()
 {
-    TMXTiledMap *map = (TMXTiledMap*)getChildByTag(kTagTileMap);
-    TMXObjectGroup *group = map->getObjectGroup("Object Layer 1");
+    CCTMXTiledMap *map = (CCTMXTiledMap*)getChildByTag(kTagTileMap);
+    CCTMXObjectGroup *group = map->objectGroupNamed("Object Layer 1");
 
-    Array *array = group->getObjects();
-    Dictionary* dict;
-    Object* pObj = NULL;
+    CCArray *array = group->getObjects();
+    CCDictionary* dict;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(array, pObj)
     {
-        dict = static_cast<Dictionary*>(pObj);
+        dict = (CCDictionary*)pObj;
         if(!dict)
         {
             break;
         }
 
         const char* key = "x";
-        int x = ((String*)dict->objectForKey(key))->intValue();
+        int x = ((CCString*)dict->objectForKey(key))->intValue();
         key = "y";
-        int y = ((String*)dict->objectForKey(key))->intValue();
+        int y = ((CCString*)dict->objectForKey(key))->intValue();
         key = "width";
-        int width = ((String*)dict->objectForKey(key))->intValue();
+        int width = ((CCString*)dict->objectForKey(key))->intValue();
         key = "height";
-        int height = ((String*)dict->objectForKey(key))->intValue();
+        int height = ((CCString*)dict->objectForKey(key))->intValue();
 
         glLineWidth(3);
 
-        DrawPrimitives::drawLine(Point(x, y), Point(x + width, y));
-        DrawPrimitives::drawLine(Point(x + width, y), Point(x + width, y + height));
-        DrawPrimitives::drawLine(Point(x + width,y + height), Point(x,y + height));
-        DrawPrimitives::drawLine(Point(x,y + height), Point(x,y));
+        ccDrawLine(ccp(x, y), ccp(x + width, y));
+        ccDrawLine(ccp(x + width, y), ccp(x + width, y + height));
+        ccDrawLine(ccp(x + width,y + height), ccp(x,y + height));
+        ccDrawLine(ccp(x,y + height), ccp(x,y));
 
         glLineWidth(1);
     }

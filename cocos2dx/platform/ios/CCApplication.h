@@ -30,13 +30,13 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Rect;
+class CCRect;
 
-class CC_DLL Application : public ApplicationProtocol
+class CC_DLL CCApplication : public CCApplicationProtocol
 {
 public:
-    Application();
-    virtual ~Application();
+    CCApplication();
+    virtual ~CCApplication();
         
     /**
     @brief    Run the message loop.
@@ -47,14 +47,11 @@ public:
     @brief    Get the current application instance.
     @return Current application instance pointer.
     */
-    static Application* getInstance();
-    
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
+    static CCApplication* sharedApplication();
     
     /**
-     @brief    Callback by Director for limit FPS.
-     @param interval    The time, expressed in seconds, between current frame and next.
+     @brief    Callback by CCDirector for limit FPS.
+     @interval       The time, expressed in seconds, between current frame and next. 
      */
     virtual void setAnimationInterval(double interval);
 
@@ -62,15 +59,15 @@ public:
     @brief Get current language config
     @return Current language config
     */
-    virtual LanguageType getCurrentLanguage();
+    virtual ccLanguageType getCurrentLanguage();
     
     /**
      @brief Get target platform
      */
-    virtual Platform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform();
 
 protected:
-    static Application * sm_pSharedApplication;
+    static CCApplication * sm_pSharedApplication;
 };
 
 NS_CC_END

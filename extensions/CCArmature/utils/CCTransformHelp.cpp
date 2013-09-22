@@ -25,43 +25,43 @@ THE SOFTWARE.
 #include "CCTransformHelp.h"
 #include "CCUtilMath.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-AffineTransform TransformHelp::helpMatrix1;
-AffineTransform TransformHelp::helpMatrix2;
+CCAffineTransform CCTransformHelp::helpMatrix1;
+CCAffineTransform CCTransformHelp::helpMatrix2;
 
-Point TransformHelp::helpPoint1;
-Point TransformHelp::helpPoint2;
+CCPoint CCTransformHelp::helpPoint1;
+CCPoint CCTransformHelp::helpPoint2;
 
-BaseData helpParentNode;
+CCBaseData helpParentNode;
 
-TransformHelp::TransformHelp()
+CCTransformHelp::CCTransformHelp()
 {
 }
 
-void TransformHelp::transformFromParent(BaseData &node, const BaseData &parentNode)
+void CCTransformHelp::transformFromParent(CCBaseData &node, const CCBaseData &parentNode)
 {
     nodeToMatrix(node, helpMatrix1);
     nodeToMatrix(parentNode, helpMatrix2);
 
-    helpMatrix2 = AffineTransformInvert(helpMatrix2);
-    helpMatrix1 = AffineTransformConcat(helpMatrix1, helpMatrix2);
+    helpMatrix2 = CCAffineTransformInvert(helpMatrix2);
+    helpMatrix1 = CCAffineTransformConcat(helpMatrix1, helpMatrix2);
 
     matrixToNode(helpMatrix1, node);
 }
 
-void TransformHelp::transformToParent(BaseData &node, const BaseData &parentNode)
+void CCTransformHelp::transformToParent(CCBaseData &node, const CCBaseData &parentNode)
 {
 
     nodeToMatrix(node, helpMatrix1);
     nodeToMatrix(parentNode, helpMatrix2);
 
-    helpMatrix1 = AffineTransformConcat(helpMatrix1, helpMatrix2);
+    helpMatrix1 = CCAffineTransformConcat(helpMatrix1, helpMatrix2);
 
     matrixToNode(helpMatrix1, node);
 }
 
-void TransformHelp::transformFromParentWithoutScale(BaseData &node, const BaseData &parentNode)
+void CCTransformHelp::transformFromParentWithoutScale(CCBaseData &node, const CCBaseData &parentNode)
 {
 
     helpParentNode.copy(&parentNode);
@@ -71,13 +71,13 @@ void TransformHelp::transformFromParentWithoutScale(BaseData &node, const BaseDa
     nodeToMatrix(node, helpMatrix1);
     nodeToMatrix(helpParentNode, helpMatrix2);
 
-    helpMatrix2 = AffineTransformInvert(helpMatrix2);
-    helpMatrix1 = AffineTransformConcat(helpMatrix1, helpMatrix2);
+    helpMatrix2 = CCAffineTransformInvert(helpMatrix2);
+    helpMatrix1 = CCAffineTransformConcat(helpMatrix1, helpMatrix2);
 
     matrixToNode(helpMatrix1, node);
 }
 
-void TransformHelp::transformToParentWithoutScale(BaseData &node, const BaseData &parentNode)
+void CCTransformHelp::transformToParentWithoutScale(CCBaseData &node, const CCBaseData &parentNode)
 {
 
     helpParentNode.copy(&parentNode);
@@ -87,12 +87,12 @@ void TransformHelp::transformToParentWithoutScale(BaseData &node, const BaseData
     nodeToMatrix(node, helpMatrix1);
     nodeToMatrix(helpParentNode, helpMatrix2);
 
-    helpMatrix1 = AffineTransformConcat(helpMatrix1, helpMatrix2);
+    helpMatrix1 = CCAffineTransformConcat(helpMatrix1, helpMatrix2);
 
     matrixToNode(helpMatrix1, node);
 }
 
-void TransformHelp::nodeToMatrix(const BaseData &node, AffineTransform &matrix)
+void CCTransformHelp::nodeToMatrix(const CCBaseData &node, CCAffineTransform &matrix)
 {
     matrix.a = node.scaleX * cos(node.skewY);
     matrix.b = node.scaleX * sin(node.skewY);
@@ -103,7 +103,7 @@ void TransformHelp::nodeToMatrix(const BaseData &node, AffineTransform &matrix)
     matrix.ty = node.y;
 }
 
-void TransformHelp::matrixToNode(const AffineTransform &matrix, BaseData &node)
+void CCTransformHelp::matrixToNode(const CCAffineTransform &matrix, CCBaseData &node)
 {
     /*
      *  In as3 language, there is a function called "deltaTransformPoint", it calculate a point used give Transform
@@ -111,13 +111,13 @@ void TransformHelp::matrixToNode(const AffineTransform &matrix, BaseData &node)
      */
     helpPoint1.x = 0;
     helpPoint1.y = 1;
-    helpPoint1 = PointApplyAffineTransform(helpPoint1, matrix);
+    helpPoint1 = CCPointApplyAffineTransform(helpPoint1, matrix);
     helpPoint1.x -= matrix.tx;
     helpPoint1.y -= matrix.ty;
 
     helpPoint2.x = 1;
     helpPoint2.y = 0;
-    helpPoint2 = PointApplyAffineTransform(helpPoint2, matrix);
+    helpPoint2 = CCPointApplyAffineTransform(helpPoint2, matrix);
     helpPoint2.x -= matrix.tx;
     helpPoint2.y -= matrix.ty;
 
@@ -129,7 +129,7 @@ void TransformHelp::matrixToNode(const AffineTransform &matrix, BaseData &node)
     node.y = matrix.ty;
 }
 
-void TransformHelp::nodeConcat(BaseData &target, BaseData &source)
+void CCTransformHelp::nodeConcat(CCBaseData &target, CCBaseData &source)
 {
     target.x += source.x;
     target.y += source.y;
@@ -139,4 +139,4 @@ void TransformHelp::nodeConcat(BaseData &target, BaseData &source)
     target.scaleY += source.scaleY;
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

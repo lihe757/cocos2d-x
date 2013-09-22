@@ -1,5 +1,5 @@
 /*
- * Aplication_linux.cpp
+ * CCAplication_linux.cpp
  *
  *  Created on: Aug 8, 2011
  *      Author: laschweinski
@@ -15,7 +15,7 @@ NS_CC_BEGIN
 
 
 // sharedApplication pointer
-Application * Application::sm_pSharedApplication = 0;
+CCApplication * CCApplication::sm_pSharedApplication = 0;
 
 static long getCurrentMillSecond() {
 	long lLastTime;
@@ -26,20 +26,20 @@ static long getCurrentMillSecond() {
 	return lLastTime;
 }
 
-Application::Application()
+CCApplication::CCApplication()
 {
 	CC_ASSERT(! sm_pSharedApplication);
 	sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
 	CC_ASSERT(this == sm_pSharedApplication);
 	sm_pSharedApplication = NULL;
-	_animationInterval = 1.0f/60.0f*1000.0f;
+	m_nAnimationInterval = 1.0f/60.0f*1000.0f;
 }
 
-int Application::run()
+int CCApplication::run()
 {
 	// Initialize instance and cocos2d.
 	if (! applicationDidFinishLaunching())
@@ -50,129 +50,115 @@ int Application::run()
 
 	for (;;) {
 		long iLastTime = getCurrentMillSecond();
-		Director::getInstance()->mainLoop();
+		CCDirector::sharedDirector()->mainLoop();
 		long iCurTime = getCurrentMillSecond();
-		if (iCurTime-iLastTime<_animationInterval){
-			usleep((_animationInterval - iCurTime+iLastTime)*1000);
+		if (iCurTime-iLastTime<m_nAnimationInterval){
+			usleep((m_nAnimationInterval - iCurTime+iLastTime)*1000);
 		}
 
 	}
 	return -1;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
 	//TODO do something else
-	_animationInterval = interval*1000.0f;
+	m_nAnimationInterval = interval*1000.0f;
 }
 
-void Application::setResourceRootPath(const std::string& rootResDir)
+void CCApplication::setResourceRootPath(const std::string& rootResDir)
 {
-    _resourceRootPath = rootResDir;
-    if (_resourceRootPath[_resourceRootPath.length() - 1] != '/')
+    m_resourceRootPath = rootResDir;
+    if (m_resourceRootPath[m_resourceRootPath.length() - 1] != '/')
     {
-        _resourceRootPath += '/';
+        m_resourceRootPath += '/';
     }
-    FileUtils* pFileUtils = FileUtils::getInstance();
+    CCFileUtils* pFileUtils = CCFileUtils::sharedFileUtils();
     std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
-    searchPaths.insert(searchPaths.begin(), _resourceRootPath);
+    searchPaths.insert(searchPaths.begin(), m_resourceRootPath);
     pFileUtils->setSearchPaths(searchPaths);
 }
 
-const std::string& Application::getResourceRootPath(void)
+const std::string& CCApplication::getResourceRootPath(void)
 {
-    return _resourceRootPath;
+    return m_resourceRootPath;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_LINUX;
+    return kTargetLinux;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
 	CC_ASSERT(sm_pSharedApplication);
 	return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
-{
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
 	char *pLanguageName = getenv("LANG");
-	LanguageType ret = LanguageType::ENGLISH;
+	ccLanguageType ret = kLanguageEnglish;
 	if (!pLanguageName)
 	{
-		return LanguageType::ENGLISH;
+		return kLanguageEnglish;
 	}
 	strtok(pLanguageName, "_");
 	if (!pLanguageName)
 	{
-		return LanguageType::ENGLISH;
+		return kLanguageEnglish;
 	}
 	
 	if (0 == strcmp("zh", pLanguageName))
 	{
-		ret = LanguageType::CHINESE;
+		ret = kLanguageChinese;
 	}
 	else if (0 == strcmp("en", pLanguageName))
 	{
-		ret = LanguageType::ENGLISH;
+		ret = kLanguageEnglish;
 	}
 	else if (0 == strcmp("fr", pLanguageName))
 	{
-		ret = LanguageType::FRENCH;
+		ret = kLanguageFrench;
 	}
 	else if (0 == strcmp("it", pLanguageName))
 	{
-		ret = LanguageType::ITALIAN;
+		ret = kLanguageItalian;
 	}
 	else if (0 == strcmp("de", pLanguageName))
 	{
-		ret = LanguageType::GERMAN;
+		ret = kLanguageGerman;
 	}
 	else if (0 == strcmp("es", pLanguageName))
 	{
-		ret = LanguageType::SPANISH;
+		ret = kLanguageSpanish;
 	}
 	else if (0 == strcmp("ru", pLanguageName))
 	{
-		ret = LanguageType::RUSSIAN;
+		ret = kLanguageRussian;
 	}
 	else if (0 == strcmp("ko", pLanguageName))
 	{
-		ret = LanguageType::KOREAN;
+		ret = kLanguageKorean;
 	}
 	else if (0 == strcmp("ja", pLanguageName))
 	{
-		ret = LanguageType::JAPANESE;
+		ret = kLanguageJapanese;
 	}
 	else if (0 == strcmp("hu", pLanguageName))
 	{
-		ret = LanguageType::HUNGARIAN;
+		ret = kLanguageHungarian;
 	}
     else if (0 == strcmp("pt", pLanguageName))
 	{
-		ret = LanguageType::PORTUGUESE;
+		ret = kLanguagePortuguese;
 	}
     else if (0 == strcmp("ar", pLanguageName))
 	{
-		ret = LanguageType::ARABIC;
-	}
-	else if (0 == strcmp("nb", pLanguageName))
-	{
-		ret = LanguageType::NORWEGIAN;
-	}
-	else if (0 == strcmp("pl", pLanguageName))
-	{
-		ret = LanguageType::POLISH;
+		ret = kLanguageArabic;
 	}
 	
 	return ret;

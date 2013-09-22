@@ -74,11 +74,7 @@ THE SOFTWARE.
 - (void) logEvent: (NSString*) eventId withParam:(NSMutableDictionary*) paramMap
 {
     OUTPUT_LOG(@"Umeng logEventWithParam invoked");
-    if (paramMap != nil) {
-        [MobClick event:eventId attributes:paramMap];
-    } else {
-        [MobClick event:eventId];
-    }
+    [MobClick event:eventId attributes:paramMap];
 }
 
 - (void) logTimedEventBegin: (NSString*) eventId

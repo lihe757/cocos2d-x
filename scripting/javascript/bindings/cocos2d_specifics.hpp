@@ -6,25 +6,25 @@
 
 class JSScheduleWrapper;
 
-// JSScheduleWrapper* --> Array* since one js function may correspond to many targets.
+// JSScheduleWrapper* --> CCArray* since one js function may correspond to many targets.
 // To debug this, you could refer to JSScheduleWrapper::dump function.
 // It will prove that i'm right. :)
 typedef struct jsScheduleFunc_proxy {
     JSObject* jsfuncObj;
-    Array*  targets; 
+    CCArray*  targets; 
     UT_hash_handle hh;
 } schedFunc_proxy_t;
 
 typedef struct jsScheduleTarget_proxy {
     JSObject* jsTargetObj;
-    Array*  targets;
+    CCArray*  targets;
     UT_hash_handle hh;
 } schedTarget_proxy_t;
 
 
 typedef struct jsCallFuncTarget_proxy {
     void * ptr;
-    Array *obj;
+    CCArray *obj;
     UT_hash_handle hh;
 } callfuncTarget_proxy_t;
 
@@ -89,7 +89,7 @@ jsval anonEvaluate(JSContext *cx, JSObject *thisObj, const char* string);
 void register_cocos2dx_js_extensions(JSContext* cx, JSObject* obj);
 
 
-class JSCallbackWrapper: public Object {
+class JSCallbackWrapper: public CCObject {
 public:
     JSCallbackWrapper();
     virtual ~JSCallbackWrapper();
@@ -101,9 +101,9 @@ public:
     const jsval& getJSCallbackThis() const;
     const jsval& getJSExtraData() const;
 protected:
-    jsval _jsCallback;
-    jsval _jsThisObj;
-    jsval _extraData;
+    jsval jsCallback;
+    jsval jsThisObj;
+    jsval extraData;
 };
 
 
@@ -112,13 +112,13 @@ public:
     JSCCBAnimationWrapper() {}
     virtual ~JSCCBAnimationWrapper() {}
     
-    void animationCompleteCallback() {
+    void animationCompleteCallback() const {
         
         JSContext *cx = ScriptingCore::getInstance()->getGlobalContext();
         jsval retval = JSVAL_NULL;
         
-        if(!JSVAL_IS_VOID(_jsCallback)  && !JSVAL_IS_VOID(_jsThisObj)) {
-            JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(_jsThisObj), _jsCallback, 0, NULL, &retval);
+        if(!JSVAL_IS_VOID(jsCallback)  && !JSVAL_IS_VOID(jsThisObj)) {
+            JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(jsThisObj), jsCallback, 0, NULL, &retval);
         }
     }
     
@@ -132,10 +132,10 @@ public:
         return;
     }
 
-    static void setTargetForNativeNode(Node *pNode, JSCallFuncWrapper *target);
-    static Array * getTargetForNativeNode(Node *pNode);
+    static void setTargetForNativeNode(CCNode *pNode, JSCallFuncWrapper *target);
+    static CCArray * getTargetForNativeNode(CCNode *pNode);
 
-    void callbackFunc(Node *node);
+    void callbackFunc(CCNode *node) const;
 };
 
 
@@ -146,9 +146,9 @@ public:
     virtual ~JSScheduleWrapper();
 
     static void setTargetForSchedule(jsval sched, JSScheduleWrapper *target);
-    static Array * getTargetForSchedule(jsval sched);
+    static CCArray * getTargetForSchedule(jsval sched);
     static void setTargetForJSObject(JSObject* jsTargetObj, JSScheduleWrapper *target);
-    static Array * getTargetForJSObject(JSObject* jsTargetObj);
+    static CCArray * getTargetForJSObject(JSObject* jsTargetObj);
     
     // Remove all targets.
     static void removeAllTargets();
@@ -162,11 +162,11 @@ public:
 
     void pause();
     
-    void scheduleFunc(float dt);
+    void scheduleFunc(float dt) const;
     virtual void update(float dt);
     
-    Object* getTarget();
-    void setTarget(Object* pTarget);
+    CCObject* getTarget();
+    void setTarget(CCObject* pTarget);
     
     void setPureJSTarget(JSObject* jstarget);
     JSObject* getPureJSTarget();
@@ -178,14 +178,14 @@ public:
     bool isUpdateSchedule();
     
 protected:
-    Object* _pTarget;
+    CCObject* _pTarget;
     JSObject* _pPureJSTarget;
     int _priority;
     bool _isUpdateSchedule;
 };
 
 
-class JSTouchDelegate: public Object, public TouchDelegate
+class JSTouchDelegate: public CCObject, public CCTouchDelegate
 {
 public:
 	// Set the touch delegate to map by using the key (pJSObj).
@@ -203,16 +203,16 @@ public:
 	// So this function need to be binded.
     void unregisterTouchDelegate();
 
-    bool ccTouchBegan(Touch *pTouch, Event *pEvent);
-    void ccTouchMoved(Touch *pTouch, Event *pEvent);
-    void ccTouchEnded(Touch *pTouch, Event *pEvent);
-    void ccTouchCancelled(Touch *pTouch, Event *pEvent);
+    bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+    void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
+    void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
+    void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
     
     // optional
-    void ccTouchesBegan(Set *pTouches, Event *pEvent);
-    void ccTouchesMoved(Set *pTouches, Event *pEvent);
-    void ccTouchesEnded(Set *pTouches, Event *pEvent);
-    void ccTouchesCancelled(Set *pTouches, Event *pEvent);
+    void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+    void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
+    void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
+    void ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent);
 
 private:
     JSObject *_mObj;

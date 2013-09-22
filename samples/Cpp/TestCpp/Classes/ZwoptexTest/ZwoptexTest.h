@@ -2,16 +2,15 @@
 #define __ZWOPTEX_TEST_H__
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class ZwoptexTest : public BaseTest
+class ZwoptexTest : public CCLayer
 {
 public:
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
     virtual std::string title();
     virtual std::string subtitle();
@@ -29,8 +28,8 @@ public:
     virtual std::string subtitle();
 
 protected:
-    Sprite * sprite1;
-    Sprite * sprite2;
+    CCSprite * sprite1;
+    CCSprite * sprite2;
     int counter;
 };
 

@@ -37,6 +37,15 @@ NS_CC_BEGIN
  * @{
  */
 
+typedef enum
+{
+    ccTouchSelectorBeganBit = 1 << 0,
+    ccTouchSelectorMovedBit = 1 << 1,
+    ccTouchSelectorEndedBit = 1 << 2,
+    ccTouchSelectorCancelledBit = 1 << 3,
+    ccTouchSelectorAllBits = ( ccTouchSelectorBeganBit | ccTouchSelectorMovedBit | ccTouchSelectorEndedBit | ccTouchSelectorCancelledBit),
+} ccTouchSelectorFlag;
+
 
 enum {
     CCTOUCHBEGAN,
@@ -47,31 +56,31 @@ enum {
     ccTouchMax,
 };
 
-class Set;
-class Event;
+class CCSet;
+class CCEvent;
 
 struct ccTouchHandlerHelperData {
     // we only use the type
-//    void (StandardTouchDelegate::*touchesSel)(Set*, Event*);
-//    void (TargetedTouchDelegate::*touchSel)(NSTouch*, Event*);
-    int  _type;
+//    void (StandardTouchDelegate::*touchesSel)(CCSet*, CCEvent*);
+//    void (TargetedTouchDelegate::*touchSel)(NSTouch*, CCEvent*);
+    int  m_type;
 };
 
 
 class CC_DLL EGLTouchDelegate
 {
 public:
-    virtual void touchesBegan(Set* touches, Event* pEvent) = 0;
-    virtual void touchesMoved(Set* touches, Event* pEvent) = 0;
-    virtual void touchesEnded(Set* touches, Event* pEvent) = 0;
-    virtual void touchesCancelled(Set* touches, Event* pEvent) = 0;
+    virtual void touchesBegan(CCSet* touches, CCEvent* pEvent) = 0;
+    virtual void touchesMoved(CCSet* touches, CCEvent* pEvent) = 0;
+    virtual void touchesEnded(CCSet* touches, CCEvent* pEvent) = 0;
+    virtual void touchesCancelled(CCSet* touches, CCEvent* pEvent) = 0;
 
     virtual ~EGLTouchDelegate() {}
 };
 
-class TouchHandler;
+class CCTouchHandler;
 struct _ccCArray;
-/** @brief TouchDispatcher.
+/** @brief CCTouchDispatcher.
  Singleton that handles all the touch events.
  The dispatcher dispatches events to the registered TouchHandlers.
  There are 2 different type of touch handlers:
@@ -87,16 +96,16 @@ struct _ccCArray;
 
  @since v0.8.0
  */
-class CC_DLL TouchDispatcher : public Object, public EGLTouchDelegate
+class CC_DLL CCTouchDispatcher : public CCObject, public EGLTouchDelegate
 {
 public:
-    ~TouchDispatcher();
+    ~CCTouchDispatcher();
     bool init(void);
-    TouchDispatcher() 
-        : _targetedHandlers(NULL)
-        , _standardHandlers(NULL)
-        , _handlersToAdd(NULL)
-        , _handlersToRemove(NULL)
+    CCTouchDispatcher() 
+        : m_pTargetedHandlers(NULL)
+        , m_pStandardHandlers(NULL)
+        , m_pHandlersToAdd(NULL)
+        , m_pHandlersToRemove(NULL)
         
     {}
 
@@ -109,56 +118,56 @@ public:
      See StandardTouchDelegate description.
      IMPORTANT: The delegate will be retained.
      */
-    void addStandardDelegate(TouchDelegate *pDelegate, int nPriority);
+    void addStandardDelegate(CCTouchDelegate *pDelegate, int nPriority);
 
     /** Adds a targeted touch delegate to the dispatcher's list.
      See TargetedTouchDelegate description.
      IMPORTANT: The delegate will be retained.
      */
-    void addTargetedDelegate(TouchDelegate *pDelegate, int nPriority, bool bSwallowsTouches);
+    void addTargetedDelegate(CCTouchDelegate *pDelegate, int nPriority, bool bSwallowsTouches);
 
     /** Removes a touch delegate.
      The delegate will be released
      */
-    void removeDelegate(TouchDelegate *pDelegate);
+    void removeDelegate(CCTouchDelegate *pDelegate);
 
     /** Removes all touch delegates, releasing all the delegates */
     void removeAllDelegates(void);
 
     /** Changes the priority of a previously added delegate. The lower the number,
     the higher the priority */
-    void setPriority(int nPriority, TouchDelegate *pDelegate);
+    void setPriority(int nPriority, CCTouchDelegate *pDelegate);
 
-    void touches(Set *pTouches, Event *pEvent, unsigned int uIndex);
+    void touches(CCSet *pTouches, CCEvent *pEvent, unsigned int uIndex);
 
-    virtual void touchesBegan(Set* touches, Event* pEvent);
-    virtual void touchesMoved(Set* touches, Event* pEvent);
-    virtual void touchesEnded(Set* touches, Event* pEvent);
-    virtual void touchesCancelled(Set* touches, Event* pEvent);
+    virtual void touchesBegan(CCSet* touches, CCEvent* pEvent);
+    virtual void touchesMoved(CCSet* touches, CCEvent* pEvent);
+    virtual void touchesEnded(CCSet* touches, CCEvent* pEvent);
+    virtual void touchesCancelled(CCSet* touches, CCEvent* pEvent);
 
 public:
-    TouchHandler* findHandler(TouchDelegate *pDelegate);
+    CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
 protected:
-    void forceRemoveDelegate(TouchDelegate *pDelegate);
-    void forceAddHandler(TouchHandler *pHandler, Array* pArray);
+    void forceRemoveDelegate(CCTouchDelegate *pDelegate);
+    void forceAddHandler(CCTouchHandler *pHandler, CCArray* pArray);
     void forceRemoveAllDelegates(void);
-    void rearrangeHandlers(Array* pArray);
-    TouchHandler* findHandler(Array* pArray, TouchDelegate *pDelegate);
+    void rearrangeHandlers(CCArray* pArray);
+    CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
 
 protected:
-     Array* _targetedHandlers;
-     Array* _standardHandlers;
+     CCArray* m_pTargetedHandlers;
+     CCArray* m_pStandardHandlers;
 
-    bool _locked;
-    bool _toAdd;
-    bool _toRemove;
-     Array* _handlersToAdd;
-    struct _ccCArray *_handlersToRemove;
-    bool _toQuit;
-    bool _dispatchEvents;
+    bool m_bLocked;
+    bool m_bToAdd;
+    bool m_bToRemove;
+     CCArray* m_pHandlersToAdd;
+    struct _ccCArray *m_pHandlersToRemove;
+    bool m_bToQuit;
+    bool m_bDispatchEvents;
 
     // 4, 1 for each type of event
-    struct ccTouchHandlerHelperData _handlerHelperData[ccTouchMax];
+    struct ccTouchHandlerHelperData m_sHandlerHelperData[ccTouchMax];
 };
 
 // end of input group

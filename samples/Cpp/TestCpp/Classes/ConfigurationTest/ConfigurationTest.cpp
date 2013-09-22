@@ -20,39 +20,39 @@ static NEWTESTFUNC createFunctions[] = {
 static int sceneIdx=-1;
 #define MAX_LAYER (sizeof(createFunctions) / sizeof(createFunctions[0]))
 
-static Layer* nextAction()
+static CCLayer* nextAction()
 {
     sceneIdx++;
     sceneIdx = sceneIdx % MAX_LAYER;
     
-    Layer* layer = (createFunctions[sceneIdx])();
-    layer->init();
-    layer->autorelease();
+    CCLayer* pLayer = (createFunctions[sceneIdx])();
+    pLayer->init();
+    pLayer->autorelease();
     
-    return layer;
+    return pLayer;
 }
 
-static Layer* backAction()
+static CCLayer* backAction()
 {
     sceneIdx--;
     int total = MAX_LAYER;
     if( sceneIdx < 0 )
         sceneIdx += total;
     
-    Layer* layer = (createFunctions[sceneIdx])();
-    layer->init();
-    layer->autorelease();
+    CCLayer* pLayer = (createFunctions[sceneIdx])();
+    pLayer->init();
+    pLayer->autorelease();
     
-    return layer;
+    return pLayer;
 }
 
-static Layer* restartAction()
+static CCLayer* restartAction()
 {
-    Layer* layer = (createFunctions[sceneIdx])();
-    layer->init();
-    layer->autorelease();
+    CCLayer* pLayer = (createFunctions[sceneIdx])();
+    pLayer->init();
+    pLayer->autorelease();
     
-    return layer;
+    return pLayer;
 }
 
 void ConfigurationTestScene::runThisTest()
@@ -60,7 +60,7 @@ void ConfigurationTestScene::runThisTest()
     sceneIdx = -1;
     addChild(nextAction());
 
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }
 
 
@@ -76,35 +76,64 @@ std::string ConfigurationBase::subtitle()
 
 void ConfigurationBase::onEnter()
 {
-    BaseTest::onEnter();
+    CCLayer::onEnter();
+
+    // add title and subtitle
+    std::string str = title();
+    const char * pTitle = str.c_str();
+    CCLabelTTF* label = CCLabelTTF::create(pTitle, "Arial", 32);
+    addChild(label, 1);
+    label->setPosition( ccp(VisibleRect::center().x, VisibleRect::top().y - 30) );
+
+    std::string strSubtitle = subtitle();
+    if( ! strSubtitle.empty() ) 
+    {
+        CCLabelTTF* l = CCLabelTTF::create(strSubtitle.c_str(), "Thonburi", 16);
+        addChild(l, 1);
+        l->setPosition( ccp(VisibleRect::center().x, VisibleRect::top().y - 60) );
+    }    
+
+    // add menu
+    CCMenuItemImage *item1 = CCMenuItemImage::create(s_pPathB1, s_pPathB2, this, menu_selector(ConfigurationBase::backCallback) );
+    CCMenuItemImage *item2 = CCMenuItemImage::create(s_pPathR1, s_pPathR2, this, menu_selector(ConfigurationBase::restartCallback) );
+    CCMenuItemImage *item3 = CCMenuItemImage::create(s_pPathF1, s_pPathF2, this, menu_selector(ConfigurationBase::nextCallback) );
+
+    CCMenu *menu = CCMenu::create(item1, item2, item3, NULL);
+
+    menu->setPosition(CCPointZero);
+    item1->setPosition(ccp(VisibleRect::center().x - item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item2->setPosition(ccp(VisibleRect::center().x, VisibleRect::bottom().y+item2->getContentSize().height/2));
+    item3->setPosition(ccp(VisibleRect::center().x + item2->getContentSize().width*2, VisibleRect::bottom().y+item2->getContentSize().height/2));
+
+    addChild(menu, 1);
 }
 
 void ConfigurationBase::onExit()
 {
-    BaseTest::onExit();
+    CCLayer::onExit();
 }
 
-void ConfigurationBase::restartCallback(Object* sender)
+void ConfigurationBase::restartCallback(CCObject* pSender)
 {
-    Scene* s = new ConfigurationTestScene();
+    CCScene* s = new ConfigurationTestScene();
     s->addChild( restartAction() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void ConfigurationBase::nextCallback(Object* sender)
+void ConfigurationBase::nextCallback(CCObject* pSender)
 {
-    Scene* s = new ConfigurationTestScene();
+    CCScene* s = new ConfigurationTestScene();
     s->addChild( nextAction() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
-void ConfigurationBase::backCallback(Object* sender)
+void ConfigurationBase::backCallback(CCObject* pSender)
 {
-    Scene* s = new ConfigurationTestScene();
+    CCScene* s = new ConfigurationTestScene();
     s->addChild( backAction() );
-    Director::getInstance()->replaceScene(s);
+    CCDirector::sharedDirector()->replaceScene(s);
     s->release();
 }
 
@@ -117,8 +146,8 @@ void ConfigurationLoadConfig::onEnter()
 {
     ConfigurationBase::onEnter();
 
-	Configuration::getInstance()->loadConfigFile("configs/config-test-ok.plist");
-	Configuration::getInstance()->dumpInfo();
+	CCConfiguration::sharedConfiguration()->loadConfigFile("configs/config-test-ok.plist");
+	CCConfiguration::sharedConfiguration()->dumpInfo();
 
 }
 
@@ -136,8 +165,8 @@ void ConfigurationQuery::onEnter()
 {
     ConfigurationBase::onEnter();
 
-	CCLOG("cocos2d version: %s", Configuration::getInstance()->getCString("cocos2d.version") );
-	CCLOG("OpenGL version: %s", Configuration::getInstance()->getCString("gl.version") );
+	CCLOG("cocos2d version: %s", CCConfiguration::sharedConfiguration()->getCString("cocos2d.version") );
+	CCLOG("OpenGL version: %s", CCConfiguration::sharedConfiguration()->getCString("gl.version") );
 }
 
 std::string ConfigurationQuery::subtitle()
@@ -154,7 +183,7 @@ void ConfigurationInvalid::onEnter()
 {
     ConfigurationBase::onEnter();
 
-	Configuration::getInstance()->loadConfigFile("configs/config-test-invalid.plist");
+	CCConfiguration::sharedConfiguration()->loadConfigFile("configs/config-test-invalid.plist");
 }
 
 std::string ConfigurationInvalid::subtitle()
@@ -171,19 +200,19 @@ void ConfigurationDefault::onEnter()
 {
     ConfigurationBase::onEnter();
 
-	const char *c_value = Configuration::getInstance()->getCString("invalid.key", "no key");
+	const char *c_value = CCConfiguration::sharedConfiguration()->getCString("invalid.key", "no key");
 	if( strcmp(c_value, "no key") != 0 )
 		CCLOG("1. Test failed!");
 	else
 		CCLOG("1. Test OK!");
 
-	bool b_value = Configuration::getInstance()->getBool("invalid.key", true);
+	bool b_value = CCConfiguration::sharedConfiguration()->getBool("invalid.key", true);
 	if( ! b_value )
 		CCLOG("2. Test failed!");
 	else
 		CCLOG("2. Test OK!");
 
-	double d_value = Configuration::getInstance()->getNumber("invalid.key", 42.42);
+	double d_value = CCConfiguration::sharedConfiguration()->getNumber("invalid.key", 42.42);
 	if( d_value != 42.42 )
 		CCLOG("3. Test failed!");
 	else
@@ -205,11 +234,11 @@ void ConfigurationSet::onEnter()
 {
     ConfigurationBase::onEnter();
 
-	Configuration *conf = Configuration::getInstance();
+	CCConfiguration *conf = CCConfiguration::sharedConfiguration();
 
-	conf->setObject("this.is.an.int.value", Integer::create(10) );
-	conf->setObject("this.is.a.bool.value", Bool::create(true) );
-	conf->setObject("this.is.a.string.value", String::create("hello world") );
+	conf->setObject("this.is.an.int.value", CCInteger::create(10) );
+	conf->setObject("this.is.a.bool.value", CCBool::create(true) );
+	conf->setObject("this.is.a.string.value", CCString::create("hello world") );
 
 	conf->dumpInfo();
 }

@@ -25,11 +25,16 @@
 #include "cocos2d.h"
 #include "ExtensionMacros.h"
 
-struct cpBody;
+#if CC_ENABLE_CHIPMUNK_INTEGRATION
+#include "chipmunk.h"
+#elif CC_ENABLE_BOX2D_INTEGRATION
 class b2Body;
+#else // CC_ENABLE_BOX2D_INTEGRATION
+#error "You must define either CC_ENABLE_CHIPMUNK_INTEGRATION or CC_ENABLE_BOX2D_INTEGRATION to use CCPhysicsSprite.h"
+#endif
 
 NS_CC_EXT_BEGIN
-/** A Sprite subclass that is bound to a physics body.
+/** A CCSprite subclass that is bound to a physics body.
  It works with:
  - Chipmunk: Preprocessor macro CC_ENABLE_CHIPMUNK_INTEGRATION should be defined
  - Objective-Chipmunk: Preprocessor macro CC_ENABLE_CHIPMUNK_INTEGRATION should be defined
@@ -41,92 +46,85 @@ NS_CC_EXT_BEGIN
  - If you update the rotation or position manually, the physics body will be updated
  - You can't enble both Chipmunk support and Box2d support at the same time. Only one can be enabled at compile time
  */
-class PhysicsSprite : public Sprite
+class CCPhysicsSprite : public CCSprite
 {
-public:
+protected:
+    bool    m_bIgnoreBodyRotation;
+#if CC_ENABLE_CHIPMUNK_INTEGRATION
+    cpBody  *m_pCPBody;
 
-    static PhysicsSprite* create();
+#elif CC_ENABLE_BOX2D_INTEGRATION
+    b2Body  *m_pB2Body;
+
+    // Pixels to Meters ratio
+    float   m_fPTMRatio;
+#endif // CC_ENABLE_CHIPMUNK_INTEGRATION
+public:
+    CCPhysicsSprite();
+
+    static CCPhysicsSprite* create();
     /** Creates an sprite with a texture.
      The rect used will be the size of the texture.
      The offset will be (0,0).
      */
-    static PhysicsSprite* createWithTexture(Texture2D *pTexture);
+    static CCPhysicsSprite* createWithTexture(CCTexture2D *pTexture);
 
     /** Creates an sprite with a texture and a rect.
      The offset will be (0,0).
      */
-    static PhysicsSprite* createWithTexture(Texture2D *pTexture, const Rect& rect);
+    static CCPhysicsSprite* createWithTexture(CCTexture2D *pTexture, const CCRect& rect);
 
     /** Creates an sprite with an sprite frame. */
-    static PhysicsSprite* createWithSpriteFrame(SpriteFrame *pSpriteFrame);
+    static CCPhysicsSprite* createWithSpriteFrame(CCSpriteFrame *pSpriteFrame);
 
     /** Creates an sprite with an sprite frame name.
-     An SpriteFrame will be fetched from the SpriteFrameCache by name.
-     If the SpriteFrame doesn't exist it will raise an exception.
+     An CCSpriteFrame will be fetched from the CCSpriteFrameCache by name.
+     If the CCSpriteFrame doesn't exist it will raise an exception.
      @since v0.9
      */
-    static PhysicsSprite* createWithSpriteFrameName(const char *pszSpriteFrameName);
+    static CCPhysicsSprite* createWithSpriteFrameName(const char *pszSpriteFrameName);
 
     /** Creates an sprite with an image filename.
      The rect used will be the size of the image.
      The offset will be (0,0).
      */
-    static PhysicsSprite* create(const char *pszFileName);
+    static CCPhysicsSprite* create(const char *pszFileName);
 
     /** Creates an sprite with an image filename and a rect.
      The offset will be (0,0).
      */
-    static PhysicsSprite* create(const char *pszFileName, const Rect& rect);
+    static CCPhysicsSprite* create(const char *pszFileName, const CCRect& rect);
 
-    PhysicsSprite();
-
-    virtual bool isDirty() const;
+    virtual bool isDirty();
 
     /** Keep the sprite's rotation separate from the body. */
     bool isIgnoreBodyRotation() const;
     void setIgnoreBodyRotation(bool bIgnoreBodyRotation);
 
-    //
-    // Chipmunk specific
-    //
+    virtual const CCPoint& getPosition();
+    virtual void getPosition(float* x, float* y);
+    virtual float getPositionX();
+    virtual float getPositionY();
+    virtual void setPosition(const CCPoint &position);
+    virtual float getRotation();
+    virtual void setRotation(float fRotation);
+    virtual CCAffineTransform nodeToParentTransform();
+
+#if CC_ENABLE_CHIPMUNK_INTEGRATION
     /** Body accessor when using regular Chipmunk */
     cpBody* getCPBody() const;
     void setCPBody(cpBody *pBody);
-
-    //
-    // Box2d specific
-    //
+#elif CC_ENABLE_BOX2D_INTEGRATION
     /** Body accessor when using box2d */
     b2Body* getB2Body() const;
     void setB2Body(b2Body *pBody);
 
     float getPTMRatio() const;
     void setPTMRatio(float fPTMRatio);
-
-    // overrides
-    virtual const Point& getPosition() const override;
-    virtual void getPosition(float* x, float* y) const override;
-    virtual float getPositionX() const override;
-    virtual float getPositionY() const override;
-    virtual void setPosition(const Point &position) override;
-    virtual float getRotation() const override;
-    virtual void setRotation(float fRotation) override;
-    virtual AffineTransform getNodeToParentTransform() const override;
+#endif // CC_ENABLE_BOX2D_INTEGRATION
 
 protected:
-    const Point& getPosFromPhysics() const;
-
-protected:
-    bool    _ignoreBodyRotation;
-
-    // chipmunk specific
-    cpBody  *_CPBody;
-
-    // box2d specific
-    b2Body  *_pB2Body;
-    float   _PTMRatio;
-    
-
+    void updatePosFromPhysics();
 };
 
 NS_CC_EXT_END

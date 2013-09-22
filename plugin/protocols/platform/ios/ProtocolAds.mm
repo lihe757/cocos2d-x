@@ -29,7 +29,7 @@
 namespace cocos2d { namespace plugin {
 
 ProtocolAds::ProtocolAds()
-: _listener(NULL)
+: m_pListener(NULL)
 {
 }
 
@@ -52,13 +52,13 @@ void ProtocolAds::configDeveloperInfo(TAdsDeveloperInfo devInfo)
         id ocObj = pData->obj;
         if ([ocObj conformsToProtocol:@protocol(InterfaceAds)]) {
             NSObject<InterfaceAds>* curObj = ocObj;
-            NSMutableDictionary* dict = PluginUtilsIOS::createDictFromMap(&devInfo);
-            [curObj configDeveloperInfo:dict];
+            NSMutableDictionary* pDict = PluginUtilsIOS::createDictFromMap(&devInfo);
+            [curObj configDeveloperInfo:pDict];
         }
     }
 }
 
-void ProtocolAds::showAds(TAdsInfo info, AdsPos pos)
+void ProtocolAds::showAds(AdsType type, int sizeEnum, AdsPos pos)
 {
     PluginOCData* pData = PluginUtilsIOS::getPluginOCData(this);
     assert(pData != NULL);
@@ -66,12 +66,11 @@ void ProtocolAds::showAds(TAdsInfo info, AdsPos pos)
     id ocObj = pData->obj;
     if ([ocObj conformsToProtocol:@protocol(InterfaceAds)]) {
         NSObject<InterfaceAds>* curObj = ocObj;
-        NSMutableDictionary* dict = PluginUtilsIOS::createDictFromMap(&info);
-        [curObj showAds:dict position:pos];
+        [curObj showAds:type size:sizeEnum position:pos];
     }
 }
 
-void ProtocolAds::hideAds(TAdsInfo info)
+void ProtocolAds::hideAds(AdsType type)
 {
     PluginOCData* pData = PluginUtilsIOS::getPluginOCData(this);
     assert(pData != NULL);
@@ -79,14 +78,8 @@ void ProtocolAds::hideAds(TAdsInfo info)
     id ocObj = pData->obj;
     if ([ocObj conformsToProtocol:@protocol(InterfaceAds)]) {
         NSObject<InterfaceAds>* curObj = ocObj;
-        NSMutableDictionary* dict = PluginUtilsIOS::createDictFromMap(&info);
-        [curObj hideAds:dict];
+        [curObj hideAds:type];
     }
-}
-
-void ProtocolAds::queryPoints()
-{
-    PluginUtilsIOS::callOCFunctionWithName(this, "queryPoints");
 }
 
 void ProtocolAds::spendPoints(int points)
@@ -98,6 +91,28 @@ void ProtocolAds::spendPoints(int points)
     if ([ocObj conformsToProtocol:@protocol(InterfaceAds)]) {
         NSObject<InterfaceAds>* curObj = ocObj;
         [curObj spendPoints:points];
+    }
+}
+
+// For the callbak methods
+void ProtocolAds::setAdsListener(AdsListener* pListener)
+{
+    m_pListener = pListener;
+}
+
+void ProtocolAds::onAdsResult(AdsResultCode code, const char* msg)
+{
+    if (m_pListener != NULL)
+    {
+        m_pListener->onAdsResult(code, msg);
+    }
+}
+
+void ProtocolAds::onPlayerGetPoints(int points)
+{
+    if (m_pListener != NULL)
+    {
+        m_pListener->onPlayerGetPoints(this, points);
     }
 }
 

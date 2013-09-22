@@ -42,9 +42,9 @@ THE SOFTWARE.
 
 
 //USING_NS_CC;
-static CCEAGLView *view;
+static EAGLView *view;
 
-@implementation CCEAGLView
+@implementation EAGLView
 
 @synthesize eventDelegate = eventDelegate_, isFullScreen = isFullScreen_, frameZoomFactor=frameZoomFactor_;
 
@@ -85,7 +85,7 @@ static CCEAGLView *view;
 		eventDelegate_ = [CCEventDispatcher sharedDispatcher];
 	}
     
-    cocos2d::EGLView::getInstance()->setFrameSize(frameRect.size.width, frameRect.size.height);
+    cocos2d::CCEGLView::sharedOpenGLView()->setFrameSize(frameRect.size.width, frameRect.size.height);
     
     frameZoomFactor_ = 1.0f;
 	
@@ -97,7 +97,7 @@ static CCEAGLView *view;
     // event delegate
     eventDelegate_ = [CCEventDispatcher sharedDispatcher];
     
-    cocos2d::EGLView::getInstance()->setFrameSize(frameRect.size.width, frameRect.size.height);
+    cocos2d::CCEGLView::sharedOpenGLView()->setFrameSize(frameRect.size.width, frameRect.size.height);
     
     frameZoomFactor_ = 1.0f;
 	
@@ -170,9 +170,9 @@ static CCEAGLView *view;
 	
 //	NSRect rect = [self bounds];
 	
-	cocos2d::Director *director = cocos2d::Director::getInstance();
+	cocos2d::CCDirector *director = cocos2d::CCDirector::sharedDirector();
 //	CGSize size = NSSizeToCGSize(rect.size);
-//	cocos2d::Size ccsize = cocos2d::Size(size.width, size.height);
+//	cocos2d::CCSize ccsize = cocos2d::CCSizeMake(size.width, size.height);
 	//director->reshapeProjection(ccsize);
 	
 	// avoid flicker
@@ -201,7 +201,7 @@ static CCEAGLView *view;
 
 - (void) dealloc
 {
-	CCLOGINFO(@"cocos2d: deallocing CCEAGLView %@", self);
+	CCLOGINFO(@"cocos2d: deallocing EAGLView %@", self);
 	[super dealloc];
 }
 	
@@ -232,7 +232,7 @@ static CCEAGLView *view;
     if (isFullScreen_ == fullscreen)
 		return;
 
-	CCEAGLView *openGLview = [[self class] sharedEGLView];
+	EAGLView *openGLview = [[self class] sharedEGLView];
 
     if( fullscreen ) {
         originalWinRect_ = [openGLview frame];
@@ -294,7 +294,7 @@ static CCEAGLView *view;
 
 	// is this necessary?
     // re-configure glView
-	//cocos2d::Director *director = cocos2d::Director::getInstance();
+	//cocos2d::CCDirector *director = cocos2d::CCDirector::sharedDirector();
 	//director->setOpenGLView(openGLview); //[self setView:openGLview];
 
     //[openGLview release]; // Retain -1
@@ -312,12 +312,12 @@ static CCEAGLView *view;
 #define DISPATCH_EVENT(__event__, __selector__)												\
 	id obj = eventDelegate_;																\
 	[obj performSelector:__selector__														\
-			onThread:[(cocos2d::Director*)[Director sharedDirector] runningThread]			\
+			onThread:[(cocos2d::CCDirector*)[CCDirector sharedDirector] runningThread]			\
 		  withObject:__event__																\
 	   waitUntilDone:NO];
 #endif
 
-#pragma mark CCEAGLView - Mouse events
+#pragma mark EAGLView - Mouse events
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
@@ -335,7 +335,7 @@ static CCEAGLView *view;
 	xs[0] = x / frameZoomFactor_;
 	ys[0] = y / frameZoomFactor_;
 
-	cocos2d::Director::getInstance()->getOpenGLView()->handleTouchesBegin(1, ids, xs, ys);
+	cocos2d::CCDirector::sharedDirector()->getOpenGLView()->handleTouchesBegin(1, ids, xs, ys);
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
@@ -359,7 +359,7 @@ static CCEAGLView *view;
 	xs[0] = x / frameZoomFactor_;
 	ys[0] = y / frameZoomFactor_;
 
-	cocos2d::Director::getInstance()->getOpenGLView()->handleTouchesMove(1, ids, xs, ys);
+	cocos2d::CCDirector::sharedDirector()->getOpenGLView()->handleTouchesMove(1, ids, xs, ys);
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
@@ -378,7 +378,7 @@ static CCEAGLView *view;
 	xs[0] = x / frameZoomFactor_;
 	ys[0] = y / frameZoomFactor_;
 
-	cocos2d::Director::getInstance()->getOpenGLView()->handleTouchesEnd(1, ids, xs, ys);
+	cocos2d::CCDirector::sharedDirector()->getOpenGLView()->handleTouchesEnd(1, ids, xs, ys);
 }
 
 - (void)rightMouseDown:(NSEvent *)theEvent {
@@ -428,7 +428,7 @@ static CCEAGLView *view;
 	[super scrollWheel:theEvent];
 }
 
-#pragma mark CCEAGLView - Key events
+#pragma mark EAGLView - Key events
 
 -(BOOL) becomeFirstResponder
 {
@@ -466,7 +466,7 @@ static CCEAGLView *view;
 	DISPATCH_EVENT(theEvent, _cmd);
 }
 
-#pragma mark CCEAGLView - Touch events
+#pragma mark EAGLView - Touch events
 - (void)touchesBeganWithEvent:(NSEvent *)theEvent
 {
 	DISPATCH_EVENT(theEvent, _cmd);

@@ -40,18 +40,18 @@
 
 NS_CC_BEGIN
 
-class Camera;
-class GridBase;
-class Point;
-class Touch;
-class Action;
-class RGBAProtocol;
-class LabelProtocol;
-class Scheduler;
-class ActionManager;
-class Component;
-class Dictionary;
-class ComponentContainer;
+class CCCamera;
+class CCGridBase;
+class CCPoint;
+class CCTouch;
+class CCAction;
+class CCRGBAProtocol;
+class CCLabelProtocol;
+class CCScheduler;
+class CCActionManager;
+class CCComponent;
+class CCDictionary;
+class CCComponentContainer;
 
 /**
  * @addtogroup base_nodes
@@ -59,38 +59,38 @@ class ComponentContainer;
  */
 
 enum {
-    kNodeTagInvalid = -1,
+    kCCNodeTagInvalid = -1,
 };
 
 enum {
-    kNodeOnEnter,
-    kNodeOnExit,
-    kNodeOnEnterTransitionDidFinish,
-    kNodeOnExitTransitionDidStart,
-    kNodeOnCleanup
+    kCCNodeOnEnter,
+    kCCNodeOnExit,
+    kCCNodeOnEnterTransitionDidFinish,
+    kCCNodeOnExitTransitionDidStart,
+    kCCNodeOnCleanup
 };
 
-/** @brief Node is the main element. Anything that gets drawn or contains things that get drawn is a Node.
- The most popular Nodes are: Scene, Layer, Sprite, Menu.
+/** @brief CCNode is the main element. Anything that gets drawn or contains things that get drawn is a CCNode.
+ The most popular CCNodes are: CCScene, CCLayer, CCSprite, CCMenu.
 
- The main features of a Node are:
- - They can contain other Node nodes (addChild, getChildByTag, removeChild, etc)
+ The main features of a CCNode are:
+ - They can contain other CCNode nodes (addChild, getChildByTag, removeChild, etc)
  - They can schedule periodic callback (schedule, unschedule, etc)
  - They can execute actions (runAction, stopAction, etc)
 
- Some Node nodes provide extra functionality for them or their children.
+ Some CCNode nodes provide extra functionality for them or their children.
 
- Subclassing a Node usually means (one/all) of:
+ Subclassing a CCNode usually means (one/all) of:
  - overriding init to initialize resources and schedule callbacks
  - create callbacks to handle the advancement of time
  - overriding draw to render the node
 
- Features of Node:
+ Features of CCNode:
  - position
  - scale (x, y)
  - rotation (in degrees, clockwise)
- - Camera (an interface to gluLookAt )
- - GridBase (to do mesh transformations)
+ - CCCamera (an interface to gluLookAt )
+ - CCGridBase (to do mesh transformations)
  - anchor point
  - size
  - visible
@@ -105,7 +105,7 @@ enum {
  - anchorPoint: (x=0,y=0)
 
  Limitations:
- - A Node is a "void" object. It doesn't have a texture
+ - A CCNode is a "void" object. It doesn't have a texture
 
  Order in transformations with grid disabled
  -# The node will be translated (position)
@@ -122,42 +122,41 @@ enum {
  -# The grid will render the captured screen
 
  Camera:
- - Each node has a camera. By default it points to the center of the Node.
+ - Each node has a camera. By default it points to the center of the CCNode.
  */
 
-class CC_DLL Node : public Object
+class CC_DLL CCNode : public CCObject
 {
 public:
     /// @{
     /// @name Constructor, Distructor and Initializers
-
-    /**
-     * Allocates and initializes a node.
-     * @return A initialized node which is marked as "autorelease".
-     */
-    static Node * create(void);
-
+    
     /**
      * Default constructor
      */
-    Node(void);
+    CCNode(void);
     
     /**
      * Default destructor
      */
-    virtual ~Node(void);
+    virtual ~CCNode(void);
     
     /**
-     *  Initializes the instance of Node
+     *  Initializes the instance of CCNode
      *  @return Whether the initialization was successful.
      */
     virtual bool init();
-
+	/**
+     * Allocates and initializes a node.
+     * @return A initialized node which is marked as "autorelease".
+     */
+    static CCNode * create(void);
+    
     /**
      * Gets the description string. It makes debugging easier.
      * @return A string terminated with '\0'
      */
-    const char* description(void) const;
+    const char* description(void);
     
     /// @} end of initializers
     
@@ -174,7 +173,7 @@ public:
      * The larger number it is, the later this node will be drawn in each message loop.
      * Please refer to setVertexZ(float) for the difference.
      *
-     * @param zOrder   Z order of this node.
+     * @param nZOrder   Z order of this node.
      */
     virtual void setZOrder(int zOrder);
     /**
@@ -182,8 +181,8 @@ public:
      *
      * This is an internal method. Don't call it outside the framework.
      * The difference between setZOrder(int) and _setOrder(int) is:
-     * - _setZOrder(int) is a pure setter for _ZOrder memeber variable
-     * - setZOrder(int) firstly changes _ZOrder, then recorder this node in its parent's chilren array.
+     * - _setZOrder(int) is a pure setter for m_nZOrder memeber variable
+     * - setZOrder(int) firstly changes m_nZOrder, then recorder this node in its parent's chilren array.
      */
     virtual void _setZOrder(int z);
     /**
@@ -193,7 +192,7 @@ public:
      *
      * @return The Z order.
      */
-    virtual int getZOrder() const;
+    virtual int getZOrder();
 
 
     /**
@@ -206,7 +205,7 @@ public:
      *
      * @warning Use it at your own risk since it might break the cocos2d parent-children z order
      *
-     * @param vertexZ  OpenGL Z vertex of this node.
+     * @param fVertexZ  OpenGL Z vertex of this node.
      */
     virtual void setVertexZ(float vertexZ);
     /**
@@ -216,7 +215,7 @@ public:
      *
      * @return OpenGL Z vertex of this node
      */
-    virtual float getVertexZ() const;
+    virtual float getVertexZ();
 
 
     /**
@@ -224,9 +223,9 @@ public:
      *
      * The deafult value is 1.0 if you haven't changed it before
      *
-     * @param scaleX   The scale factor on X axis.
+     * @param fScaleX   The scale factor on X axis.
      */
-    virtual void setScaleX(float scaleX);
+    virtual void setScaleX(float fScaleX);
     /**
      * Returns the scale factor on X axis of this node
      *
@@ -234,7 +233,7 @@ public:
      *
      * @return The scale factor on X axis.
      */
-    virtual float getScaleX() const;
+    virtual float getScaleX();
 
     
     /**
@@ -242,9 +241,9 @@ public:
      *
      * The Default value is 1.0 if you haven't changed it before.
      *
-     * @param scaleY   The scale factor on Y axis.
+     * @param fScaleY   The scale factor on Y axis.
      */
-    virtual void setScaleY(float scaleY);
+    virtual void setScaleY(float fScaleY);
     /**
      * Returns the scale factor on Y axis of this node
      *
@@ -252,7 +251,7 @@ public:
      *
      * @return The scale factor on Y axis. 
      */
-    virtual float getScaleY() const;
+    virtual float getScaleY();
 
     
     /**
@@ -266,46 +265,46 @@ public:
     /**
      * Gets the scale factor of the node,  when X and Y have the same scale factor.
      *
-     * @warning Assert when _scaleX != _scaleY.
+     * @warning Assert when m_fScaleX != m_fScaleY.
      * @see setScale(float)
      *
      * @return The scale factor of the node.
      */
-    virtual float getScale() const;
+    virtual float getScale();
     
     
     /**
      * Changes the position (x,y) of the node in OpenGL coordinates
      *
-     * Usually we use Point(x,y) to compose Point object.
+     * Usually we use ccp(x,y) to compose CCPoint object.
      * The original point (0,0) is at the left-bottom corner of screen.
      * For example, this codesnip sets the node in the center of screen.
      * @code
-     * Size size = Director::getInstance()->getWinSize();
-     * node->setPosition( Point(size.width/2, size.height/2) )
+     * CCSize size = CCDirector::sharedDirector()->getWinSize();
+     * node->setPosition( ccp(size.width/2, size.height/2) )
      * @endcode
      *
      * @param position  The position (x,y) of the node in OpenGL coordinates
      */
-    virtual void setPosition(const Point &position);
+    virtual void setPosition(const CCPoint &position);
     /**
      * Gets the position (x,y) of the node in OpenGL coordinates
      * 
-     * @see setPosition(const Point&)
+     * @see setPosition(const CCPoint&)
      *
      * @return The position (x,y) of the node in OpenGL coordinates
      */
-    virtual const Point& getPosition() const;
+    virtual const CCPoint& getPosition();
     /**
      * Sets position in a more efficient way.
      *
-     * Passing two numbers (x,y) is much efficient than passing Point object.
+     * Passing two numbers (x,y) is much efficient than passing CCPoint object.
      * This method is binded to lua and javascript. 
      * Passing a number is 10 times faster than passing a object from lua to c++
      *
      * @code
      * // sample code in lua
-     * local pos  = node::getPosition()  -- returns Point object from C++
+     * local pos  = node::getPosition()  -- returns CCPoint object from C++
      * node:setPosition(x, y)            -- pass x, y coordinate to C++
      * @endcode
      *
@@ -314,19 +313,19 @@ public:
      */
     virtual void setPosition(float x, float y);
     /**
-     * Gets position in a more efficient way, returns two number instead of a Point object
+     * Gets position in a more efficient way, returns two number instead of a CCPoint object
      *
      * @see setPosition(float, float)
      */
-    virtual void getPosition(float* x, float* y) const;
+    virtual void getPosition(float* x, float* y);
     /**
      * Gets/Sets x or y coordinate individually for position.
      * These methods are used in Lua and Javascript Bindings
      */
     virtual void  setPositionX(float x);
-    virtual float getPositionX(void) const;
+    virtual float getPositionX(void);
     virtual void  setPositionY(float y);
-    virtual float getPositionY(void) const;
+    virtual float getPositionY(void);
     
     
     /**
@@ -346,7 +345,7 @@ public:
      *
      * @return The X skew angle of the node in degrees.
      */
-    virtual float getSkewX() const;
+    virtual float getSkewX();
 
     
     /**
@@ -366,7 +365,7 @@ public:
      *
      * @return The Y skew angle of the node in degrees.
      */
-    virtual float getSkewY() const;
+    virtual float getSkewY();
 
     
     /**
@@ -380,15 +379,15 @@ public:
      *
      * @param anchorPoint   The anchor point of node.
      */
-    virtual void setAnchorPoint(const Point& anchorPoint);
+    virtual void setAnchorPoint(const CCPoint& anchorPoint);
     /** 
      * Returns the anchor point in percent.
      *
-     * @see setAnchorPoint(const Point&)
+     * @see setAnchorPoint(const CCPoint&)
      *
      * @return The anchor point of node.
      */
-    virtual const Point& getAnchorPoint() const;
+    virtual const CCPoint& getAnchorPoint();
     /**
      * Returns the anchorPoint in absolute pixels.
      * 
@@ -397,7 +396,7 @@ public:
      *
      * @return The anchor point in absolute pixels.
      */
-    virtual const Point& getAnchorPointInPoints() const;
+    virtual const CCPoint& getAnchorPointInPoints();
     
     
     /**
@@ -408,15 +407,15 @@ public:
      *
      * @param contentSize   The untransformed size of the node.
      */
-    virtual void setContentSize(const Size& contentSize);
+    virtual void setContentSize(const CCSize& contentSize);
     /**
      * Returns the untransformed size of the node.
      *
-     * @see setContentSize(const Size&)
+     * @see setContentSize(const CCSize&)
      *
      * @return The untransformed size of the node.
      */
-    virtual const Size& getContentSize() const;
+    virtual const CCSize& getContentSize() const;
 
     
     /**
@@ -434,7 +433,7 @@ public:
      *
      * @return true if the node is visible, false if the node is hidden.
      */
-    virtual bool isVisible() const;
+    virtual bool isVisible();
 
     
     /** 
@@ -443,9 +442,9 @@ public:
      * 0 is the default rotation angle. 
      * Positive values rotate node clockwise, and negative values for anti-clockwise.
      * 
-     * @param rotation     The rotation of the node in degrees.
+     * @param fRotation     The roration of the node in degrees.
      */
-    virtual void setRotation(float rotation);
+    virtual void setRotation(float fRotation);
     /**
      * Returns the rotation of the node in degrees.
      *
@@ -453,7 +452,7 @@ public:
      *
      * @return The rotation of the node in degrees.
      */
-    virtual float getRotation() const;
+    virtual float getRotation();
 
     
     /** 
@@ -462,9 +461,9 @@ public:
      * 0 is the default rotation angle. 
      * Positive values rotate node clockwise, and negative values for anti-clockwise.
      * 
-     * @param rotationX    The X rotation in degrees which performs a horizontal rotational skew.
+     * @param fRotationX    The X rotation in degrees which performs a horizontal rotational skew.
      */
-    virtual void setRotationX(float rotationX);
+    virtual void setRotationX(float fRotaionX);
     /**
      * Gets the X rotation (angle) of the node in degrees which performs a horizontal rotation skew.
      *
@@ -472,7 +471,7 @@ public:
      *
      * @return The X rotation in degrees.
      */
-    virtual float getRotationX() const;
+    virtual float getRotationX();
 
     
     /** 
@@ -481,9 +480,9 @@ public:
      * 0 is the default rotation angle. 
      * Positive values rotate node clockwise, and negative values for anti-clockwise.
      *
-     * @param rotationY    The Y rotation in degrees.
+     * @param fRotationY    The Y rotation in degrees.
      */
-    virtual void setRotationY(float rotationY);
+    virtual void setRotationY(float fRotationY);
     /**
      * Gets the Y rotation (angle) of the node in degrees which performs a vertical rotational skew.
      *
@@ -491,7 +490,7 @@ public:
      *
      * @return The Y rotation in degrees.
      */
-    virtual float getRotationY() const;
+    virtual float getRotationY();
 
     
     /**
@@ -502,9 +501,9 @@ public:
      *
      * @warning This method is used internally for zOrder sorting, don't change this manually
      *
-     * @param orderOfArrival   The arrival order.
+     * @param uOrderOfArrival   The arrival order.
      */
-    virtual void setOrderOfArrival(int orderOfArrival);
+    virtual void setOrderOfArrival(unsigned int uOrderOfArrival);
     /**
      * Returns the arrival order, indecates which children is added previously.
      *
@@ -512,19 +511,28 @@ public:
      *
      * @return The arrival order.
      */
-    virtual int getOrderOfArrival() const;
+    virtual unsigned int getOrderOfArrival();
     
     
-    /** @deprecated No longer needed */
-    CC_DEPRECATED_ATTRIBUTE void setGLServerState(int serverState) { /* ignore */ };
-    /** @deprecated No longer needed */
-    CC_DEPRECATED_ATTRIBUTE int getGLServerState() const { return 0; }
+    /**
+     * Sets the state of OpenGL server side.
+     *
+     * @param glServerState     The state of OpenGL server side.
+     */
+    virtual void setGLServerState(ccGLServerState glServerState);
+    /**
+     * Returns the state of OpenGL server side.
+     *
+     * @return The state of OpenGL server side.
+     */
+    virtual ccGLServerState getGLServerState();
+    
     
     /**
      * Sets whether the anchor point will be (0,0) when you position this node.
      *
-     * This is an internal method, only used by Layer and Scene. Don't call it outside framework.
-     * The default value is false, while in Layer and Scene are true
+     * This is an internal method, only used by CCLayer and CCScene. Don't call it outside framework.
+     * The default value is false, while in CCLayer and CCScene are true
      *
      * @param ignore    true if anchor point will be (0,0) when you position this node
      * @todo This method shoud be renamed as setIgnoreAnchorPointForPosition(bool) or something with "set"
@@ -537,7 +545,7 @@ public:
      *
      * @return true if the anchor point will be (0,0) when you position this node.
      */
-    virtual bool isIgnoreAnchorPointForPosition() const;
+    virtual bool isIgnoreAnchorPointForPosition();
     
     /// @}  end of Setters & Getters for Graphic Peroperties
     
@@ -552,7 +560,7 @@ public:
      *
      * @param child A child node
      */
-    virtual void addChild(Node * child);
+    virtual void addChild(CCNode * child);
     /** 
      * Adds a child to the container with a z-order
      *
@@ -561,7 +569,7 @@ public:
      * @param child     A child node
      * @param zOrder    Z order for drawing priority. Please refer to setZOrder(int)
      */
-    virtual void addChild(Node * child, int zOrder);
+    virtual void addChild(CCNode * child, int zOrder);
     /** 
      * Adds a child to the container with z order and tag
      *
@@ -571,22 +579,22 @@ public:
      * @param zOrder    Z order for drawing priority. Please refer to setZOrder(int)
      * @param tag       A interger to identify the node easily. Please refer to setTag(int)
      */
-    virtual void addChild(Node* child, int zOrder, int tag);
+    virtual void addChild(CCNode* child, int zOrder, int tag);
     /**
      * Gets a child from the container with its tag
      *
      * @param tag   An identifier to find the child node.
      *
-     * @return a Node object whose tag equals to the input parameter
+     * @return a CCNode object whose tag equals to the input parameter
      */
-    Node * getChildByTag(int tag);
+    CCNode * getChildByTag(int tag);
     /**
      * Return an array of children
      *
-     * Composing a "tree" structure is a very important feature of Node
+     * Composing a "tree" structure is a very important feature of CCNode
      * Here's a sample code of traversing children array:
      * @code
-     * Node* node = NULL;
+     * CCNode* node = NULL;
      * CCARRAY_FOREACH(parent->getChildren(), node)
      * {
      *     node->setPosition(0,0);
@@ -596,32 +604,30 @@ public:
      *
      * @return An array of children
      */
-    virtual Array* getChildren() { return _children; }
-    virtual const Array *getChildren() const { return _children; }
+    virtual CCArray* getChildren();
     
     /** 
      * Get the amount of children.
      *
      * @return The amount of children.
      */
-    unsigned int getChildrenCount() const;
+    unsigned int getChildrenCount(void) const;
     
     /**
      * Sets the parent node
      *
      * @param parent    A pointer to the parnet node
      */
-    virtual void setParent(Node* parent);
+    virtual void setParent(CCNode* parent);
     /**
      * Returns a pointer to the parent node
      * 
-     * @see setParent(Node*)
+     * @see setParent(CCNode*)
      *
      * @returns A pointer to the parnet node
      */
-    virtual Node* getParent() { return _parent; }
-    virtual const Node* getParent() const { return _parent; }
-
+    virtual CCNode* getParent();
+    
     
     ////// REMOVES //////
     
@@ -637,22 +643,36 @@ public:
      * @param cleanup   true if all actions and callbacks on this node should be removed, false otherwise.
      */
     virtual void removeFromParentAndCleanup(bool cleanup);
-
+    /** 
+     * Removes a child from the container with a cleanup
+     *
+     * @see removeChild(CCNode, bool)
+     *
+     * @param child     The child node which will be removed.
+     */
+    virtual void removeChild(CCNode* child);
     /** 
      * Removes a child from the container. It will also cleanup all running actions depending on the cleanup parameter.
      * 
      * @param child     The child node which will be removed.
      * @param cleanup   true if all running actions and callbacks on the child node will be cleanup, false otherwise.
      */
-    virtual void removeChild(Node* child, bool cleanup = true);
-
+    virtual void removeChild(CCNode* child, bool cleanup);
+    /** 
+     * Removes a child from the container by tag value with a cleanup.
+     *
+     * @see removeChildByTag(int, bool)
+     *
+     * @param tag       An interger number that identifies a child node
+     */
+    virtual void removeChildByTag(int tag);
     /** 
      * Removes a child from the container by tag value. It will also cleanup all running actions depending on the cleanup parameter
      * 
      * @param tag       An interger number that identifies a child node
      * @param cleanup   true if all running actions and callbacks on the child node will be cleanup, false otherwise. 
      */
-    virtual void removeChildByTag(int tag, bool cleanup = true);
+    virtual void removeChildByTag(int tag, bool cleanup);
     /** 
      * Removes all children from the container with a cleanup.
      *
@@ -672,7 +692,7 @@ public:
      * @param child     An already added child node. It MUST be already added.
      * @param zOrder    Z order for drawing priority. Please refer to setZOrder(int)
      */
-    virtual void reorderChild(Node * child, int zOrder);
+    virtual void reorderChild(CCNode * child, int zOrder);
     
     /** 
      * Sorts the children array once before drawing, instead of every time when a child is added or reordered.
@@ -691,17 +711,15 @@ public:
     /**
      * Returns a grid object that is used when applying effects
      * 
-     * @return A Grid object that is used when applying effects
+     * @return A CCGrid object that is used when applying effects
      */
-    virtual GridBase* getGrid() { return _grid; }
-    virtual const GridBase* getGrid() const { return _grid; }
-
+    virtual CCGridBase* getGrid();
     /**
      * Changes a grid object that is used when applying effects
      *
-     * @param grid  A Grid object that is used when applying effects
+     * @param A CCGrid object that is used when applying effects
      */
-    virtual void setGrid(GridBase *grid);
+    virtual void setGrid(CCGridBase *pGrid);
     
     /// @} end of Grid
     
@@ -725,7 +743,7 @@ public:
      * parent->addChild(node2);
      * parent->addChild(node3);
      * // identify by tags
-     * Node* node = NULL;
+     * CCNode* node = NULL;
      * CCARRAY_FOREACH(parent->getChildren(), node)
      * {
      *     switch(node->getTag())
@@ -748,9 +766,9 @@ public:
      *
      * Please refer to getTag for the sample code.
      *
-     * @param tag   A interger that indentifies the node.
+     * @param A interger that indentifies the node.
      */
-    virtual void setTag(int tag);
+    virtual void setTag(int nTag);
     
     /**
      * Returns a custom user data pointer
@@ -759,9 +777,7 @@ public:
      * 
      * @return A custom user data pointer
      */
-    virtual void* getUserData() { return _userData; }
-    virtual const void* getUserData() const { return _userData; }
-
+    virtual void* getUserData();
     /**
      * Sets a custom user data pointer
      *
@@ -769,31 +785,29 @@ public:
      * @warning Don't forget to release the memroy manually, 
      *          especially before you change this data pointer, and before this node is autoreleased.
      *
-     * @param userData  A custom user data pointer
+     * @return A custom user data pointer
      */
-    virtual void setUserData(void *userData);
+    virtual void setUserData(void *pUserData);
     
     /** 
-     * Returns a user assigned Object
+     * Returns a user assigned CCObject
      * 
      * Similar to userData, but instead of holding a void* it holds an object
      *
-     * @return A user assigned Object
+     * @return A user assigned CCObject
      */
-    virtual Object* getUserObject() { return _userObject; }
-    virtual const Object* getUserObject() const { return _userObject; }
-
+    virtual CCObject* getUserObject();
     /**
-     * Returns a user assigned Object
+     * Returns a user assigned CCObject
      *
      * Similar to UserData, but instead of holding a void* it holds an object.
      * The UserObject will be retained once in this method,
      * and the previous UserObject (if existed) will be relese.
-     * The UserObject will be released in Node's destructure.
+     * The UserObject will be released in CCNode's destructure.
      *
-     * @param userObject    A user assigned Object
+     * @param A user assigned CCObject
      */
-    virtual void setUserObject(Object *userObject);
+    virtual void setUserObject(CCObject *pUserObject);
     
     /// @} end of Tag & User Data
     
@@ -805,21 +819,19 @@ public:
      * 
      * @return The shader program currelty used for this node
      */
-    virtual GLProgram* getShaderProgram() { return _shaderProgram; }
-    virtual const GLProgram* getShaderProgram() const { return _shaderProgram; }
-
+    virtual CCGLProgram* getShaderProgram();
     /**
      * Sets the shader program for this node
      *
      * Since v2.0, each rendering node must set its shader program.
      * It should be set in initialize phase.
      * @code
-     * node->setShaderProgram(ShaderCache::getInstance()->programForKey(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR));
+     * node->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
      * @endcode
      * 
-     * @param shaderProgram The shader program which fetchs from ShaderCache.
+     * @param The shader program which fetchs from CCShaderCache.
      */
-    virtual void setShaderProgram(GLProgram *shaderProgram);
+    virtual void setShaderProgram(CCGLProgram *pShaderProgram);
     /// @} end of Shader Program
     
     
@@ -827,14 +839,14 @@ public:
      * Returns a camera object that lets you move the node using a gluLookAt
      *
      * @code
-     * Camera* camera = node->getCamera();
+     * CCCamera* camera = node->getCamera();
      * camera->setEyeXYZ(0, 0, 415/2);
      * camera->setCenterXYZ(0, 0, 0);
      * @endcode
      *
-     * @return A Camera object that lets you move the node using a gluLookAt
+     * @return A CCCamera object that lets you move the node using a gluLookAt
      */
-    virtual Camera* getCamera();
+    virtual CCCamera* getCamera();
     
     /** 
      * Returns whether or not the node accepts event callbacks.
@@ -843,12 +855,53 @@ public:
      *
      * @return Whether or not the node is running.
      */
-    virtual bool isRunning() const;
+    virtual bool isRunning();
+
+    
+    /// @{
+    /// @name Script Bindings for lua
+
+    /**
+     * Registers a script function that will be called in onEnter() & onExit() seires functions.
+     * 
+     * This handler will be removed automatically after onExit() called.
+     * @code
+     * -- lua sample
+     * local function sceneEventHandler(eventType)
+     *     if eventType == kCCNodeOnEnter then
+     *         -- do something
+     *     elseif evetType == kCCNodeOnExit then
+     *         -- do something
+     *     end
+     * end
+     * scene::registerScriptHandler(sceneEventHandler)
+     * @endcode
+     *
+     * @warning This method is for internal usage, don't call it manually.
+     * @todo Perhaps we should rename it to get/set/removeScriptHandler acoording to the function name style.
+     *
+     * @param handler   A number that indicates a lua function. 
+     */
+    virtual void registerScriptHandler(int handler);
+    /**
+     * Unregisters a script function that will be called in onEnter() & onExit() series functions.
+     *
+     * @see registerScriptHandler(int)
+     */
+    virtual void unregisterScriptHandler(void);
+    /**
+     * Gets script handler for onEnter/onExit event.
+     * This is an internal method. g
+     * @see registerScriptHandler(int)
+     *
+     * @return A number that indicates a lua function.
+     */
+    inline int getScriptHandler() { return m_nScriptHandler; };
     
     /** 
      * Schedules for lua script. 
      */
-    void scheduleUpdateWithPriorityLua(int handler, int priority);
+    void scheduleUpdateWithPriorityLua(int nHandler, int priority);
     
     /// @}  end Script Bindings
 
@@ -857,30 +910,30 @@ public:
     /// @name Event Callbacks
     
     /** 
-     * Event callback that is invoked every time when Node enters the 'stage'.
-     * If the Node enters the 'stage' with a transition, this event is called when the transition starts.
+     * Event callback that is invoked every time when CCNode enters the 'stage'.
+     * If the CCNode enters the 'stage' with a transition, this event is called when the transition starts.
      * During onEnter you can't access a "sister/brother" node.
-     * If you override onEnter, you shall call its parent's one, e.g., Node::onEnter().
+     * If you override onEnter, you shall call its parent's one, e.g., CCNode::onEnter().
      */
     virtual void onEnter();
 
-    /** Event callback that is invoked when the Node enters in the 'stage'.
-     * If the Node enters the 'stage' with a transition, this event is called when the transition finishes.
-     * If you override onEnterTransitionDidFinish, you shall call its parent's one, e.g. Node::onEnterTransitionDidFinish()
+    /** Event callback that is invoked when the CCNode enters in the 'stage'.
+     * If the CCNode enters the 'stage' with a transition, this event is called when the transition finishes.
+     * If you override onEnterTransitionDidFinish, you shall call its parent's one, e.g. CCNode::onEnterTransitionDidFinish()
      */
     virtual void onEnterTransitionDidFinish();
 
     /** 
-     * Event callback that is invoked every time the Node leaves the 'stage'.
-     * If the Node leaves the 'stage' with a transition, this event is called when the transition finishes.
+     * Event callback that is invoked every time the CCNode leaves the 'stage'.
+     * If the CCNode leaves the 'stage' with a transition, this event is called when the transition finishes.
      * During onExit you can't access a sibling node.
-     * If you override onExit, you shall call its parent's one, e.g., Node::onExit().
+     * If you override onExit, you shall call its parent's one, e.g., CCNode::onExit().
      */
     virtual void onExit();
 
     /** 
-     * Event callback that is called every time the Node leaves the 'stage'.
-     * If the Node leaves the 'stage' with a transition, this callback is called when the transition starts.
+     * Event callback that is called every time the CCNode leaves the 'stage'.
+     * If the CCNode leaves the 'stage' with a transition, this callback is called when the transition starts.
      */
     virtual void onExitTransitionDidStart();
 
@@ -890,7 +943,7 @@ public:
     /** 
      * Stops all running actions and schedulers
      */
-    virtual void cleanup();
+    virtual void cleanup(void);
 
     /** 
      * Override this method to draw your own node.
@@ -902,73 +955,69 @@ public:
      * AND YOU SHOULD NOT DISABLE THEM AFTER DRAWING YOUR NODE
      * But if you enable any other GL state, you should disable it after drawing your node.
      */
-    virtual void draw();
+    virtual void draw(void);
 
     /** 
      * Visits this node's children and draw them recursively.
      */
-    virtual void visit();
+    virtual void visit(void);
 
     
     /** 
      * Returns a "local" axis aligned bounding box of the node.
      * The returned box is relative only to its parent.
      *
-     * @note This method returns a temporaty variable, so it can't returns const Rect&
+     * @note This method returns a temporaty variable, so it can't returns const CCRect&
      * @todo Rename to getBoundingBox() in the future versions.
      * 
      * @return A "local" axis aligned boudning box of the node.
      */
-    virtual Rect getBoundingBox() const;
-
-    /** @deprecated Use getBoundingBox instead */
-    CC_DEPRECATED_ATTRIBUTE inline virtual Rect boundingBox() const { return getBoundingBox(); }
+    CCRect boundingBox(void);
 
     /// @{
     /// @name Actions
 
     /**
-     * Sets the ActionManager object that is used by all actions.
+     * Sets the CCActionManager object that is used by all actions.
      *
-     * @warning If you set a new ActionManager, then previously created actions will be removed.
+     * @warning If you set a new CCActionManager, then previously created actions will be removed.
      *
-     * @param actionManager     A ActionManager object that is used by all actions.
+     * @param actionManager     A CCActionManager object that is used by all actions.
      */
-    virtual void setActionManager(ActionManager* actionManager);
+    virtual void setActionManager(CCActionManager* actionManager);
     /**
-     * Gets the ActionManager object that is used by all actions.
-     * @see setActionManager(ActionManager*)
-     * @return A ActionManager object.
+     * Gets the CCActionManager object that is used by all actions.
+     * @see setActionManager(CCActionManager*)
+     * @return A CCActionManager object.
      */
-    virtual ActionManager* getActionManager() { return _actionManager; }
-    virtual const ActionManager* getActionManager() const { return _actionManager; }
-
+    virtual CCActionManager* getActionManager();
+    
     /** 
      * Executes an action, and returns the action that is executed.
      *
-     * This node becomes the action's target. Refer to Action::getTarget()
+     * This node becomes the action's target. Refer to CCAction::getTarget()
      * @warning Actions don't retain their target.
      *
      * @return An Action pointer
      */
-    Action* runAction(Action* action);
+    CCAction* runAction(CCAction* action);
 
     /** 
      * Stops and removes all actions from the running action list .
      */
-    void stopAllActions();
+    void stopAllActions(void);
 
     /** 
      * Stops and removes an action from the running action list.
      *
-     * @param action    The action object to be removed.
+     * @param An action object to be removed.
      */
-    void stopAction(Action* action);
+    void stopAction(CCAction* action);
 
     /** 
      * Removes an action from the running action list by its tag.
      *
-     * @param tag   A tag that indicates the action to be removed.
+     * @param A tag that indicates the action to be removed.
      */
     void stopActionByTag(int tag);
 
@@ -979,7 +1028,7 @@ public:
      *
      * @return The action object with the given tag.
      */
-    Action* getActionByTag(int tag);
+    CCAction* getActionByTag(int tag);
 
     /** 
      * Returns the numbers of actions that are running plus the ones that are schedule to run (actions in actionsToAdd and actions arrays).
@@ -991,10 +1040,7 @@ public:
      *
      * @return The number of actions that are running plus the ones that are schedule to run
      */
-    unsigned int getNumberOfRunningActions() const;
-
-    /** @deprecated Use getNumberOfRunningActions() instead */
-    CC_DEPRECATED_ATTRIBUTE unsigned int numberOfRunningActions() const { return getNumberOfRunningActions(); };
+    unsigned int numberOfRunningActions(void);
 
     /// @} end of Actions
     
@@ -1003,21 +1049,19 @@ public:
     /// @name Scheduler and Timer
 
     /**
-     * Sets a Scheduler object that is used to schedule all "updates" and timers.
+     * Sets a CCScheduler object that is used to schedule all "updates" and timers.
      *
-     * @warning If you set a new Scheduler, then previously created timers/update are going to be removed.
-     * @param scheduler     A Shdeduler object that is used to schedule all "update" and timers.
+     * @warning If you set a new CCScheduler, then previously created timers/update are going to be removed.
+     * @param scheduler     A CCShdeduler object that is used to schedule all "update" and timers.
      */
-    virtual void setScheduler(Scheduler* scheduler);
+    virtual void setScheduler(CCScheduler* scheduler);
     /**
-     * Gets a Sheduler object.
+     * Gets a CCSheduler object.
      *
-     * @see setScheduler(Scheduler*)
-     * @return A Scheduler object.
+     * @see setScheduler(CCScheduler*)
+     * @return A CCScheduler object.
      */
-    virtual Scheduler* getScheduler() { return _scheduler; }
-    virtual const Scheduler* getScheduler() const { return _scheduler; }
-
+    virtual CCScheduler* getScheduler();
     
     /** 
      * Checks whether a selector is scheduled.
@@ -1062,9 +1106,8 @@ public:
      * this->schedule(schedule_selector(MyNode::TickMe), 0, 0, 0);
      * @endcode
      *
-     * @param selector  The SEL_SCHEDULE selector to be scheduled.
      * @param interval  Tick interval in seconds. 0 means tick every frame. If interval = 0, it's recommended to use scheduleUpdate() instead.
-     * @param repeat    The selector will be excuted (repeat + 1) times, you can use kRepeatForever for tick infinitely.
+     * @param repeat    The selector will be excuted (repeat + 1) times, you can use kCCRepeatForever for tick infinitely.
      * @param delay     The amount of time that the first tick will wait before execution.
      */
     void schedule(SEL_SCHEDULE selector, float interval, unsigned int repeat, float delay);
@@ -1073,7 +1116,7 @@ public:
      * Schedules a custom selector with an interval time in seconds.
      * @see schedule(SEL_SCHEDULE, float, unsigned int, float)
      *
-     * @param selector      The SEL_SCHEDULE selector to be scheduled.
+     * @param selector      A function wrapped as a selector
      * @param interval      Callback interval time in seconds. 0 means tick every frame,
      */
     void schedule(SEL_SCHEDULE selector, float interval);
@@ -1082,7 +1125,7 @@ public:
      * Schedules a selector that runs only once, with a delay of 0 or larger
      * @see schedule(SEL_SCHEDULE, float, unsigned int, float)
      *
-     * @param selector      The SEL_SCHEDULE selector to be scheduled.
+     * @param selector      A function wrapped as a selector
      * @param delay         The amount of time that the first tick will wait before execution.
      */
     void scheduleOnce(SEL_SCHEDULE selector, float delay);
@@ -1133,55 +1176,43 @@ public:
     /**
      * Performs OpenGL view-matrix transformation based on position, scale, rotation and other attributes.
      */
-    void transform();
+    void transform(void);
     /**
      * Performs OpenGL view-matrix transformation of it's ancestors.
      * Generally the ancestors are already transformed, but in certain cases (eg: attaching a FBO)
      * It's necessary to transform the ancestors again.
      */
-    void transformAncestors();
+    void transformAncestors(void);
     /**
      * Calls children's updateTransform() method recursively.
      *
-     * This method is moved from Sprite, so it's no longer specific to Sprite.
-     * As the result, you apply SpriteBatchNode's optimization on your customed Node.
+     * This method is moved from CCSprite, so it's no longer specific to CCSprite.
+     * As the result, you apply CCSpriteBatchNode's optimization on your customed CCNode.
      * e.g., batchNode->addChild(myCustomNode), while you can only addChild(sprite) before.
      */
-    virtual void updateTransform();
+    virtual void updateTransform(void);
     
     /** 
      * Returns the matrix that transform the node's (local) space coordinates into the parent's space coordinates.
      * The matrix is in Pixels.
      */
-    virtual AffineTransform getNodeToParentTransform() const;
-
-    /** @deprecated use getNodeToParentTransform() instead */
-    CC_DEPRECATED_ATTRIBUTE inline virtual AffineTransform nodeToParentTransform() const { return getNodeToParentTransform(); }
+    virtual CCAffineTransform nodeToParentTransform(void);
 
     /** 
      * Returns the matrix that transform parent's space coordinates to the node's (local) space coordinates.
      * The matrix is in Pixels.
      */
-    virtual AffineTransform getParentToNodeTransform() const;
-
-    /** @deprecated Use getParentToNodeTransform() instead */
-    CC_DEPRECATED_ATTRIBUTE inline virtual AffineTransform parentToNodeTransform() const { return getParentToNodeTransform(); }
+    virtual CCAffineTransform parentToNodeTransform(void);
 
     /** 
      * Returns the world affine transform matrix. The matrix is in Pixels.
      */
-    virtual AffineTransform getNodeToWorldTransform() const;
-
-    /** @deprecated Use getNodeToWorldTransform() instead */
-    CC_DEPRECATED_ATTRIBUTE inline virtual AffineTransform nodeToWorldTransform() const { return getNodeToWorldTransform(); }
+    virtual CCAffineTransform nodeToWorldTransform(void);
 
     /** 
      * Returns the inverse world affine transform matrix. The matrix is in Pixels.
      */
-    virtual AffineTransform getWorldToNodeTransform() const;
-
-    /** @deprecated Use worldToNodeTransform() instead */
-    CC_DEPRECATED_ATTRIBUTE inline virtual AffineTransform worldToNodeTransform() const { return getWorldToNodeTransform(); }
+    virtual CCAffineTransform worldToNodeTransform(void);
 
     /// @} end of Transformations
     
@@ -1192,48 +1223,48 @@ public:
     /** 
      * Converts a Point to node (local) space coordinates. The result is in Points.
      */
-    Point convertToNodeSpace(const Point& worldPoint) const;
+    CCPoint convertToNodeSpace(const CCPoint& worldPoint);
     
     /** 
      * Converts a Point to world space coordinates. The result is in Points.
      */
-    Point convertToWorldSpace(const Point& nodePoint) const;
+    CCPoint convertToWorldSpace(const CCPoint& nodePoint);
     
     /** 
      * Converts a Point to node (local) space coordinates. The result is in Points.
      * treating the returned/received node point as anchor relative.
      */
-    Point convertToNodeSpaceAR(const Point& worldPoint) const;
+    CCPoint convertToNodeSpaceAR(const CCPoint& worldPoint);
     
     /** 
      * Converts a local Point to world space coordinates.The result is in Points.
      * treating the returned/received node point as anchor relative.
      */
-    Point convertToWorldSpaceAR(const Point& nodePoint) const;
+    CCPoint convertToWorldSpaceAR(const CCPoint& nodePoint);
 
     /** 
-     * convenience methods which take a Touch instead of Point
+     * convenience methods which take a CCTouch instead of CCPoint
      */
-    Point convertTouchToNodeSpace(Touch * touch) const;
+    CCPoint convertTouchToNodeSpace(CCTouch * touch);
 
     /** 
-     * converts a Touch (world coordinates) into a local coordinate. This method is AR (Anchor Relative).
+     * converts a CCTouch (world coordinates) into a local coordinate. This method is AR (Anchor Relative).
      */
-    Point convertTouchToNodeSpaceAR(Touch * touch) const;
+    CCPoint convertTouchToNodeSpaceAR(CCTouch * touch);
     
 	/**
      *  Sets the additional transform.
      *
-     *  @note The additional transform will be concatenated at the end of getNodeToParentTransform.
+     *  @note The additional transform will be concatenated at the end of nodeToParentTransform.
      *        It could be used to simulate `parent-child` relationship between two nodes (e.g. one is in BatchNode, another isn't).
      *  @code
         // create a batchNode
-        SpriteBatchNode* batch= SpriteBatchNode::create("Icon-114.png");
+        CCSpriteBatchNode* batch= CCSpriteBatchNode::create("Icon-114.png");
         this->addChild(batch);
      
         // create two sprites, spriteA will be added to batchNode, they are using different textures.
-        Sprite* spriteA = Sprite::createWithTexture(batch->getTexture());
-        Sprite* spriteB = Sprite::create("Icon-72.png");
+        CCSprite* spriteA = CCSprite::createWithTexture(batch->getTexture());
+        CCSprite* spriteB = CCSprite::create("Icon-72.png");
 
         batch->addChild(spriteA); 
      
@@ -1242,10 +1273,10 @@ public:
         this->addChild(spriteB); 
 
         //position
-        spriteA->setPosition(Point(200, 200));
+        spriteA->setPosition(ccp(200, 200));
      
         // Gets the spriteA's transform.
-        AffineTransform t = spriteA->getNodeToParentTransform();
+        CCAffineTransform t = spriteA->nodeToParentTransform();
      
         // Sets the additional transform to spriteB, spriteB's postion will based on its pseudo parent i.e. spriteA.
         spriteB->setAdditionalTransform(t);
@@ -1254,7 +1285,7 @@ public:
         spriteA->setScale(2);
      
         // Gets the spriteA's transform.
-        t = spriteA->getNodeToParentTransform();
+        t = spriteA->nodeToParentTransform();
      
         // Sets the additional transform to spriteB, spriteB's scale will based on its pseudo parent i.e. spriteA.
         spriteB->setAdditionalTransform(t);
@@ -1263,13 +1294,13 @@ public:
         spriteA->setRotation(20);
      
         // Gets the spriteA's transform.
-        t = spriteA->getNodeToParentTransform();
+        t = spriteA->nodeToParentTransform();
      
         // Sets the additional transform to spriteB, spriteB's rotation will based on its pseudo parent i.e. spriteA.
         spriteB->setAdditionalTransform(t);
      *  @endcode
      */
-    void setAdditionalTransform(const AffineTransform& additionalTransform);
+    void setAdditionalTransform(const CCAffineTransform& additionalTransform);
     
     /// @} end of Coordinate Converters
 
@@ -1278,12 +1309,12 @@ public:
     /** 
      *   gets a component by its name
      */
-    Component* getComponent(const char *pName);
+    CCComponent* getComponent(const char *pName) const;
     
     /** 
      *   adds a component
      */
-    virtual bool addComponent(Component *pComponent);
+    virtual bool addComponent(CCComponent *pComponent);
     
     /** 
      *   removes a component by its name      
@@ -1301,123 +1332,123 @@ private:
     void childrenAlloc(void);
     
     /// helper that reorder a child
-    void insertChild(Node* child, int z);
+    void insertChild(CCNode* child, int z);
     
     /// Removes a child, call child->onExit(), do cleanup, remove it from children array.
-    void detachChild(Node *child, bool doCleanup);
+    void detachChild(CCNode *child, bool doCleanup);
     
     /// Convert cocos2d coordinates to UI windows coordinate.
-    Point convertToWindowSpace(const Point& nodePoint) const;
+    CCPoint convertToWindowSpace(const CCPoint& nodePoint);
 
 protected:
-    float _rotationX;                 ///< rotation angle on x-axis
-    float _rotationY;                 ///< rotation angle on y-axis
+    float m_fRotationX;                 ///< rotation angle on x-axis
+    float m_fRotationY;                 ///< rotation angle on y-axis
     
-    float _scaleX;                    ///< scaling factor on x-axis
-    float _scaleY;                    ///< scaling factor on y-axis
+    float m_fScaleX;                    ///< scaling factor on x-axis
+    float m_fScaleY;                    ///< scaling factor on y-axis
     
-    float _vertexZ;                   ///< OpenGL real Z vertex
+    float m_fVertexZ;                   ///< OpenGL real Z vertex
     
-    Point _position;               ///< position of the node
+    CCPoint m_obPosition;               ///< position of the node
     
-    float _skewX;                     ///< skew angle on x-axis
-    float _skewY;                     ///< skew angle on y-axis
+    float m_fSkewX;                     ///< skew angle on x-axis
+    float m_fSkewY;                     ///< skew angle on y-axis
     
-    Point _anchorPointInPoints;    ///< anchor point in points
-    Point _anchorPoint;            ///< anchor point normalized (NOT in points)
+    CCPoint m_obAnchorPointInPoints;    ///< anchor point in points
+    CCPoint m_obAnchorPoint;            ///< anchor point normalized (NOT in points)
     
-    Size _contentSize;             ///< untransformed size of the node
+    CCSize m_obContentSize;             ///< untransformed size of the node
     
-    // "cache" variables are allowed to be mutable
-    mutable AffineTransform _additionalTransform; ///< transform
-    mutable AffineTransform _transform;     ///< transform
-    mutable AffineTransform _inverse;       ///< inverse transform
-    mutable bool _additionalTransformDirty;   ///< The flag to check whether the additional transform is dirty
-    mutable bool _transformDirty;             ///< transform dirty flag
-    mutable bool _inverseDirty;               ///< inverse transform dirty flag
-
-    Camera *_camera;                ///< a camera
     
-    GridBase *_grid;                ///< a grid
+    CCAffineTransform m_sAdditionalTransform; ///< transform
+    CCAffineTransform m_sTransform;     ///< transform
+    CCAffineTransform m_sInverse;       ///< transform
     
-    int _ZOrder;                      ///< z-order value that affects the draw order
+    CCCamera *m_pCamera;                ///< a camera
     
-    Array *_children;               ///< array of children nodes
-    Node *_parent;                  ///< weak reference to parent node
+    CCGridBase *m_pGrid;                ///< a grid
     
-    int _tag;                         ///< a tag. Can be any number you assigned just to identify this node
+    int m_nZOrder;                      ///< z-order value that affects the draw order
     
-    void *_userData;                  ///< A user assingned void pointer, Can be point to any cpp object
-    Object *_userObject;            ///< A user assigned Object
+    CCArray *m_pChildren;               ///< array of children nodes
+    CCNode *m_pParent;                  ///< weak reference to parent node
     
-    GLProgram *_shaderProgram;      ///< OpenGL shader
-
-    int _orderOfArrival;            ///< used to preserve sequence while sorting children with the same zOrder
+    int m_nTag;                         ///< a tag. Can be any number you assigned just to identify this node
     
-    Scheduler *_scheduler;          ///< scheduler used to schedule timers and updates
+    void *m_pUserData;                  ///< A user assingned void pointer, Can be point to any cpp object
+    CCObject *m_pUserObject;            ///< A user assigned CCObject
     
-    ActionManager *_actionManager;  ///< a pointer to ActionManager singleton, which is used to handle all the actions
+    CCGLProgram *m_pShaderProgram;      ///< OpenGL shader
     
-    bool _running;                    ///< is running
+    ccGLServerState m_eGLServerState;   ///< OpenGL servier side state
     
-    bool _visible;                    ///< is this node visible
+    unsigned int m_uOrderOfArrival;     ///< used to preserve sequence while sorting children with the same zOrder
     
-    bool _ignoreAnchorPointForPosition; ///< true if the Anchor Point will be (0,0) when you position the Node, false otherwise.
-                                          ///< Used by Layer and Scene.
+    CCScheduler *m_pScheduler;          ///< scheduler used to schedule timers and updates
     
-    bool _reorderChildDirty;          ///< children order dirty flag
-    bool _isTransitionFinished;       ///< flag to indicate whether the transition was finished
+    CCActionManager *m_pActionManager;  ///< a pointer to ActionManager singleton, which is used to handle all the actions
     
-    int _scriptHandler;               ///< script handler for onEnter() & onExit(), used in Javascript binding and Lua binding.
-    int _updateScriptHandler;         ///< script handler for update() callback per frame, which is invoked from lua & javascript.
-    ccScriptType _scriptType;         ///< type of script binding, lua or javascript
+    bool m_bRunning;                    ///< is running
     
-    ComponentContainer *_componentContainer;        ///< Dictionary of components
+    bool m_bTransformDirty;             ///< transform dirty flag
+    bool m_bInverseDirty;               ///< transform dirty flag
+    bool m_bAdditionalTransformDirty;   ///< The flag to check whether the additional transform is dirty
+    bool m_bVisible;                    ///< is this node visible
+    
+    bool m_bIgnoreAnchorPointForPosition; ///< true if the Anchor Point will be (0,0) when you position the CCNode, false otherwise.
+                                          ///< Used by CCLayer and CCScene.
+    
+    bool m_bReorderChildDirty;          ///< children order dirty flag
+    
+    int m_nScriptHandler;               ///< script handler for onEnter() & onExit(), used in Javascript binding and Lua binding.
+    int m_nUpdateScriptHandler;         ///< script handler for update() callback per frame, which is invoked from lua & javascript.
+    ccScriptType m_eScriptType;         ///< type of script binding, lua or javascript
+    
+    CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components
 
 };
 
-//#pragma mark - NodeRGBA
+//#pragma mark - CCNodeRGBA
 
-/** NodeRGBA is a subclass of Node that implements the RGBAProtocol protocol.
+/** CCNodeRGBA is a subclass of CCNode that implements the CCRGBAProtocol protocol.
  
- All features from Node are valid, plus the following new features:
+ All features from CCNode are valid, plus the following new features:
  - opacity
  - RGB colors
  
- Opacity/Color propagates into children that conform to the RGBAProtocol if cascadeOpacity/cascadeColor is enabled.
+ Opacity/Color propagates into children that conform to the CCRGBAProtocol if cascadeOpacity/cascadeColor is enabled.
  @since v2.1
  */
-class CC_DLL NodeRGBA : public Node, public RGBAProtocol
+class CC_DLL CCNodeRGBA : public CCNode, public CCRGBAProtocol
 {
 public:
-    NodeRGBA();
-    virtual ~NodeRGBA();
+    CCNodeRGBA();
+    virtual ~CCNodeRGBA();
     
     virtual bool init();
-
-    // overrides
-    virtual GLubyte getOpacity() const override;
-    virtual GLubyte getDisplayedOpacity() const  override;
-    virtual void setOpacity(GLubyte opacity) override;
-    virtual void updateDisplayedOpacity(GLubyte parentOpacity) override;
-    virtual bool isCascadeOpacityEnabled() const  override;
-    virtual void setCascadeOpacityEnabled(bool cascadeOpacityEnabled) override;
     
-    virtual const Color3B& getColor(void) const override;
-    virtual const Color3B& getDisplayedColor() const override;
-    virtual void setColor(const Color3B& color) override;
-    virtual void updateDisplayedColor(const Color3B& parentColor) override;
-    virtual bool isCascadeColorEnabled() const override;
-    virtual void setCascadeColorEnabled(bool cascadeColorEnabled) override;
+    virtual GLubyte getOpacity();
+    virtual GLubyte getDisplayedOpacity();
+    virtual void setOpacity(GLubyte opacity);
+    virtual void updateDisplayedOpacity(GLubyte parentOpacity);
+    virtual bool isCascadeOpacityEnabled();
+    virtual void setCascadeOpacityEnabled(bool cascadeOpacityEnabled);
     
-    virtual void setOpacityModifyRGB(bool bValue) override {CC_UNUSED_PARAM(bValue);};
-    virtual bool isOpacityModifyRGB() const override { return false; };
+    virtual const ccColor3B& getColor(void);
+    virtual const ccColor3B& getDisplayedColor();
+    virtual void setColor(const ccColor3B& color);
+    virtual void updateDisplayedColor(const ccColor3B& parentColor);
+    virtual bool isCascadeColorEnabled();
+    virtual void setCascadeColorEnabled(bool cascadeColorEnabled);
+    
+    virtual void setOpacityModifyRGB(bool bValue) {};
+    virtual bool isOpacityModifyRGB() { return false; };
 
 protected:
 	GLubyte		_displayedOpacity;
     GLubyte     _realOpacity;
-	Color3B	    _displayedColor;
-    Color3B     _realColor;
+	ccColor3B	_displayedColor;
+    ccColor3B   _realColor;
 	bool		_cascadeColorEnabled;
     bool        _cascadeOpacityEnabled;
 };

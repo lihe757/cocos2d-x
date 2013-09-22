@@ -8,7 +8,7 @@ using namespace cocos2d::extension;
 
 PlayerController::PlayerController(void)
 {
-    _name = "PlayerController";
+    m_strName = "PlayerController";
 }
 
 PlayerController::~PlayerController(void)
@@ -35,21 +35,21 @@ void PlayerController::update(float delta)
 
 }
 
-void PlayerController::ccTouchesEnded(Set  *touches, Event  *event)
+void PlayerController::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
 {
     // Choose one of the touches to work with
-	Touch* touch = static_cast<Touch*>( touches->anyObject() );
-	Point location = touch->getLocation();
+	CCTouch* touch = (CCTouch*)( pTouches->anyObject() );
+	CCPoint location = touch->getLocation();
     
 
-	Sprite *projectile = Sprite::create("components/Projectile.png", Rect(0, 0, 20, 20));
-    _owner->getParent()->addChild(projectile, 1, 4);
+	CCSprite *projectile = CCSprite::create("components/Projectile.png", CCRectMake(0, 0, 20, 20));
+    m_pOwner->getParent()->addChild(projectile, 1, 4);
     
     ProjectileController *com = ProjectileController::create();
     projectile->addComponent(com);
     com->move(location.x, location.y);
 
-    ((ComAudio*)(_owner->getComponent("Audio")))->playEffect("pew-pew-lei.wav");
+    ((CCComAudio*)(m_pOwner->getComponent("Audio")))->playEffect("pew-pew-lei.wav");
 }
 
 PlayerController* PlayerController::create(void)

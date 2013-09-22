@@ -86,9 +86,9 @@ public:
 
     // methods return value is string
     template <typename T>
-    static std::string callJavaStringFuncWithName_oneParam(PluginProtocol* thiz, const char* funcName, const char* paramCode, T param)
+    static const char* callJavaStringFuncWithName_oneParam(PluginProtocol* thiz, const char* funcName, const char* paramCode, T param)
     {
-        std::string ret = "";
+        const char* ret = "";
         return_val_if_fails(funcName != NULL && strlen(funcName) > 0, ret);
         return_val_if_fails(paramCode != NULL && strlen(paramCode) > 0, ret);
         PluginJavaData* pData = PluginUtils::getPluginJavaData(thiz);
@@ -100,15 +100,21 @@ public:
             , funcName
             , paramCode))
         {
-            jstring strRet = (jstring)t.env->CallObjectMethod(pData->jobj, t.methodID, param);
-            ret = PluginJniHelper::jstring2string(strRet);
+            jstring strRet = NULL;
+            if (param != NULL)
+            {
+                strRet = (jstring) t.env->CallObjectMethod(pData->jobj, t.methodID, param);
+            } else {
+                strRet = (jstring) t.env->CallObjectMethod(pData->jobj, t.methodID);
+            }
+            ret = PluginJniHelper::jstring2string(strRet).c_str();
             t.env->DeleteLocalRef(t.classID);
         }
         return ret;
     }
-    static std::string callJavaStringFuncWithName(PluginProtocol* thiz, const char* funcName)
+    static const char* callJavaStringFuncWithName(PluginProtocol* thiz, const char* funcName)
     {
-        std::string ret = "";
+        const char* ret = "";
         return_val_if_fails(funcName != NULL && strlen(funcName) > 0, ret);
         PluginJavaData* pData = PluginUtils::getPluginJavaData(thiz);
         return_val_if_fails(pData != NULL, ret);
@@ -120,7 +126,7 @@ public:
             , "()Ljava/lang/String;"))
         {
             jstring strRet = (jstring) t.env->CallObjectMethod(pData->jobj, t.methodID);
-            ret = PluginJniHelper::jstring2string(strRet);
+            ret = PluginJniHelper::jstring2string(strRet).c_str();
             t.env->DeleteLocalRef(t.classID);
         }
         return ret;

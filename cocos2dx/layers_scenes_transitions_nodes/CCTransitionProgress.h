@@ -31,124 +31,98 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class ProgressTimer;
-class RenderTexture;
+class CCProgressTimer;
+class CCRenderTexture;
 
 /**
  * @addtogroup transition
  * @{
  */
-class CC_DLL TransitionProgress : public TransitionScene
+
+class CC_DLL CCTransitionProgress : public CCTransitionScene
 {
 public:
-    static TransitionProgress* create(float t, Scene* scene);
+    static CCTransitionProgress* create(float t, CCScene* scene);
 
-    TransitionProgress();
-
-    //
-    // Overrides
-    //
-    virtual void onEnter() override;
-    virtual void onExit() override;
-
+    CCTransitionProgress();
+    virtual void onEnter();
+    virtual void onExit();
 protected:
-    virtual void sceneOrder() override;
-
-protected:
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture);
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
     virtual void setupTransition();
-
-protected:
-    float _to;
-    float _from;
-    Scene* _sceneToBeModified;
+    virtual void sceneOrder();
+    float m_fTo;
+    float m_fFrom;
+    CCScene* m_pSceneToBeModified;
 };
 
 
-/** TransitionRadialCCW transition.
+/** CCTransitionRadialCCW transition.
  A counter clock-wise radial transition to the next scene
  */
-class CC_DLL TransitionProgressRadialCCW : public TransitionProgress
+class CC_DLL CCTransitionProgressRadialCCW : public CCTransitionProgress
 {
 public:
-    static TransitionProgressRadialCCW* create(float t, Scene* scene);
-
+    static CCTransitionProgressRadialCCW* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
   
 };
 
 
-/** TransitionRadialCW transition.
+/** CCTransitionRadialCW transition.
  A counter clock-wise radial transition to the next scene
 */
-class CC_DLL TransitionProgressRadialCW : public TransitionProgress
+class CC_DLL CCTransitionProgressRadialCW : public CCTransitionProgress
 {
 public:
-    static TransitionProgressRadialCW* create(float t, Scene* scene);
-
+    static CCTransitionProgressRadialCW* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };
 
-/** TransitionProgressHorizontal transition.
+/** CCTransitionProgressHorizontal transition.
  A  clock-wise radial transition to the next scene
  */
-class CC_DLL TransitionProgressHorizontal : public TransitionProgress
+class CC_DLL CCTransitionProgressHorizontal : public CCTransitionProgress
 {
 public:
-    static TransitionProgressHorizontal* create(float t, Scene* scene);
 
+    static CCTransitionProgressHorizontal* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
+
 };
 
-class CC_DLL TransitionProgressVertical : public TransitionProgress
+class CC_DLL CCTransitionProgressVertical : public CCTransitionProgress
 {
 public:
-    static TransitionProgressVertical* create(float t, Scene* scene);
 
+    static CCTransitionProgressVertical* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
+
 };
 
-class CC_DLL TransitionProgressInOut : public TransitionProgress
+class CC_DLL CCTransitionProgressInOut : public CCTransitionProgress
 {
 public:
-    static TransitionProgressInOut* create(float t, Scene* scene);
 
+    static CCTransitionProgressInOut* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
-    virtual void sceneOrder() override;
-    virtual void setupTransition() override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
+    virtual void sceneOrder();
+    virtual void setupTransition();
 };
 
-class CC_DLL TransitionProgressOutIn : public TransitionProgress
+class CC_DLL CCTransitionProgressOutIn : public CCTransitionProgress
 {
 public:
-    static TransitionProgressOutIn* create(float t, Scene* scene);
 
+    static CCTransitionProgressOutIn* create(float t, CCScene* scene);
 protected:
-    //
-    // Overrides
-    //
-    virtual ProgressTimer* progressTimerNodeWithRenderTexture(RenderTexture* texture) override;
+    virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };
 

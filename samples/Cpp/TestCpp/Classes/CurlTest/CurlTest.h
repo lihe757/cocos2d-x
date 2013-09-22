@@ -4,16 +4,16 @@
 #include "cocos2d.h"
 #include "../testBasic.h"
 
-class CurlTest : public Layer
+class CurlTest : public CCLayer
 {
 public:
     CurlTest();
     ~CurlTest();
 
-    virtual void ccTouchesEnded(cocos2d::Set  *touches, cocos2d::Event  *event);
+    virtual void ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
 
 private:
-    cocos2d::LabelTTF*         _label;
+    cocos2d::CCLabelTTF*         m_pLabel;
 };
 
 class CurlTestScene : public TestScene

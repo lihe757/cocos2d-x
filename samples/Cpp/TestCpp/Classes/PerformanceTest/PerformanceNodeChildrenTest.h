@@ -11,7 +11,7 @@ public:
     virtual void showCurrentTest();
 };
 
-class NodeChildrenMainScene : public Scene
+class NodeChildrenMainScene : public CCScene
 {
 public:
     virtual void initWithQuantityOfNodes(unsigned int nNodes);
@@ -19,6 +19,8 @@ public:
     virtual std::string subtitle();
     virtual void updateQuantityOfNodes() = 0;
 
+    void onDecrease(CCObject* pSender);
+    void onIncrease(CCObject* pSender);
     void updateQuantityLabel();
 
     int getQuantityOfNodes() { return quantityOfNodes; }
@@ -39,7 +41,7 @@ public:
     virtual const char* profilerName();
 
 protected:
-    SpriteBatchNode    *batchNode;
+    CCSpriteBatchNode    *batchNode;
 };
 
 class IterateSpriteSheetFastEnum : public IterateSpriteSheet
@@ -72,10 +74,10 @@ public:
     virtual const char* profilerName();
 
 protected:
-    SpriteBatchNode    *batchNode;
+    CCSpriteBatchNode    *batchNode;
 
 #if CC_ENABLE_PROFILERS
-    ProfilingTimer* _profilingTimer;
+    CCProfilingTimer* _profilingTimer;
 #endif
 };
 

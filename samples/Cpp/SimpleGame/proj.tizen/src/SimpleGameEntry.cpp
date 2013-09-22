@@ -30,7 +30,6 @@ THE SOFTWARE.
 #include "cocos2d.h"
 
 USING_NS_CC;
-
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
 
@@ -44,10 +43,10 @@ ApplicationInitialized(void)
 {
     AppDelegate* pAppDelegate = new AppDelegate;
 
-    EGLView* eglView = EGLView::getInstance();
+    CCEGLView* eglView = CCEGLView::sharedOpenGLView();
     eglView->setFrameSize(720, 1280);
 
-    Application::getInstance()->run();
+    CCApplication::sharedApplication()->run();
 }
 
 //
@@ -61,11 +60,11 @@ OspMain(int argc, char *pArgv[])
     args.Construct();
     for (int i = 0; i < argc; i++)
     {
-        args.Add(new (std::nothrow) Tizen::Base::String(pArgv[i]));
+        args.Add(new (std::nothrow) String(pArgv[i]));
     }
 
-    OspApplication::SetApplicationInitializedCallback(ApplicationInitialized);
-    result r = Tizen::App::Application::Execute(OspApplication::CreateInstance, &args);
+    CCOspApplication::SetApplicationInitializedCallback(ApplicationInitialized);
+    result r = Tizen::App::Application::Execute(CCOspApplication::CreateInstance, &args);
     TryLog(r == E_SUCCESS, "[%s] Application execution failed", GetErrorMessage(r));
     AppLog("Application finished.");
 

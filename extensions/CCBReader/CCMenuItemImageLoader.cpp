@@ -8,21 +8,21 @@
 
 NS_CC_EXT_BEGIN
 
-void MenuItemImageLoader::onHandlePropTypeSpriteFrame(Node * pNode, Node * pParent, const char * pPropertyName, SpriteFrame * pSpriteFrame, CCBReader * ccbReader) {
+void CCMenuItemImageLoader::onHandlePropTypeSpriteFrame(CCNode * pNode, CCNode * pParent, const char * pPropertyName, CCSpriteFrame * pCCSpriteFrame, CCBReader * pCCBReader) {
     if(strcmp(pPropertyName, PROPERTY_NORMALDISPLAYFRAME) == 0) {
-        if(pSpriteFrame != NULL) {
-            ((MenuItemImage *)pNode)->setNormalSpriteFrame(pSpriteFrame);
+        if(pCCSpriteFrame != NULL) {
+            ((CCMenuItemImage *)pNode)->setNormalSpriteFrame(pCCSpriteFrame);
         }
     } else if(strcmp(pPropertyName, PROPERTY_SELECTEDDISPLAYFRAME) == 0) {
-        if(pSpriteFrame != NULL) {
-            ((MenuItemImage *)pNode)->setSelectedSpriteFrame(pSpriteFrame);
+        if(pCCSpriteFrame != NULL) {
+            ((CCMenuItemImage *)pNode)->setSelectedSpriteFrame(pCCSpriteFrame);
         }
     } else if(strcmp(pPropertyName, PROPERTY_DISABLEDDISPLAYFRAME) == 0) {
-        if(pSpriteFrame != NULL) {
-            ((MenuItemImage *)pNode)->setDisabledSpriteFrame(pSpriteFrame);
+        if(pCCSpriteFrame != NULL) {
+            ((CCMenuItemImage *)pNode)->setDisabledSpriteFrame(pCCSpriteFrame);
         }
     } else {
-        MenuItemLoader::onHandlePropTypeSpriteFrame(pNode, pParent, pPropertyName, pSpriteFrame, ccbReader);
+        CCMenuItemLoader::onHandlePropTypeSpriteFrame(pNode, pParent, pPropertyName, pCCSpriteFrame, pCCBReader);
     }
 }
 

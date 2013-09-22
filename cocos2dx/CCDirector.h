@@ -28,7 +28,6 @@ THE SOFTWARE.
 #define __CCDIRECTOR_H__
 
 #include "platform/CCPlatformMacros.h"
-
 #include "cocoa/CCObject.h"
 #include "ccTypes.h"
 #include "cocoa/CCGeometry.h"
@@ -46,110 +45,102 @@ NS_CC_BEGIN
  * @{
  */
 
+/** @typedef ccDirectorProjection
+ Possible OpenGL projections used by director
+ */
+typedef enum {
+    /// sets a 2D projection (orthogonal projection)
+    kCCDirectorProjection2D,
+    
+    /// sets a 3D projection with a fovy=60, znear=0.5f and zfar=1500.
+    kCCDirectorProjection3D,
+    
+    /// it calls "updateProjection" on the projection delegate.
+    kCCDirectorProjectionCustom,
+    
+    /// Default projection is 3D projection
+    kCCDirectorProjectionDefault = kCCDirectorProjection3D,
+} ccDirectorProjection;
+
 /* Forward declarations. */
-class LabelAtlas;
-class Scene;
-class EGLView;
-class DirectorDelegate;
-class Node;
-class Scheduler;
-class ActionManager;
-class TouchDispatcher;
-class KeyboardDispatcher;
-class KeypadDispatcher;
-class Accelerometer;
+class CCLabelAtlas;
+class CCScene;
+class CCEGLView;
+class CCDirectorDelegate;
+class CCNode;
+class CCScheduler;
+class CCActionManager;
+class CCTouchDispatcher;
+class CCKeypadDispatcher;
+class CCAccelerometer;
 
 /**
 @brief Class that creates and handle the main Window and manages how
 and when to execute the Scenes.
  
- The Director is also responsible for:
+ The CCDirector is also responsible for:
   - initializing the OpenGL context
   - setting the OpenGL pixel format (default on is RGB565)
   - setting the OpenGL buffer depth (default one is 0-bit)
   - setting the projection (default one is 3D)
   - setting the orientation (default one is Portrait)
  
- Since the Director is a singleton, the standard way to use it is by calling:
-  _ Director::getInstance()->methodName();
+ Since the CCDirector is a singleton, the standard way to use it is by calling:
+  _ CCDirector::sharedDirector()->methodName();
  
- The Director also sets the default OpenGL context:
+ The CCDirector also sets the default OpenGL context:
   - GL_TEXTURE_2D is enabled
   - GL_VERTEX_ARRAY is enabled
   - GL_COLOR_ARRAY is enabled
   - GL_TEXTURE_COORD_ARRAY is enabled
 */
-class CC_DLL Director : public Object, public TypeInfo
+class CC_DLL CCDirector : public CCObject, public TypeInfo
 {
 public:
-    /** @typedef ccDirectorProjection
-     Possible OpenGL projections used by director
-     */
-    enum class Projection
-    {
-        /// sets a 2D projection (orthogonal projection)
-        _2D,
-        
-        /// sets a 3D projection with a fovy=60, znear=0.5f and zfar=1500.
-        _3D,
-        
-        /// it calls "updateProjection" on the projection delegate.
-        CUSTOM,
-        
-        /// Default projection is 3D projection
-        DEFAULT = _3D,
-    };
-    
-    /** returns a shared instance of the director */
-    static Director* getInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Director* sharedDirector() { return Director::getInstance(); }
-
-    Director(void);
-    virtual ~Director(void);
+    CCDirector(void);
+    virtual ~CCDirector(void);
     virtual bool init(void);
     virtual long getClassTypeInfo() {
-		static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::Director).name());
+		static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCDirector).name());
 		return id;
     }
 
     // attribute
 
     /** Get current running Scene. Director can only run one Scene at the time */
-    inline Scene* getRunningScene(void) { return _runningScene; }
+    inline CCScene* getRunningScene(void) { return m_pRunningScene; }
 
     /** Get the FPS value */
-    inline double getAnimationInterval(void) { return _animationInterval; }
+    inline double getAnimationInterval(void) { return m_dAnimationInterval; }
     /** Set the FPS value. */
     virtual void setAnimationInterval(double dValue) = 0;
 
     /** Whether or not to display the FPS on the bottom-left corner */
-    inline bool isDisplayStats(void) { return _displayStats; }
+    inline bool isDisplayStats(void) { return m_bDisplayStats; }
     /** Display the FPS on the bottom-left corner */
-    inline void setDisplayStats(bool displayStats) { _displayStats = displayStats; }
+    inline void setDisplayStats(bool bDisplayStats) { m_bDisplayStats = bDisplayStats; }
     
     /** seconds per frame */
-    inline float getSecondsPerFrame() { return _secondsPerFrame; }
+    inline float getSecondsPerFrame() { return m_fSecondsPerFrame; }
 
-    /** Get the EGLView, where everything is rendered */
-    inline EGLView* getOpenGLView(void) { return _openGLView; }
-    void setOpenGLView(EGLView *pobOpenGLView);
+    /** Get the CCEGLView, where everything is rendered */
+    inline CCEGLView* getOpenGLView(void) { return m_pobOpenGLView; }
+    void setOpenGLView(CCEGLView *pobOpenGLView);
 
-    inline bool isNextDeltaTimeZero(void) { return _nextDeltaTimeZero; }
-    void setNextDeltaTimeZero(bool nextDeltaTimeZero);
+    inline bool isNextDeltaTimeZero(void) { return m_bNextDeltaTimeZero; }
+    void setNextDeltaTimeZero(bool bNextDeltaTimeZero);
 
     /** Whether or not the Director is paused */
-    inline bool isPaused(void) { return _paused; }
+    inline bool isPaused(void) { return m_bPaused; }
 
     /** How many frames were called since the director started */
-    inline unsigned int getTotalFrames(void) { return _totalFrames; }
+    inline unsigned int getTotalFrames(void) { return m_uTotalFrames; }
     
     /** Sets an OpenGL projection
      @since v0.8.2
      */
-    inline Projection getProjection(void) { return _projection; }
-    void setProjection(Projection projection);
+    inline ccDirectorProjection getProjection(void) { return m_eProjection; }
+    void setProjection(ccDirectorProjection kProjection);
     
     /** Sets the glViewport*/
     void setViewport();
@@ -162,54 +153,54 @@ public:
      If the new scene replaces the old one, the it will receive the "cleanup" message.
      @since v0.99.0
      */
-    inline bool isSendCleanupToScene(void) { return _sendCleanupToScene; }
+    inline bool isSendCleanupToScene(void) { return m_bSendCleanupToScene; }
 
     /** This object will be visited after the main scene is visited.
      This object MUST implement the "visit" selector.
-     Useful to hook a notification object, like Notifications (http://github.com/manucorporat/CCNotifications)
+     Useful to hook a notification object, like CCNotifications (http://github.com/manucorporat/CCNotifications)
      @since v0.99.5
      */
-    Node* getNotificationNode();
-    void setNotificationNode(Node *node);
+    CCNode* getNotificationNode();
+    void setNotificationNode(CCNode *node);
     
-    /** Director delegate. It shall implemente the DirectorDelegate protocol
+    /** CCDirector delegate. It shall implemente the CCDirectorDelegate protocol
      @since v0.99.5
      */
-    DirectorDelegate* getDelegate() const;
-    void setDelegate(DirectorDelegate* pDelegate);
+    CCDirectorDelegate* getDelegate() const;
+    void setDelegate(CCDirectorDelegate* pDelegate);
 
     // window size
 
     /** returns the size of the OpenGL view in points.
     */
-    const Size& getWinSize(void) const;
+    CCSize getWinSize(void);
 
     /** returns the size of the OpenGL view in pixels.
     */
-    Size getWinSizeInPixels(void) const;
+    CCSize getWinSizeInPixels(void);
     
     /** returns visible size of the OpenGL view in points.
      *  the value is equal to getWinSize if don't invoke
-     *  EGLView::setDesignResolutionSize()
+     *  CCEGLView::setDesignResolutionSize()
      */
-    Size getVisibleSize() const;
+    CCSize getVisibleSize();
     
     /** returns visible origin of the OpenGL view in points.
      */
-    Point getVisibleOrigin() const;
+    CCPoint getVisibleOrigin();
 
     /** converts a UIKit coordinate to an OpenGL coordinate
      Useful to convert (multi) touch coordinates to the current layout (portrait or landscape)
      */
-    Point convertToGL(const Point& point);
+    CCPoint convertToGL(const CCPoint& obPoint);
 
     /** converts an OpenGL coordinate to a UIKit coordinate
      Useful to convert node points to window points for calls such as glScissor
      */
-    Point convertToUI(const Point& point);
+    CCPoint convertToUI(const CCPoint& obPoint);
 
     /// XXX: missing description 
-    float getZEye(void) const;
+    float getZEye(void);
 
     // Scene Management
 
@@ -219,14 +210,14 @@ public:
      *
      * It will call pushScene: and then it will call startAnimation
      */
-    void runWithScene(Scene *scene);
+    void runWithScene(CCScene *pScene);
 
     /** Suspends the execution of the running scene, pushing it on the stack of suspended scenes.
      * The new scene will be executed.
      * Try to avoid big stacks of pushed scenes to reduce memory allocation. 
      * ONLY call it if there is a running scene.
      */
-    void pushScene(Scene *scene);
+    void pushScene(CCScene *pScene);
 
     /** Pops out a scene from the queue.
      * This scene will replace the running one.
@@ -251,7 +242,7 @@ public:
     /** Replaces the running scene with a new one. The running scene is terminated.
      * ONLY call it if there is a running scene.
      */
-    void replaceScene(Scene *scene);
+    void replaceScene(CCScene *pScene);
 
     /** Ends the execution, releases the running scene.
      It doesn't remove the OpenGL view from its parent. You have to do it manually.
@@ -289,12 +280,12 @@ public:
     // Memory Helper
 
     /** Removes cached all cocos2d cached data.
-     It will purge the TextureCache, SpriteFrameCache, LabelBMFont cache
+     It will purge the CCTextureCache, CCSpriteFrameCache, CCLabelBMFont cache
      @since v0.99.3
      */
     void purgeCachedData(void);
 
-	/** sets the default values based on the Configuration info */
+	/** sets the default values based on the CCConfiguration info */
     void setDefaultValues(void);
 
     // OpenGL Helper
@@ -316,77 +307,45 @@ public:
     @since v0.99.4
     */
     void setContentScaleFactor(float scaleFactor);
-    float getContentScaleFactor(void) const;
+    float getContentScaleFactor(void);
 
 public:
-    /** Gets the Scheduler associated with this director
+    /** CCScheduler associated with this director
      @since v2.0
      */
-    Scheduler* getScheduler() const;
-    
-    /** Sets the Scheduler associated with this director
-     @since v2.0
-     */
-    void setScheduler(Scheduler* scheduler);
+    CC_PROPERTY(CCScheduler*, m_pScheduler, Scheduler);
 
-    /** Gets the ActionManager associated with this director
+    /** CCActionManager associated with this director
      @since v2.0
      */
-    ActionManager* getActionManager() const;
-    
-    /** Sets the ActionManager associated with this director
-     @since v2.0
-     */
-    void setActionManager(ActionManager* actionManager);
-    
-    /** Gets the TouchDispatcher associated with this director
-     @since v2.0
-     */
-    TouchDispatcher* getTouchDispatcher() const;
-    
-    /** Sets the TouchDispatcher associated with this director
-     @since v2.0
-     */
-    void setTouchDispatcher(TouchDispatcher* touchDispatcher);
+    CC_PROPERTY(CCActionManager*, m_pActionManager, ActionManager);
 
-    /** Gets the KeyboardDispatcher associated with this director
-     @note Supported on Mac and Linux only now.
-     @since v3.0
+    /** CCTouchDispatcher associated with this director
+     @since v2.0
      */
-    KeyboardDispatcher* getKeyboardDispatcher() const;
+    CC_PROPERTY(CCTouchDispatcher*, m_pTouchDispatcher, TouchDispatcher);
 
-    /** Sets the KeyboardDispatcher associated with this director
-     @note Supported on Mac and Linux only now.
-     @since v3.0
-     */
-    void setKeyboardDispatcher(KeyboardDispatcher* keyboardDispatcher);
-    
-    /** Gets the KeypadDispatcher associated with this director
+    /** CCKeypadDispatcher associated with this director
      @since v2.0
      */
-    KeypadDispatcher* getKeypadDispatcher() const;
+    CC_PROPERTY(CCKeypadDispatcher*, m_pKeypadDispatcher, KeypadDispatcher);
 
-    /** Sets the KeypadDispatcher associated with this director
+    /** CCAccelerometer associated with this director
      @since v2.0
      */
-    void setKeypadDispatcher(KeypadDispatcher* keypadDispatcher);
-    
-    /** Gets Accelerometer associated with this director
-     @since v2.0
-     */
-    Accelerometer* getAccelerometer() const;
-    
-    /** Sets Accelerometer associated with this director
-     @since v2.0
-     */
-    void setAccelerometer(Accelerometer* acc);
+    CC_PROPERTY(CCAccelerometer*, m_pAccelerometer, Accelerometer);
 
-    /* Gets delta time since last tick to main loop */
-	float getDeltaTime() const;
+    /* delta time since last tick to main loop */
+	CC_PROPERTY_READONLY(float, m_fDeltaTime, DeltaTime);
+	
+public:
+    /** returns a shared instance of the director */
+    static CCDirector* sharedDirector(void);
 
 protected:
+
     void purgeDirector();
-    bool _purgeDirecotorInNextLoop; // this flag will be set to true in end()
+    bool m_bPurgeDirecotorInNextLoop; // this flag will be set to true in end()
     
     void setNextScene(void);
     
@@ -397,106 +356,71 @@ protected:
     
     /** calculates delta time since last time it was called */    
     void calculateDeltaTime();
-
 protected:
-    /** Scheduler associated with this director
-     @since v2.0
-     */
-    Scheduler* _scheduler;
-    
-    /** ActionManager associated with this director
-     @since v2.0
-     */
-    ActionManager* _actionManager;
-    
-    /** TouchDispatcher associated with this director
-     @since v2.0
-     */
-    TouchDispatcher* _touchDispatcher;
-    
-    /** KeyboardDispatcher associated with this director
-     @note Supported on Mac and Linux only now.
-     @since v3.0
-     */
-    KeyboardDispatcher* _keyboardDispatcher;
-    
-    /** KeypadDispatcher associated with this director
-     @since v2.0
-     */
-    KeypadDispatcher* _keypadDispatcher;
-    
-    /** Accelerometer associated with this director
-     @since v2.0
-     */
-    Accelerometer* _accelerometer;
-    
-    /* delta time since last tick to main loop */
-	float _deltaTime;
-    
-    /* The EGLView, where everything is rendered */
-    EGLView    *_openGLView;
+    /* The CCEGLView, where everything is rendered */
+    CCEGLView    *m_pobOpenGLView;
 
-    double _animationInterval;
-    double _oldAnimationInterval;
+    double m_dAnimationInterval;
+    double m_dOldAnimationInterval;
 
     /* landscape mode ? */
-    bool _landscape;
+    bool m_bLandscape;
     
-    bool _displayStats;
-    float _accumDt;
-    float _frameRate;
+    bool m_bDisplayStats;
+    float m_fAccumDt;
+    float m_fFrameRate;
     
-    LabelAtlas *_FPSLabel;
-    LabelAtlas *_SPFLabel;
-    LabelAtlas *_drawsLabel;
+    CCLabelAtlas *m_pFPSLabel;
+    CCLabelAtlas *m_pSPFLabel;
+    CCLabelAtlas *m_pDrawsLabel;
     
     /** Whether or not the Director is paused */
-    bool _paused;
+    bool m_bPaused;
 
     /* How many frames were called since the director started */
-    unsigned int _totalFrames;
-    unsigned int _frames;
-    float _secondsPerFrame;
+    unsigned int m_uTotalFrames;
+    unsigned int m_uFrames;
+    float m_fSecondsPerFrame;
      
     /* The running scene */
-    Scene *_runningScene;
+    CCScene *m_pRunningScene;
     
     /* will be the next 'runningScene' in the next frame
      nextScene is a weak reference. */
-    Scene *_nextScene;
+    CCScene *m_pNextScene;
     
-    /* If true, then "old" scene will receive the cleanup message */
-    bool    _sendCleanupToScene;
+    /* If YES, then "old" scene will receive the cleanup message */
+    bool    m_bSendCleanupToScene;
 
     /* scheduled scenes */
-    Array* _scenesStack;
+    CCArray* m_pobScenesStack;
     
     /* last time the main loop was updated */
-    struct timeval *_lastUpdate;
+    struct cc_timeval *m_pLastUpdate;
 
     /* whether or not the next delta time will be zero */
-    bool _nextDeltaTimeZero;
+    bool m_bNextDeltaTimeZero;
     
     /* projection used */
-    Projection _projection;
+    ccDirectorProjection m_eProjection;
 
     /* window size in points */
-    Size    _winSizeInPoints;
+    CCSize    m_obWinSizeInPoints;
     
     /* content scale factor */
-    float    _contentScaleFactor;
+    float    m_fContentScaleFactor;
 
     /* store the fps string */
-    char *_FPS;
+    char *m_pszFPS;
 
     /* This object will be visited after the scene. Useful to hook a notification node */
-    Node *_notificationNode;
+    CCNode *m_pNotificationNode;
 
     /* Projection protocol delegate */
-    DirectorDelegate *_projectionDelegate;
+    CCDirectorDelegate *m_pProjectionDelegate;
     
-    // EGLViewProtocol will recreate stats labels to fit visible rect
-    friend class EGLViewProtocol;
+    // CCEGLViewProtocol will recreate stats labels to fit visible rect
+    friend class CCEGLViewProtocol;
 };
 
 /** 
@@ -508,23 +432,20 @@ protected:
  
  @since v0.8.2
  */
-class DisplayLinkDirector : public Director
+class CCDisplayLinkDirector : public CCDirector
 {
 public:
-    DisplayLinkDirector(void) 
-        : _invalid(false)
+    CCDisplayLinkDirector(void) 
+        : m_bInvalid(false)
     {}
 
-    //
-    // Overrides
-    //
-    virtual void mainLoop(void) override;
-    virtual void setAnimationInterval(double dValue) override;
-    virtual void startAnimation(void) override;
-    virtual void stopAnimation() override;
+    virtual void mainLoop(void);
+    virtual void setAnimationInterval(double dValue);
+    virtual void startAnimation(void);
+    virtual void stopAnimation();
 
 protected:
-    bool _invalid;
+    bool m_bInvalid;
 };
 
 // end of base_node group

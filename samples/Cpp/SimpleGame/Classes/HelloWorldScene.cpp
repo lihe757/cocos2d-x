@@ -29,13 +29,13 @@ HelloWorld::HelloWorld()
 {
 }
 
-Scene* HelloWorld::scene()
+CCScene* HelloWorld::scene()
 {
-	Scene * scene = NULL;
+	CCScene * scene = NULL;
 	do 
 	{
 		// 'scene' is an autorelease object
-		scene = Scene::create();
+		scene = CCScene::create();
 		CC_BREAK_IF(! scene);
 
 		// 'layer' is an autorelease object
@@ -60,7 +60,7 @@ bool HelloWorld::init()
 		// super init first
 		//////////////////////////////////////////////////////////////////////////
 
-		CC_BREAK_IF(! LayerColor::initWithColor( Color4B(255,255,255,255) ) );
+		CC_BREAK_IF(! CCLayerColor::initWithColor( ccc4(255,255,255,255) ) );
 
 		//////////////////////////////////////////////////////////////////////////
 		// add your codes below...
@@ -69,32 +69,33 @@ bool HelloWorld::init()
 		// 1. Add a menu item with "X" image, which is clicked to quit the program.
 
 		// Create a "close" menu item with close icon, it's an auto release object.
-		MenuItemImage *closeItem = MenuItemImage::create(
+		CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
 			"CloseNormal.png",
 			"CloseSelected.png",
-            CC_CALLBACK_1(HelloWorld::menuCloseCallback,this));
-		CC_BREAK_IF(! closeItem);
+			this,
+			menu_selector(HelloWorld::menuCloseCallback));
+		CC_BREAK_IF(! pCloseItem);
         
 		// Place the menu item bottom-right conner.
-        Size visibleSize = Director::getInstance()->getVisibleSize();
-        Point origin = Director::getInstance()->getVisibleOrigin();
+        CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+        CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
         
-		closeItem->setPosition(Point(origin.x + visibleSize.width - closeItem->getContentSize().width/2,
-                                    origin.y + closeItem->getContentSize().height/2));
+		pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width/2,
+                                    origin.y + pCloseItem->getContentSize().height/2));
 
 		// Create a menu with the "close" menu item, it's an auto release object.
-		Menu* menu = Menu::create(closeItem, NULL);
-		menu->setPosition(Point::ZERO);
-		CC_BREAK_IF(! menu);
+		CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+		pMenu->setPosition(CCPointZero);
+		CC_BREAK_IF(! pMenu);
 
 		// Add the menu to HelloWorld layer as a child layer.
-		this->addChild(menu, 1);
+		this->addChild(pMenu, 1);
 
 		/////////////////////////////
 		// 2. add your codes below...
-		Sprite *player = Sprite::create("Player.png", Rect(0, 0, 27, 40) );
+		CCSprite *player = CCSprite::create("Player.png", CCRectMake(0, 0, 27, 40) );
         
-		player->setPosition( Point(origin.x + player->getContentSize().width/2,
+		player->setPosition( ccp(origin.x + player->getContentSize().width/2,
                                  origin.y + visibleSize.height/2) );
 		this->addChild(player);
 
@@ -102,14 +103,14 @@ bool HelloWorld::init()
 
 		this->setTouchEnabled(true);
 
-		_targets = new Array;
-		_projectiles = new Array;
+		_targets = new CCArray;
+		_projectiles = new CCArray;
 
 		// use updateGame instead of update, otherwise it will conflit with SelectorProtocol::update
 		// see http://www.cocos2d-x.org/boards/6/topics/1478
 		this->schedule( schedule_selector(HelloWorld::updateGame) );
 
-		CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("background-music-aac.wav", true);
+		CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic("background-music-aac.wav", true);
 
 		bRet = true;
 	} while (0);
@@ -117,19 +118,19 @@ bool HelloWorld::init()
 	return bRet;
 }
 
-void HelloWorld::menuCloseCallback(Object* sender)
+void HelloWorld::menuCloseCallback(CCObject* pSender)
 {
 	// "close" menu item clicked
-	Director::getInstance()->end();
+	CCDirector::sharedDirector()->end();
 }
 
 // cpp with cocos2d-x
 void HelloWorld::addTarget()
 {
-	Sprite *target = Sprite::create("Target.png", Rect(0,0,27,40) );
+	CCSprite *target = CCSprite::create("Target.png", CCRectMake(0,0,27,40) );
     
 	// Determine where to spawn the target along the Y axis
-	Size winSize = Director::getInstance()->getVisibleSize();
+	CCSize winSize = CCDirector::sharedDirector()->getVisibleSize();
 	float minY = target->getContentSize().height/2;
 	float maxY = winSize.height -  target->getContentSize().height/2;
 	int rangeY = (int)(maxY - minY);
@@ -139,8 +140,8 @@ void HelloWorld::addTarget()
 	// Create the target slightly off-screen along the right edge,
 	// and along a random position along the Y axis as calculated
 	target->setPosition( 
-		Point(winSize.width + (target->getContentSize().width/2), 
-            Director::getInstance()->getVisibleOrigin().y + actualY) );
+		ccp(winSize.width + (target->getContentSize().width/2), 
+            CCDirector::sharedDirector()->getVisibleOrigin().y + actualY) );
 	this->addChild(target);
 
 	// Determine speed of the target
@@ -151,19 +152,20 @@ void HelloWorld::addTarget()
 	int actualDuration = ( rand() % rangeDuration ) + minDuration;
 
 	// Create the actions
-	FiniteTimeAction* actionMove = MoveTo::create( (float)actualDuration,
-                                            Point(0 - target->getContentSize().width/2, actualY) );
-	FiniteTimeAction* actionMoveDone = CallFuncN::create( CC_CALLBACK_1(HelloWorld::spriteMoveFinished, this));
-	target->runAction( Sequence::create(actionMove, actionMoveDone, NULL) );
+	CCFiniteTimeAction* actionMove = CCMoveTo::create( (float)actualDuration,
+                                            ccp(0 - target->getContentSize().width/2, actualY) );
+	CCFiniteTimeAction* actionMoveDone = CCCallFuncN::create( this, 
+                                            callfuncN_selector(HelloWorld::spriteMoveFinished));
+	target->runAction( CCSequence::create(actionMove, actionMoveDone, NULL) );
 
 	// Add to targets array
 	target->setTag(1);
 	_targets->addObject(target);
 }
 
-void HelloWorld::spriteMoveFinished(Node* sender)
+void HelloWorld::spriteMoveFinished(CCNode* sender)
 {
-	Sprite *sprite = (Sprite *)sender;
+	CCSprite *sprite = (CCSprite *)sender;
 	this->removeChild(sprite, true);
 
 	if (sprite->getTag() == 1)  // target
@@ -172,7 +174,7 @@ void HelloWorld::spriteMoveFinished(Node* sender)
         
 		GameOverScene *gameOverScene = GameOverScene::create();
 		gameOverScene->getLayer()->getLabel()->setString("You Lose :[");
-		Director::getInstance()->replaceScene(gameOverScene);
+		CCDirector::sharedDirector()->replaceScene(gameOverScene);
 
 	}
 	else if (sprite->getTag() == 2) // projectile
@@ -187,19 +189,19 @@ void HelloWorld::gameLogic(float dt)
 }
 
 // cpp with cocos2d-x
-void HelloWorld::ccTouchesEnded(Set* touches, Event* event)
+void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
 {
 	// Choose one of the touches to work with
-	Touch* touch = static_cast<Touch*>( touches->anyObject() );
-	Point location = touch->getLocation();
+	CCTouch* touch = (CCTouch*)( touches->anyObject() );
+	CCPoint location = touch->getLocation();
     
-	log("++++++++after  x:%f, y:%f", location.x, location.y);
+	CCLog("++++++++after  x:%f, y:%f", location.x, location.y);
 
 	// Set up initial location of projectile
-	Size winSize = Director::getInstance()->getVisibleSize();
-    Point origin = Director::getInstance()->getVisibleOrigin();
-	Sprite *projectile = Sprite::create("Projectile.png", Rect(0, 0, 20, 20));
-	projectile->setPosition( Point(origin.x+20, origin.y+winSize.height/2) );
+	CCSize winSize = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+	CCSprite *projectile = CCSprite::create("Projectile.png", CCRectMake(0, 0, 20, 20));
+	projectile->setPosition( ccp(origin.x+20, origin.y+winSize.height/2) );
 
 	// Determinie offset of location to projectile
 	float offX = location.x - projectile->getPosition().x;
@@ -215,7 +217,7 @@ void HelloWorld::ccTouchesEnded(Set* touches, Event* event)
 	float realX = origin.x+winSize.width + (projectile->getContentSize().width/2);
 	float ratio = offY / offX;
 	float realY = (realX * ratio) + projectile->getPosition().y;
-	Point realDest = Point(realX, realY);
+	CCPoint realDest = ccp(realX, realY);
 
 	// Determine the length of how far we're shooting
 	float offRealX = realX - projectile->getPosition().x;
@@ -225,47 +227,48 @@ void HelloWorld::ccTouchesEnded(Set* touches, Event* event)
 	float realMoveDuration = length/velocity;
 
 	// Move projectile to actual endpoint
-	projectile->runAction( Sequence::create(
-		MoveTo::create(realMoveDuration, realDest),
-		CallFuncN::create(CC_CALLBACK_1(HelloWorld::spriteMoveFinished, this)),
-                                            NULL) );
+	projectile->runAction( CCSequence::create(
+		CCMoveTo::create(realMoveDuration, realDest),
+		CCCallFuncN::create(this, 
+                            callfuncN_selector(HelloWorld::spriteMoveFinished)), 
+        NULL) );
 
 	// Add to projectiles array
 	projectile->setTag(2);
 	_projectiles->addObject(projectile);
 
-	CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew-pew-lei.wav");
+	CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("pew-pew-lei.wav");
 }
 
 void HelloWorld::updateGame(float dt)
 {
-	Array *projectilesToDelete = new Array;
-    Object* it = NULL;
-    Object* jt = NULL;
+	CCArray *projectilesToDelete = new CCArray;
+    CCObject* it = NULL;
+    CCObject* jt = NULL;
 
 	// for (it = _projectiles->begin(); it != _projectiles->end(); it++)
     CCARRAY_FOREACH(_projectiles, it)
 	{
-		Sprite *projectile = dynamic_cast<Sprite*>(it);
-		Rect projectileRect = Rect(
+		CCSprite *projectile = dynamic_cast<CCSprite*>(it);
+		CCRect projectileRect = CCRectMake(
 			projectile->getPosition().x - (projectile->getContentSize().width/2),
 			projectile->getPosition().y - (projectile->getContentSize().height/2),
 			projectile->getContentSize().width,
 			projectile->getContentSize().height);
 
-		Array* targetsToDelete =new Array;
+		CCArray* targetsToDelete =new CCArray;
 
 		// for (jt = _targets->begin(); jt != _targets->end(); jt++)
         CCARRAY_FOREACH(_targets, jt)
 		{
-			Sprite *target = dynamic_cast<Sprite*>(jt);
-			Rect targetRect = Rect(
+			CCSprite *target = dynamic_cast<CCSprite*>(jt);
+			CCRect targetRect = CCRectMake(
 				target->getPosition().x - (target->getContentSize().width/2),
 				target->getPosition().y - (target->getContentSize().height/2),
 				target->getContentSize().width,
 				target->getContentSize().height);
 
-			// if (Rect::RectIntersectsRect(projectileRect, targetRect))
+			// if (CCRect::CCRectIntersectsRect(projectileRect, targetRect))
             if (projectileRect.intersectsRect(targetRect))
 			{
 				targetsToDelete->addObject(target);
@@ -275,7 +278,7 @@ void HelloWorld::updateGame(float dt)
 		// for (jt = targetsToDelete->begin(); jt != targetsToDelete->end(); jt++)
         CCARRAY_FOREACH(targetsToDelete, jt)
 		{
-			Sprite *target = dynamic_cast<Sprite*>(jt);
+			CCSprite *target = dynamic_cast<CCSprite*>(jt);
 			_targets->removeObject(target);
 			this->removeChild(target, true);
 
@@ -284,7 +287,7 @@ void HelloWorld::updateGame(float dt)
 			{
 				GameOverScene *gameOverScene = GameOverScene::create();
 				gameOverScene->getLayer()->getLabel()->setString("You Win!");
-				Director::getInstance()->replaceScene(gameOverScene);
+				CCDirector::sharedDirector()->replaceScene(gameOverScene);
 			}
 		}
 
@@ -298,7 +301,7 @@ void HelloWorld::updateGame(float dt)
 	// for (it = projectilesToDelete->begin(); it != projectilesToDelete->end(); it++)
     CCARRAY_FOREACH(projectilesToDelete, it)
 	{
-		Sprite* projectile = dynamic_cast<Sprite*>(it);
+		CCSprite* projectile = dynamic_cast<CCSprite*>(it);
 		_projectiles->removeObject(projectile);
 		this->removeChild(projectile, true);
 	}
@@ -307,6 +310,6 @@ void HelloWorld::updateGame(float dt)
 
 void HelloWorld::registerWithTouchDispatcher()
 {
-	// TouchDispatcher::sharedDispatcher()->addTargetedDelegate(this,0,true);
-    Director::getInstance()->getTouchDispatcher()->addStandardDelegate(this,0);
+	// CCTouchDispatcher::sharedDispatcher()->addTargetedDelegate(this,0,true);
+    CCDirector::sharedDirector()->getTouchDispatcher()->addStandardDelegate(this,0);
 }

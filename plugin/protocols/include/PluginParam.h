@@ -53,31 +53,31 @@ public:
 	} ParamType;
 
 	inline ParamType getCurrentType() {
-		return _type;
+		return m_type;
 	}
 
 	inline int getIntValue() {
-		return _intValue;
+		return m_nValue;
 	}
 
 	inline float getFloatValue() {
-		return _floatValue;
+		return m_fValue;
 	}
 
 	inline bool getBoolValue() {
-		return _boolValue;
+		return m_bValue;
 	}
 
 	inline const char* getStringValue() {
-		return _strValue.c_str();
+		return m_strValue.c_str();
 	}
 
 	inline std::map<std::string, PluginParam*> getMapValue() {
-		return _mapValue;
+		return m_mapValue;
 	}
 
 	inline StringMap getStrMapValue() {
-        return _strMapValue;
+        return m_strMapValue;
     }
 
 private:
@@ -85,14 +85,14 @@ private:
     PluginParam(std::map<std::string, PluginParam*> mapValue);
 
 private:
-	ParamType _type;
+	ParamType m_type;
 
-	int _intValue;
-	float _floatValue;
-	bool _boolValue;
-	std::string _strValue;
-	std::map<std::string, PluginParam*> _mapValue;
-	StringMap _strMapValue;
+	int m_nValue;
+	float m_fValue;
+	bool m_bValue;
+	std::string m_strValue;
+	std::map<std::string, PluginParam*> m_mapValue;
+	StringMap m_strMapValue;
 };
 
 }} //namespace cocos2d { namespace plugin {

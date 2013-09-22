@@ -31,34 +31,34 @@ THE SOFTWARE.
 NS_CC_BEGIN
 
 #if CC_USE_LA88_LABELS
-#define SHADER_PROGRAM GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR
+#define SHADER_PROGRAM kCCShader_PositionTextureColor
 #else
-#define SHADER_PROGRAM GLProgram::SHADER_NAME_POSITION_TEXTUREA8Color
+#define SHADER_PROGRAM kCCShader_PositionTextureA8Color
 #endif
 
 //
 //CCLabelTTF
 //
-LabelTTF::LabelTTF()
-: _alignment(Label::HAlignment::CENTER)
-, _vAlignment(Label::VAlignment::TOP)
-, _fontName(NULL)
-, _fontSize(0.0)
-, _string("")
-, _shadowEnabled(false)
-, _strokeEnabled(false)
-, _textFillColor(Color3B::WHITE)
+CCLabelTTF::CCLabelTTF()
+: m_hAlignment(kCCTextAlignmentCenter)
+, m_vAlignment(kCCVerticalTextAlignmentTop)
+, m_pFontName(NULL)
+, m_fFontSize(0.0)
+, m_string("")
+, m_shadowEnabled(false)
+, m_strokeEnabled(false)
+, m_textFillColor(ccWHITE)
 {
 }
 
-LabelTTF::~LabelTTF()
+CCLabelTTF::~CCLabelTTF()
 {
-    CC_SAFE_DELETE(_fontName);
+    CC_SAFE_DELETE(m_pFontName);
 }
 
-LabelTTF * LabelTTF::create()
+CCLabelTTF * CCLabelTTF::create()
 {
-    LabelTTF * pRet = new LabelTTF();
+    CCLabelTTF * pRet = new CCLabelTTF();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -70,23 +70,23 @@ LabelTTF * LabelTTF::create()
     return pRet;
 }
 
-LabelTTF * LabelTTF::create(const char *string, const char *fontName, float fontSize)
+CCLabelTTF * CCLabelTTF::create(const char *string, const char *fontName, float fontSize)
 {
-    return LabelTTF::create(string, fontName, fontSize,
-                              Size::ZERO, Label::HAlignment::CENTER, Label::VAlignment::TOP);
+    return CCLabelTTF::create(string, fontName, fontSize,
+                              CCSizeZero, kCCTextAlignmentCenter, kCCVerticalTextAlignmentTop);
 }
 
-LabelTTF * LabelTTF::create(const char *string, const char *fontName, float fontSize,
-                                const Size& dimensions, Label::HAlignment hAlignment)
+CCLabelTTF * CCLabelTTF::create(const char *string, const char *fontName, float fontSize,
+                                const CCSize& dimensions, CCTextAlignment hAlignment)
 {
-    return LabelTTF::create(string, fontName, fontSize, dimensions, hAlignment, Label::VAlignment::TOP);
+    return CCLabelTTF::create(string, fontName, fontSize, dimensions, hAlignment, kCCVerticalTextAlignmentTop);
 }
 
-LabelTTF* LabelTTF::create(const char *string, const char *fontName, float fontSize,
-                               const Size &dimensions, Label::HAlignment hAlignment, 
-                               Label::VAlignment vAlignment)
+CCLabelTTF* CCLabelTTF::create(const char *string, const char *fontName, float fontSize,
+                               const CCSize &dimensions, CCTextAlignment hAlignment, 
+                               CCVerticalTextAlignment vAlignment)
 {
-    LabelTTF *pRet = new LabelTTF();
+    CCLabelTTF *pRet = new CCLabelTTF();
     if(pRet && pRet->initWithString(string, fontName, fontSize, dimensions, hAlignment, vAlignment))
     {
         pRet->autorelease();
@@ -96,9 +96,9 @@ LabelTTF* LabelTTF::create(const char *string, const char *fontName, float fontS
     return NULL;
 }
 
-LabelTTF * LabelTTF::createWithFontDefinition(const char *string, FontDefinition &textDefinition)
+CCLabelTTF * CCLabelTTF::createWithFontDefinition(const char *string, ccFontDefinition &textDefinition)
 {
-    LabelTTF *pRet = new LabelTTF();
+    CCLabelTTF *pRet = new CCLabelTTF();
     if(pRet && pRet->initWithStringAndTextDefinition(string, textDefinition))
     {
         pRet->autorelease();
@@ -108,37 +108,37 @@ LabelTTF * LabelTTF::createWithFontDefinition(const char *string, FontDefinition
     return NULL;
 }
 
-bool LabelTTF::init()
+bool CCLabelTTF::init()
 {
     return this->initWithString("", "Helvetica", 12);
 }
 
-bool LabelTTF::initWithString(const char *label, const char *fontName, float fontSize, 
-                                const Size& dimensions, Label::HAlignment alignment)
+bool CCLabelTTF::initWithString(const char *label, const char *fontName, float fontSize, 
+                                const CCSize& dimensions, CCTextAlignment alignment)
 {
-    return this->initWithString(label, fontName, fontSize, dimensions, alignment, Label::VAlignment::TOP);
+    return this->initWithString(label, fontName, fontSize, dimensions, alignment, kCCVerticalTextAlignmentTop);
 }
 
-bool LabelTTF::initWithString(const char *label, const char *fontName, float fontSize)
+bool CCLabelTTF::initWithString(const char *label, const char *fontName, float fontSize)
 {
     return this->initWithString(label, fontName, fontSize, 
-                                Size::ZERO, Label::HAlignment::LEFT, Label::VAlignment::TOP);
+                                CCSizeZero, kCCTextAlignmentLeft, kCCVerticalTextAlignmentTop);
 }
 
-bool LabelTTF::initWithString(const char *string, const char *fontName, float fontSize,
-                                const cocos2d::Size &dimensions, Label::HAlignment hAlignment,
-                                Label::VAlignment vAlignment)
+bool CCLabelTTF::initWithString(const char *string, const char *fontName, float fontSize,
+                                const cocos2d::CCSize &dimensions, CCTextAlignment hAlignment,
+                                CCVerticalTextAlignment vAlignment)
 {
-    if (Sprite::init())
+    if (CCSprite::init())
     {
         // shader program
-        this->setShaderProgram(ShaderCache::getInstance()->programForKey(SHADER_PROGRAM));
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(SHADER_PROGRAM));
         
-        _dimensions = Size(dimensions.width, dimensions.height);
-        _alignment  = hAlignment;
-        _vAlignment  = vAlignment;
-        _fontName   = new std::string(fontName);
-        _fontSize   = fontSize;
+        m_tDimensions = CCSizeMake(dimensions.width, dimensions.height);
+        m_hAlignment  = hAlignment;
+        m_vAlignment  = vAlignment;
+        m_pFontName   = new std::string(fontName);
+        m_fFontSize   = fontSize;
         
         this->setString(string);
         
@@ -148,12 +148,12 @@ bool LabelTTF::initWithString(const char *string, const char *fontName, float fo
     return false;
 }
 
-bool LabelTTF::initWithStringAndTextDefinition(const char *string, FontDefinition &textDefinition)
+bool CCLabelTTF::initWithStringAndTextDefinition(const char *string, ccFontDefinition &textDefinition)
 {
-    if (Sprite::init())
+    if (CCSprite::init())
     {
         // shader program
-        this->setShaderProgram(ShaderCache::getInstance()->programForKey(SHADER_PROGRAM));
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(SHADER_PROGRAM));
         
         // prepare everythin needed to render the label
         _updateWithTextDefinition(textDefinition, false);
@@ -171,118 +171,118 @@ bool LabelTTF::initWithStringAndTextDefinition(const char *string, FontDefinitio
 }
 
 
-void LabelTTF::setString(const char *string)
+void CCLabelTTF::setString(const char *string)
 {
-    CCASSERT(string != NULL, "Invalid string");
+    CCAssert(string != NULL, "Invalid string");
     
-    if (_string.compare(string))
+    if (m_string.compare(string))
     {
-        _string = string;
+        m_string = string;
         
         this->updateTexture();
     }
 }
 
-const char* LabelTTF::getString(void) const
+const char* CCLabelTTF::getString(void)
 {
-    return _string.c_str();
+    return m_string.c_str();
 }
 
-const char* LabelTTF::description() const
+const char* CCLabelTTF::description()
 {
-    return String::createWithFormat("<LabelTTF | FontName = %s, FontSize = %.1f>", _fontName->c_str(), _fontSize)->getCString();
+    return CCString::createWithFormat("<CCLabelTTF | FontName = %s, FontSize = %.1f>", m_pFontName->c_str(), m_fFontSize)->getCString();
 }
 
-Label::HAlignment LabelTTF::getHorizontalAlignment() const
+CCTextAlignment CCLabelTTF::getHorizontalAlignment()
 {
-    return _alignment;
+    return m_hAlignment;
 }
 
-void LabelTTF::setHorizontalAlignment(Label::HAlignment alignment)
+void CCLabelTTF::setHorizontalAlignment(CCTextAlignment alignment)
 {
-    if (alignment != _alignment)
+    if (alignment != m_hAlignment)
     {
-        _alignment = alignment;
+        m_hAlignment = alignment;
         
         // Force update
-        if (_string.size() > 0)
+        if (m_string.size() > 0)
         {
             this->updateTexture();
         }
     }
 }
 
-Label::VAlignment LabelTTF::getVerticalAlignment() const
+CCVerticalTextAlignment CCLabelTTF::getVerticalAlignment()
 {
-    return _vAlignment;
+    return m_vAlignment;
 }
 
-void LabelTTF::setVerticalAlignment(Label::VAlignment verticalAlignment)
+void CCLabelTTF::setVerticalAlignment(CCVerticalTextAlignment verticalAlignment)
 {
-    if (verticalAlignment != _vAlignment)
+    if (verticalAlignment != m_vAlignment)
     {
-        _vAlignment = verticalAlignment;
+        m_vAlignment = verticalAlignment;
         
         // Force update
-        if (_string.size() > 0)
+        if (m_string.size() > 0)
         {
             this->updateTexture();
         }
     }
 }
 
-const Size& LabelTTF::getDimensions() const
+CCSize CCLabelTTF::getDimensions()
 {
-    return _dimensions;
+    return m_tDimensions;
 }
 
-void LabelTTF::setDimensions(const Size &dim)
+void CCLabelTTF::setDimensions(const CCSize &dim)
 {
-    if (dim.width != _dimensions.width || dim.height != _dimensions.height)
+    if (dim.width != m_tDimensions.width || dim.height != m_tDimensions.height)
     {
-        _dimensions = dim;
+        m_tDimensions = dim;
         
         // Force update
-        if (_string.size() > 0)
+        if (m_string.size() > 0)
         {
             this->updateTexture();
         }
     }
 }
 
-float LabelTTF::getFontSize() const
+float CCLabelTTF::getFontSize()
 {
-    return _fontSize;
+    return m_fFontSize;
 }
 
-void LabelTTF::setFontSize(float fontSize)
+void CCLabelTTF::setFontSize(float fontSize)
 {
-    if (_fontSize != fontSize)
+    if (m_fFontSize != fontSize)
     {
-        _fontSize = fontSize;
+        m_fFontSize = fontSize;
         
         // Force update
-        if (_string.size() > 0)
+        if (m_string.size() > 0)
         {
             this->updateTexture();
         }
     }
 }
 
-const char* LabelTTF::getFontName() const
+const char* CCLabelTTF::getFontName()
 {
-    return _fontName->c_str();
+    return m_pFontName->c_str();
 }
 
-void LabelTTF::setFontName(const char *fontName)
+void CCLabelTTF::setFontName(const char *fontName)
 {
-    if (_fontName->compare(fontName))
+    if (m_pFontName->compare(fontName))
     {
-        delete _fontName;
-        _fontName = new std::string(fontName);
+        delete m_pFontName;
+        m_pFontName = new std::string(fontName);
         
         // Force update
-        if (_string.size() > 0)
+        if (m_string.size() > 0)
         {
             this->updateTexture();
         }
@@ -290,27 +290,27 @@ void LabelTTF::setFontName(const char *fontName)
 }
 
 // Helper
-bool LabelTTF::updateTexture()
+bool CCLabelTTF::updateTexture()
 {
-    Texture2D *tex;
-    tex = new Texture2D();
+    CCTexture2D *tex;
+    tex = new CCTexture2D();
     
     if (!tex)
         return false;
     
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     
-        FontDefinition texDef = _prepareTextDefinition(true);
-        tex->initWithString( _string.c_str(), texDef );
+        ccFontDefinition texDef = _prepareTextDefinition(true);
+        tex->initWithString( m_string.c_str(), &texDef );
     
     #else
     
-        tex->initWithString( _string.c_str(),
-                            _fontName->c_str(),
-                            _fontSize * CC_CONTENT_SCALE_FACTOR(),
-                            CC_SIZE_POINTS_TO_PIXELS(_dimensions),
-                            _alignment,
-                            _vAlignment);
+        tex->initWithString( m_string.c_str(),
+                            m_pFontName->c_str(),
+                            m_fFontSize * CC_CONTENT_SCALE_FACTOR(),
+                            CC_SIZE_POINTS_TO_PIXELS(m_tDimensions),
+                            m_hAlignment,
+                            m_vAlignment);
     
     #endif
     
@@ -320,43 +320,43 @@ bool LabelTTF::updateTexture()
     tex->release();
     
     // set the size in the sprite
-    Rect rect =Rect::ZERO;
-    rect.size   = _texture->getContentSize();
+    CCRect rect =CCRectZero;
+    rect.size   = m_pobTexture->getContentSize();
     this->setTextureRect(rect);
     
     //ok
     return true;
 }
 
-void LabelTTF::enableShadow(const Size &shadowOffset, float shadowOpacity, float shadowBlur, bool updateTexture)
+void CCLabelTTF::enableShadow(const CCSize &shadowOffset, float shadowOpacity, float shadowBlur, bool updateTexture)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     
         bool valueChanged = false;
         
-        if (false == _shadowEnabled)
+        if (false == m_shadowEnabled)
         {
-            _shadowEnabled = true;
+            m_shadowEnabled = true;
             valueChanged    = true;
         }
         
-        if ( (_shadowOffset.width != shadowOffset.width) || (_shadowOffset.height!=shadowOffset.height) )
+        if ( (m_shadowOffset.width != shadowOffset.width) || (m_shadowOffset.height!=shadowOffset.height) )
         {
-            _shadowOffset.width  = shadowOffset.width;
-            _shadowOffset.height = shadowOffset.height;
+            m_shadowOffset.width  = shadowOffset.width;
+            m_shadowOffset.height = shadowOffset.height;
             
             valueChanged = true;
         }
         
-        if (_shadowOpacity != shadowOpacity )
+        if (m_shadowOpacity != shadowOpacity )
         {
-            _shadowOpacity = shadowOpacity;
+            m_shadowOpacity = shadowOpacity;
             valueChanged = true;
         }
 
-        if (_shadowBlur    != shadowBlur)
+        if (m_shadowBlur    != shadowBlur)
         {
-            _shadowBlur = shadowBlur;
+            m_shadowBlur = shadowBlur;
             valueChanged = true;
         }
         
@@ -372,13 +372,13 @@ void LabelTTF::enableShadow(const Size &shadowOffset, float shadowOpacity, float
     
 }
 
-void LabelTTF::disableShadow(bool updateTexture)
+void CCLabelTTF::disableShadow(bool updateTexture)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     
-        if (_shadowEnabled)
+        if (m_shadowEnabled)
         {
-            _shadowEnabled = false;
+            m_shadowEnabled = false;
     
             if (updateTexture)
                 this->updateTexture();
@@ -390,27 +390,27 @@ void LabelTTF::disableShadow(bool updateTexture)
     #endif
 }
 
-void LabelTTF::enableStroke(const Color3B &strokeColor, float strokeSize, bool updateTexture)
+void CCLabelTTF::enableStroke(const ccColor3B &strokeColor, float strokeSize, bool updateTexture)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     
         bool valueChanged = false;
         
-        if(_strokeEnabled == false)
+        if(m_strokeEnabled == false)
         {
-            _strokeEnabled = true;
+            m_strokeEnabled = true;
             valueChanged = true;
         }
         
-        if ( (_strokeColor.r != strokeColor.r) || (_strokeColor.g != strokeColor.g) || (_strokeColor.b != strokeColor.b) )
+        if ( (m_strokeColor.r != strokeColor.r) || (m_strokeColor.g != strokeColor.g) || (m_strokeColor.b != strokeColor.b) )
         {
-            _strokeColor = strokeColor;
+            m_strokeColor = strokeColor;
             valueChanged = true;
         }
         
-        if (_strokeSize!=strokeSize)
+        if (m_strokeSize!=strokeSize)
         {
-            _strokeSize = strokeSize;
+            m_strokeSize = strokeSize;
             valueChanged = true;
         }
         
@@ -425,13 +425,13 @@ void LabelTTF::enableStroke(const Color3B &strokeColor, float strokeSize, bool u
     
 }
 
-void LabelTTF::disableStroke(bool updateTexture)
+void CCLabelTTF::disableStroke(bool updateTexture)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     
-        if (_strokeEnabled)
+        if (m_strokeEnabled)
         {
-            _strokeEnabled = false;
+            m_strokeEnabled = false;
             
             if (updateTexture)
                 this->updateTexture();
@@ -443,12 +443,12 @@ void LabelTTF::disableStroke(bool updateTexture)
     
 }
 
-void LabelTTF::setFontFillColor(const Color3B &tintColor, bool updateTexture)
+void CCLabelTTF::setFontFillColor(const ccColor3B &tintColor, bool updateTexture)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-        if (_textFillColor.r != tintColor.r || _textFillColor.g != tintColor.g || _textFillColor.b != tintColor.b)
+        if (m_textFillColor.r != tintColor.r || m_textFillColor.g != tintColor.g || m_textFillColor.b != tintColor.b)
         {
-            _textFillColor = tintColor;
+            m_textFillColor = tintColor;
             
             if (updateTexture)
                 this->updateTexture();
@@ -458,103 +458,108 @@ void LabelTTF::setFontFillColor(const Color3B &tintColor, bool updateTexture)
     #endif
 }
 
-void LabelTTF::setTextDefinition(const FontDefinition& theDefinition)
+void CCLabelTTF::setTextDefinition(ccFontDefinition *theDefinition)
 {
-    _updateWithTextDefinition(theDefinition, true);
+    if (theDefinition)
+    {
+        _updateWithTextDefinition(*theDefinition, true);
+    }
 }
 
-FontDefinition LabelTTF::getTextDefinition()
+ccFontDefinition *CCLabelTTF::getTextDefinition()
 {
-    return _prepareTextDefinition(false);
+    ccFontDefinition *tempDefinition = new ccFontDefinition;
+    *tempDefinition = _prepareTextDefinition(false);
+    return tempDefinition;
 }
 
-void LabelTTF::_updateWithTextDefinition(const FontDefinition& textDefinition, bool mustUpdateTexture)
+void CCLabelTTF::_updateWithTextDefinition(ccFontDefinition & textDefinition, bool mustUpdateTexture)
 {
-    _dimensions = Size(textDefinition._dimensions.width, textDefinition._dimensions.height);
-    _alignment  = textDefinition._alignment;
-    _vAlignment  = textDefinition._vertAlignment;
+    m_tDimensions = CCSizeMake(textDefinition.m_dimensions.width, textDefinition.m_dimensions.height);
+    m_hAlignment  = textDefinition.m_alignment;
+    m_vAlignment  = textDefinition.m_vertAlignment;
     
-    _fontName   = new std::string(textDefinition._fontName);
-    _fontSize   = textDefinition._fontSize;
+    m_pFontName   = new std::string(textDefinition.m_fontName);
+    m_fFontSize   = textDefinition.m_fontSize;
     
     
     // shadow
-    if ( textDefinition._shadow._shadowEnabled )
+    if ( textDefinition.m_shadow.m_shadowEnabled )
     {
-        enableShadow(textDefinition._shadow._shadowOffset, textDefinition._shadow._shadowOpacity, textDefinition._shadow._shadowBlur, false);
+        enableShadow(textDefinition.m_shadow.m_shadowOffset, textDefinition.m_shadow.m_shadowOpacity, textDefinition.m_shadow.m_shadowBlur, false);
     }
     
     // stroke
-    if ( textDefinition._stroke._strokeEnabled )
+    if ( textDefinition.m_stroke.m_strokeEnabled )
     {
-        enableStroke(textDefinition._stroke._strokeColor, textDefinition._stroke._strokeSize, false);
+        enableStroke(textDefinition.m_stroke.m_strokeColor, textDefinition.m_stroke.m_strokeSize, false);
     }
     
     // fill color
-    setFontFillColor(textDefinition._fontFillColor, false);
+    setFontFillColor(textDefinition.m_fontFillColor, false);
     
     if (mustUpdateTexture)
         updateTexture();
 }
 
-FontDefinition LabelTTF::_prepareTextDefinition(bool adjustForResolution)
+ccFontDefinition CCLabelTTF::_prepareTextDefinition(bool adjustForResolution)
 {
-    FontDefinition texDef;
+    ccFontDefinition texDef;
     
     if (adjustForResolution)
-        texDef._fontSize       =  _fontSize * CC_CONTENT_SCALE_FACTOR();
+        texDef.m_fontSize       =  m_fFontSize * CC_CONTENT_SCALE_FACTOR();
     else
-        texDef._fontSize       =  _fontSize;
+        texDef.m_fontSize       =  m_fFontSize;
     
-    texDef._fontName       = *_fontName;
-    texDef._alignment      =  _alignment;
-    texDef._vertAlignment  =  _vAlignment;
+    texDef.m_fontName       = *m_pFontName;
+    texDef.m_alignment      =  m_hAlignment;
+    texDef.m_vertAlignment  =  m_vAlignment;
     
     
     if (adjustForResolution)
-        texDef._dimensions     =  CC_SIZE_POINTS_TO_PIXELS(_dimensions);
+        texDef.m_dimensions     =  CC_SIZE_POINTS_TO_PIXELS(m_tDimensions);
     else
-        texDef._dimensions     =  _dimensions;
+        texDef.m_dimensions     =  m_tDimensions;
     
     
     // stroke
-    if ( _strokeEnabled )
+    if ( m_strokeEnabled )
     {
-        texDef._stroke._strokeEnabled = true;
-        texDef._stroke._strokeColor   = _strokeColor;
+        texDef.m_stroke.m_strokeEnabled = true;
+        texDef.m_stroke.m_strokeColor   = m_strokeColor;
         
         if (adjustForResolution)
-            texDef._stroke._strokeSize = _strokeSize * CC_CONTENT_SCALE_FACTOR();
+            texDef.m_stroke.m_strokeSize = m_strokeSize * CC_CONTENT_SCALE_FACTOR();
         else
-            texDef._stroke._strokeSize = _strokeSize;
+            texDef.m_stroke.m_strokeSize = m_strokeSize;
         
         
     }
     else
     {
-        texDef._stroke._strokeEnabled = false;
+        texDef.m_stroke.m_strokeEnabled = false;
     }
     
     
     // shadow
-    if ( _shadowEnabled )
+    if ( m_shadowEnabled )
     {
-        texDef._shadow._shadowEnabled         = true;
-        texDef._shadow._shadowBlur            = _shadowBlur;
-        texDef._shadow._shadowOpacity         = _shadowOpacity;
+        texDef.m_shadow.m_shadowEnabled         = true;
+        texDef.m_shadow.m_shadowBlur            = m_shadowBlur;
+        texDef.m_shadow.m_shadowOpacity         = m_shadowOpacity;
         
         if (adjustForResolution)
-            texDef._shadow._shadowOffset = CC_SIZE_POINTS_TO_PIXELS(_shadowOffset);
+            texDef.m_shadow.m_shadowOffset = CC_SIZE_POINTS_TO_PIXELS(m_shadowOffset);
         else
-            texDef._shadow._shadowOffset = _shadowOffset;
+            texDef.m_shadow.m_shadowOffset = m_shadowOffset;
     }
     else
     {
-        texDef._shadow._shadowEnabled = false;
+        texDef.m_shadow.m_shadowEnabled = false;
     }
     
     // text tint
-    texDef._fontFillColor = _textFillColor;
+    texDef.m_fontFillColor = m_textFillColor;
     
     return texDef;
 }

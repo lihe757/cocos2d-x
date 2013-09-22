@@ -86,10 +86,10 @@ public:
     void onPayResult(PayResultCode ret, const char* msg);
 
 protected:
-    static bool _paying;
+    static bool m_bPaying;
 
-    TProductInfo _curInfo;
-    PayResultListener* _listener;
+    TProductInfo m_curInfo;
+    PayResultListener* m_pListener;
 };
 
 }} // namespace cocos2d { namespace plugin {

@@ -49,12 +49,6 @@ ccb["TestTimelineLayer"] = TestTimelineLayer
 TestTimelineLayerOwner = TestTimelineLayerOwner or {}
 ccb["TestTimelineLayerOwner"] = TestTimelineLayerOwner
 
-TestScrollViewsLayer = TestScrollViewsLayer or {}
-ccb["TestScrollViewsLayer"] = TestScrollViewsLayer
-
-TestScrollViewsLayerOwner = TestScrollViewsLayerOwner or {}
-ccb["TestScrollViewsLayerOwner"] = TestScrollViewsLayerOwner
-
 local function onMenuItemAClicked()
     if nil ~= TestMenusLayer["mMenuItemStatusLabelBMFont"] then
         local labelBmFt = tolua.cast(TestMenusLayer["mMenuItemStatusLabelBMFont"],"CCLabelBMFont")
@@ -96,7 +90,7 @@ local function onMenuTestClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end
 end
 
@@ -105,7 +99,7 @@ TestMenusLayer["onMenuItemBClicked"] = onMenuItemBClicked
 TestMenusLayer["pressedC:"] = pressedC
 
 local function onBackClicked()
-    CCDirector:getInstance():popScene();
+    CCDirector:sharedDirector():popScene();
 end
 
 TestHeaderLayer["onBackClicked"] = onBackClicked
@@ -125,7 +119,7 @@ local function onSpriteTestClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end 
 end
 
@@ -144,7 +138,7 @@ local function onButtonTestClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end 
 end
 
@@ -171,7 +165,7 @@ local function onAnimationsTestClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end 
 end
 
@@ -190,7 +184,7 @@ local function onParticleSystemTestClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end 
 end
 
@@ -237,21 +231,7 @@ TestAnimationsLayer["onCCControlButtonFunkyClicked"] = onCCControlButtonFunkyCli
 
 
 local function onScrollViewTestClicked()
-    local scene  = CCScene:create()
-    local  proxy = CCBProxy:create()
-    local  node  = CCBReaderLoad("cocosbuilderRes/ccb/ccb/TestScrollViews.ccbi",proxy,true,"TestScrollViewsLayerOwner")
-    local  layer = tolua.cast(node,"CCLayer")
-    if nil ~= TestScrollViewsLayerOwner["mTestTitleLabelTTF"] then
-        local ccLabelTTF = tolua.cast(TestScrollViewsLayerOwner["mTestTitleLabelTTF"],"CCLabelTTF")
-        if nil ~= ccLabelTTF then
-            ccLabelTTF:setString("ccb/ccb/TestScrollViews.ccbi")
-        end
-    end
-    if nil ~= scene then
-        scene:addChild(layer)
-        scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
-    end
+    print("onScrollViewTestClicked")
 end
 
 local function onTimelineCallbackSoundClicked()
@@ -269,7 +249,7 @@ local function onTimelineCallbackSoundClicked()
     if nil ~= scene then
         scene:addChild(layer)
         scene:addChild(CreateBackMenuItem())
-        CCDirector:getInstance():pushScene(CCTransitionFade:create(0.5, scene, Color3B(0,0,0))); 
+        CCDirector:sharedDirector():pushScene(CCTransitionFade:create(0.5, scene, ccc3(0,0,0))); 
     end 
 end
 

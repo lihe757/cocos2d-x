@@ -36,14 +36,21 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class ScrollView;
+typedef enum {
+	kCCScrollViewDirectionNone = -1,
+    kCCScrollViewDirectionHorizontal = 0,
+    kCCScrollViewDirectionVertical,
+    kCCScrollViewDirectionBoth
+} CCScrollViewDirection;
 
-class ScrollViewDelegate
+class CCScrollView;
+
+class CCScrollViewDelegate
 {
 public:
-    virtual ~ScrollViewDelegate() {}
-    virtual void scrollViewDidScroll(ScrollView* view) = 0;
-    virtual void scrollViewDidZoom(ScrollView* view) = 0;
+    virtual ~CCScrollViewDelegate() {}
+    virtual void scrollViewDidScroll(CCScrollView* view) = 0;
+    virtual void scrollViewDidZoom(CCScrollView* view) = 0;
 };
 
 
@@ -51,16 +58,15 @@ public:
  * ScrollView support for cocos2d for iphone.
  * It provides scroll view functionalities to cocos2d projects natively.
  */
-class ScrollView : public Layer
+class CCScrollView : public CCLayer
 {
 public:
-    enum class Direction
-    {
-        NONE = -1,
-        HORIZONTAL = 0,
-        VERTICAL,
-        BOTH
-    };
+    CCScrollView();
+    virtual ~CCScrollView();
+
+    bool init();
+    virtual void registerWithTouchDispatcher();
+
     /**
      * Returns an autoreleased scroll view object.
      *
@@ -68,19 +74,17 @@ public:
      * @param container parent object
      * @return autoreleased scroll view object
      */
-    static ScrollView* create(Size size, Node* container = NULL);
+    static CCScrollView* create(CCSize size, CCNode* container = NULL);
 
     /**
      * Returns an autoreleased scroll view object.
      *
+     * @param size view size
+     * @param container parent object
      * @return autoreleased scroll view object
      */
-    static ScrollView* create();
+    static CCScrollView* create();
 
-    ScrollView();
-    virtual ~ScrollView();
-
-    bool init();
     /**
      * Returns a scroll view object
      *
@@ -88,33 +92,32 @@ public:
      * @param container parent object
      * @return scroll view object
      */
-    bool initWithViewSize(Size size, Node* container = NULL);
+    bool initWithViewSize(CCSize size, CCNode* container = NULL);
 
-    virtual void registerWithTouchDispatcher();
 
     /**
      * Sets a new content offset. It ignores max/min offset. It just sets what's given. (just like UIKit's UIScrollView)
      *
-     * @param offset    The new offset.
-     * @param animated  If true, the view will scroll to the new offset.
+     * @param offset new offset
+     * @param If YES, the view scrolls to the new offset
      */
-    void setContentOffset(Point offset, bool animated = false);
-    Point getContentOffset();
+    void setContentOffset(CCPoint offset, bool animated = false);
+    CCPoint getContentOffset();
     /**
      * Sets a new content offset. It ignores max/min offset. It just sets what's given. (just like UIKit's UIScrollView)
      * You can override the animation duration with this method.
      *
-     * @param offset    The new offset.
-     * @param dt        The animation duration.
+     * @param offset new offset
+     * @param animation duration
      */
-    void setContentOffsetInDuration(Point offset, float dt); 
+    void setContentOffsetInDuration(CCPoint offset, float dt); 
 
     void setZoomScale(float s);
     /**
      * Sets a new scale and does that for a predefined duration.
      *
-     * @param s         The new scale vale
-     * @param animated  If true, scaling is animated
+     * @param s a new scale vale
+     * @param animated if YES, scaling is animated
      */
     void setZoomScale(float s, bool animated);
 
@@ -123,85 +126,86 @@ public:
     /**
      * Sets a new scale for container in a given duration.
      *
-     * @param s     The new scale value
-     * @param dt    The animation duration
+     * @param s a new scale value
+     * @param animation duration
      */
     void setZoomScaleInDuration(float s, float dt);
     /**
      * Returns the current container's minimum offset. You may want this while you animate scrolling by yourself
      */
-    Point minContainerOffset();
+    CCPoint minContainerOffset();
     /**
      * Returns the current container's maximum offset. You may want this while you animate scrolling by yourself
      */
-    Point maxContainerOffset(); 
+    CCPoint maxContainerOffset(); 
     /**
      * Determines if a given node's bounding box is in visible bounds
      *
-     * @returns true if it is in visible bounds
+     * @return YES if it is in visible bounds
      */
-    bool isNodeVisible(Node * node);
+    bool isNodeVisible(CCNode * node);
     /**
      * Provided to make scroll view compatible with SWLayer's pause method
      */
-    void pause(Object* sender);
+    void pause(CCObject* sender);
     /**
      * Provided to make scroll view compatible with SWLayer's resume method
      */
-    void resume(Object* sender);
+    void resume(CCObject* sender);
 
 
-    bool isDragging() const {return _dragging;}
-    bool isTouchMoved() const { return _touchMoved; }
-    bool isBounceable() const { return _bounceable; }
-    void setBounceable(bool bBounceable) { _bounceable = bBounceable; }
+    bool isDragging() {return m_bDragging;}
+    bool isTouchMoved() { return m_bTouchMoved; }
+    bool isBounceable() { return m_bBounceable; }
+    void setBounceable(bool bBounceable) { m_bBounceable = bBounceable; }
 
     /**
-     * size to clip. Node boundingBox uses contentSize directly.
+     * size to clip. CCNode boundingBox uses contentSize directly.
      * It's semantically different what it actually means to common scroll views.
      * Hence, this scroll view will use a separate size property.
      */
-    Size getViewSize() const { return _viewSize; }
-    void setViewSize(Size size);
+    CCSize getViewSize() { return m_tViewSize; } 
+    void setViewSize(CCSize size);
 
-    Node * getContainer();
-    void setContainer(Node * pContainer);
+    CCNode * getContainer();
+    void setContainer(CCNode * pContainer);
 
     /**
-     * direction allowed to scroll. ScrollViewDirectionBoth by default.
+     * direction allowed to scroll. CCScrollViewDirectionBoth by default.
      */
-    Direction getDirection() const { return _direction; }
-    virtual void setDirection(Direction eDirection) { _direction = eDirection; }
+    CCScrollViewDirection getDirection() { return m_eDirection; }
+    virtual void setDirection(CCScrollViewDirection eDirection) { m_eDirection = eDirection; }
 
-    ScrollViewDelegate* getDelegate() { return _delegate; }
-    void setDelegate(ScrollViewDelegate* pDelegate) { _delegate = pDelegate; }
+    CCScrollViewDelegate* getDelegate() { return m_pDelegate; }
+    void setDelegate(CCScrollViewDelegate* pDelegate) { m_pDelegate = pDelegate; }
+
+    /** override functions */
+    // optional
+    virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
+    virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
+
+    virtual void setContentSize(const CCSize & size);
+    virtual const CCSize& getContentSize() const;
 
 	void updateInset();
-
     /**
      * Determines whether it clips its children or not.
      */
-    bool isClippingToBounds() { return _clippingToBounds; }
-    void setClippingToBounds(bool bClippingToBounds) { _clippingToBounds = bClippingToBounds; }
+    bool isClippingToBounds() { return m_bClippingToBounds; }
+    void setClippingToBounds(bool bClippingToBounds) { m_bClippingToBounds = bClippingToBounds; }
 
-    // Overrides
-    virtual bool ccTouchBegan(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchMoved(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchEnded(Touch *pTouch, Event *pEvent) override;
-    virtual void ccTouchCancelled(Touch *pTouch, Event *pEvent) override;
-    virtual void setContentSize(const Size & size) override;
-    virtual const Size& getContentSize() const override;
-    virtual void visit() override;
-    virtual void addChild(Node * child, int zOrder, int tag) override;
-    virtual void addChild(Node * child, int zOrder) override;
-    virtual void addChild(Node * child) override;
-    void setTouchEnabled(bool e) override;
-
-protected:
+    virtual void visit();
+    virtual void addChild(CCNode * child, int zOrder, int tag);
+    virtual void addChild(CCNode * child, int zOrder);
+    virtual void addChild(CCNode * child);
+    void setTouchEnabled(bool e);
+private:
     /**
      * Relocates the container at the proper offset, in bounds of max/min offsets.
      *
-     * @param animated If true, relocation is animated
+     * @param animated If YES, relocation is animated
      */
     void relocateContainer(bool animated);
     /**
@@ -218,7 +222,7 @@ protected:
     /**
      * Expire animated scroll delegate calls
      */
-    void stoppedAnimatedScroll(Node* node);
+    void stoppedAnimatedScroll(CCNode* node);
     /**
      * clip this view so that outside of the visible bounds can be hidden.
      */
@@ -233,90 +237,91 @@ protected:
      */
     void handleZoom();
 
-    Rect getViewRect();
+protected:
+    CCRect getViewRect();
     
     /**
      * current zoom scale
      */
-    float _zoomScale;
+    float m_fZoomScale;
     /**
      * min zoom scale
      */
-    float _minZoomScale;
+    float m_fMinZoomScale;
     /**
      * max zoom scale
      */
-    float _maxZoomScale;
+    float m_fMaxZoomScale;
     /**
      * scroll view delegate
      */
-    ScrollViewDelegate* _delegate;
+    CCScrollViewDelegate* m_pDelegate;
 
-    Direction _direction;
+    CCScrollViewDirection m_eDirection;
     /**
      * If YES, the view is being dragged.
      */
-    bool _dragging;
+    bool m_bDragging;
 
     /**
      * Content offset. Note that left-bottom point is the origin
      */
-    Point _contentOffset;
+    CCPoint m_tContentOffset;
 
     /**
      * Container holds scroll view contents, Sets the scrollable container object of the scroll view
      */
-    Node* _container;
+    CCNode* m_pContainer;
     /**
      * Determiens whether user touch is moved after begin phase.
      */
-    bool _touchMoved;
+    bool m_bTouchMoved;
     /**
      * max inset point to limit scrolling by touch
      */
-    Point _maxInset;
+    CCPoint m_fMaxInset;
     /**
      * min inset point to limit scrolling by touch
      */
-    Point _minInset;
+    CCPoint m_fMinInset;
     /**
      * Determines whether the scroll view is allowed to bounce or not.
      */
-    bool _bounceable;
+    bool m_bBounceable;
 
-    bool _clippingToBounds;
+    bool m_bClippingToBounds;
 
     /**
      * scroll speed
      */
-    Point _scrollDistance;
+    CCPoint m_tScrollDistance;
     /**
      * Touch point
      */
-    Point _touchPoint;
+    CCPoint m_tTouchPoint;
     /**
      * length between two fingers
      */
-    float _touchLength;
+    float m_fTouchLength;
     /**
      * UITouch objects to detect multitouch
      */
-    Array* _touches;
+    CCArray* m_pTouches;
     /**
-     * size to clip. Node boundingBox uses contentSize directly.
+     * size to clip. CCNode boundingBox uses contentSize directly.
      * It's semantically different what it actually means to common scroll views.
      * Hence, this scroll view will use a separate size property.
      */
-    Size _viewSize;
+    CCSize m_tViewSize;
     /**
      * max and min scale
      */
-    float _minScale, _maxScale;
+    float m_fMinScale, m_fMaxScale;
     /**
      * scissor rect for parent, just for restoring GL_SCISSOR_BOX
      */
-    Rect _parentScissorRect;
-    bool _scissorRestored;
+    CCRect m_tParentScissorRect;
+    bool m_bScissorRestored;
 };
 
 // end of GUI group

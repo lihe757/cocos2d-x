@@ -26,45 +26,45 @@ THE SOFTWARE.
 
 NS_CC_EXT_BEGIN
 
-ComController::ComController(void)
+CCComController::CCComController(void)
 {
-    _name = "Constoller";
+    m_strName = "Constoller";
 }
 
-ComController::~ComController(void)
+CCComController::~CCComController(void)
 {
 }
 
-bool ComController::init()
+bool CCComController::init()
 {
     return true;
 }
 
-void ComController::onEnter()
+void CCComController::onEnter()
 {
 }
 
-void ComController::onExit()
+void CCComController::onExit()
 {
 }
 
-void ComController::update(float delta)
+void CCComController::update(float delta)
 {
 }
 
-bool ComController::isEnabled() const
+bool CCComController::isEnabled() const
 {
-    return _enabled;
+    return m_bEnabled;
 }
 
-void ComController::setEnabled(bool b)
+void CCComController::setEnabled(bool b)
 {
-    _enabled = b;
+    m_bEnabled = b;
 }
 
-ComController* ComController::create(void)
+CCComController* CCComController::create(void)
 {
-    ComController * pRet = new ComController();
+    CCComController * pRet = new CCComController();
     if (pRet && pRet->init())
     {
         pRet->autorelease();

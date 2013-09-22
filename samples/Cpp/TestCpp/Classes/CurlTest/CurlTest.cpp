@@ -5,24 +5,24 @@
 
 CurlTest::CurlTest()
 {
-    LabelTTF* label = LabelTTF::create("Curl Test", "Arial", 28);
+    CCLabelTTF* label = CCLabelTTF::create("Curl Test", "Arial", 28);
     addChild(label, 0);
-    label->setPosition( Point(VisibleRect::center().x, VisibleRect::top().y-50) );
+    label->setPosition( ccp(VisibleRect::center().x, VisibleRect::top().y-50) );
 
     setTouchEnabled(true);
 
     // create a label to display the tip string
-    _label = LabelTTF::create("Touch the screen to connect", "Arial", 22);
-    _label->setPosition(VisibleRect::center());
-    addChild(_label, 0);
+    m_pLabel = CCLabelTTF::create("Touch the screen to connect", "Arial", 22);
+    m_pLabel->setPosition(VisibleRect::center());
+    addChild(m_pLabel, 0);
     
-    _label->retain();
+    m_pLabel->retain();
 }
 
 
 // the test code is
 // http://curl.haxx.se/mail/lib-2009-12/0071.html
-void CurlTest::ccTouchesEnded(Set  *touches, Event  *event)
+void CurlTest::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
 {
     CURL *curl;
     CURLcode res;
@@ -37,30 +37,30 @@ void CurlTest::ccTouchesEnded(Set  *touches, Event  *event)
         curl_easy_cleanup(curl);
         if (res == 0)
         {
-            _label->setString("0 response");
+            m_pLabel->setString("0 response");
         }
         else
         {
             sprintf(buffer,"code: %i",res);
-            _label->setString(buffer);
+            m_pLabel->setString(buffer);
         }
     } 
     else 
     {
-        _label->setString("no curl");
+        m_pLabel->setString("no curl");
     } 
 }
 
 CurlTest::~CurlTest()
 {
-    _label->release();
+    m_pLabel->release();
 }
 
 void CurlTestScene::runThisTest()
 {
-    Layer* layer = new CurlTest();
-    addChild(layer);
+    CCLayer* pLayer = new CurlTest();
+    addChild(pLayer);
 
-    Director::getInstance()->replaceScene(this);
-    layer->release();
+    CCDirector::sharedDirector()->replaceScene(this);
+    pLayer->release();
 }

@@ -1,5 +1,5 @@
-local size = CCDirector:getInstance():getWinSize()
-local scheduler = CCDirector:getInstance():getScheduler()
+local size = CCDirector:sharedDirector():getWinSize()
+local scheduler = CCDirector:sharedDirector():getScheduler()
 
 local kTagTileMap = 1
 
@@ -25,7 +25,7 @@ local function createTileDemoLayer(title, subtitle)
             local diffX = x - prev.x
             local diffY = y - prev.y
 
-            node:setPosition( CCPoint.__add(CCPoint(newX, newY), CCPoint(diffX, diffY)) )
+            node:setPosition( ccpAdd(ccp(newX, newY), ccp(diffX, diffY)) )
             prev.x = x
             prev.y = y
         end
@@ -55,7 +55,7 @@ local function TileMapTest()
 
     layer:addChild(map, 0, kTagTileMap)
 
-    map:setAnchorPoint( CCPoint(0, 0.5) )
+    map:setAnchorPoint( ccp(0, 0.5) )
 
     local scale = CCScaleBy:create(4, 0.8)
     local scaleBack = scale:reverse()
@@ -101,7 +101,7 @@ local function TileMapEditTest()
         -- over all your tiles in every frame. It's very expensive
         --    for(int x=0 x < tilemap.tgaInfo:width x++)
         --        for(int y=0 y < tilemap.tgaInfo:height y++)
-        --            Color3B c =[tilemap getTileAt:local Make(x,y))
+        --            ccColor3B c =[tilemap tileAt:local Make(x,y))
         --            if( c.r != 0 )
         --                --------cclog("%d,%d = %d", x,y,c.r)
         --            end
@@ -109,7 +109,7 @@ local function TileMapEditTest()
         --    end
 
         -- NEW since v0.7
-        local c = tilemap:getTileAt(CCPoint(13,21))
+        local c = tilemap:tileAt(ccp(13,21))
         c.r = c.r + 1
         c.r = c.r % 50
 
@@ -117,7 +117,7 @@ local function TileMapEditTest()
             c.r=1
         end
         -- NEW since v0.7
-        tilemap:setTile(c, CCPoint(13,21) )
+        tilemap:setTile(c, ccp(13,21) )
     end
 
     local schedulerEntry = nil
@@ -133,8 +133,8 @@ local function TileMapEditTest()
 
     layer:addChild(map, 0, kTagTileMap)
 
-    map:setAnchorPoint( CCPoint(0, 0) )
-    map:setPosition( CCPoint(-20,-200) )
+    map:setAnchorPoint( ccp(0, 0) )
+    map:setPosition( ccp(-20,-200) )
 
     return layer
 end
@@ -152,7 +152,7 @@ local function TMXOrthoTest()
     --
     -- it should not flicker. No artifacts should appear
     --
-    --local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    --local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     --addChild(color, -1)
 
     local  map = CCTMXTiledMap:create("TileMaps/orthogonal-test2.tmx")
@@ -189,9 +189,9 @@ local function TMXOrthoTest()
 
     local function onNodeEvent(event)
         if event == "enter" then
-            CCDirector:getInstance():setProjection(kCCDirectorProjection3D)
+            CCDirector:sharedDirector():setProjection(kCCDirectorProjection3D)
         elseif event == "exit" then
-            CCDirector:getInstance():setProjection(kCCDirectorProjection2D)
+            CCDirector:sharedDirector():setProjection(kCCDirectorProjection2D)
         end
     end
 
@@ -263,7 +263,7 @@ local function TMXOrthoTest3()
     end
 
     map:setScale(0.2)
-    map:setAnchorPoint( CCPoint(0.5, 0.5) )
+    map:setAnchorPoint( ccp(0.5, 0.5) )
     return layer
 end
 
@@ -296,18 +296,18 @@ local function TMXOrthoTest4()
         child:getTexture():setAntiAliasTexParameters()
     end
 
-    map:setAnchorPoint(CCPoint(0, 0))
+    map:setAnchorPoint(ccp(0, 0))
 
-    local layer  = map:getLayer("Layer 0")
+    local layer  = map:layerNamed("Layer 0")
     local s      = layer:getLayerSize()
 
-    local sprite = layer:getTileAt(CCPoint(0,0))
+    local sprite = layer:tileAt(ccp(0,0))
     sprite:setScale(2)
-    sprite       = layer:getTileAt(CCPoint(s.width-1,0))
+    sprite       = layer:tileAt(ccp(s.width-1,0))
     sprite:setScale(2)
-    sprite       = layer:getTileAt(CCPoint(0,s.height-1))
+    sprite       = layer:tileAt(ccp(0,s.height-1))
     sprite:setScale(2)
-    sprite       = layer:getTileAt(CCPoint(s.width-1,s.height-1))
+    sprite       = layer:tileAt(ccp(s.width-1,s.height-1))
     sprite:setScale(2)
 
     local schedulerEntry = nil
@@ -316,10 +316,10 @@ local function TMXOrthoTest4()
         scheduler:unscheduleScriptEntry(schedulerEntry)
         schedulerEntry = nil
         local map = tolua.cast(ret:getChildByTag(kTagTileMap), "CCTMXTiledMap")
-        local  layer0 = map:getLayer("Layer 0")
+        local  layer0 = map:layerNamed("Layer 0")
         local s = layer0:getLayerSize()
 
-        local  sprite = layer0:getTileAt( CCPoint(s.width-1,0) )
+        local  sprite = layer0:tileAt( ccp(s.width-1,0) )
         layer0:removeChild(sprite, true)
     end
 
@@ -356,33 +356,30 @@ local function TMXReadWriteTest()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
 
-    local  layer = map:getLayer("Layer 0")
+    local  layer = map:layerNamed("Layer 0")
     layer:getTexture():setAntiAliasTexParameters()
 
     map:setScale( 1 )
 
-    local tile0 = layer:getTileAt(CCPoint(1,63))
-    local tile1 = layer:getTileAt(CCPoint(2,63))
-    local tile2 = layer:getTileAt(CCPoint(3,62))--CCPoint(1,62))
-    local tile3 = layer:getTileAt(CCPoint(2,62))
-    tile0:setAnchorPoint( CCPoint(0.5, 0.5) )
-    tile1:setAnchorPoint( CCPoint(0.5, 0.5) )
-    tile2:setAnchorPoint( CCPoint(0.5, 0.5) )
-    tile3:setAnchorPoint( CCPoint(0.5, 0.5) )
+    local tile0 = layer:tileAt(ccp(1,63))
+    local tile1 = layer:tileAt(ccp(2,63))
+    local tile2 = layer:tileAt(ccp(3,62))--ccp(1,62))
+    local tile3 = layer:tileAt(ccp(2,62))
+    tile0:setAnchorPoint( ccp(0.5, 0.5) )
+    tile1:setAnchorPoint( ccp(0.5, 0.5) )
+    tile2:setAnchorPoint( ccp(0.5, 0.5) )
+    tile3:setAnchorPoint( ccp(0.5, 0.5) )
 
-    local  move = CCMoveBy:create(0.5, CCPoint(0,160))
+    local  move = CCMoveBy:create(0.5, ccp(0,160))
     local  rotate = CCRotateBy:create(2, 360)
     local  scale = CCScaleBy:create(2, 5)
     local  opacity = CCFadeOut:create(2)
     local  fadein = CCFadeIn:create(2)
     local  scaleback = CCScaleTo:create(1, 1)
 
-    local function removeSprite(sender)
+    local function removeSprite(tag, sender)
         --------cclog("removing tile: %x", sender)
-        local node = tolua.cast(sender, "CCNode")
-        if nil == node then
-            print("Errro node is nil")
-        end
+        local node = tolua.cast(sender, "CCNode");
         local p = node:getParent()
 
         if p ~= nil then
@@ -391,7 +388,8 @@ local function TMXReadWriteTest()
         ----------cclog("atlas quantity: %d", p:textureAtlas():totalQuads())
     end
 
-    local finish = CCCallFunc:create(removeSprite)
+
+    local  finish = CCCallFuncN:create(removeSprite)
     local arr = CCArray:create()
     arr:addObject(move)
     arr:addObject(rotate)
@@ -401,9 +399,9 @@ local function TMXReadWriteTest()
     arr:addObject(scaleback)
     arr:addObject(finish)
     local  seq0 = CCSequence:create(arr)
-    local  seq1 = tolua.cast(seq0:clone(), "CCAction")
-    local  seq2 = tolua.cast(seq0:clone(), "CCAction")
-    local  seq3 = tolua.cast(seq0:clone(), "CCAction")
+    local  seq1 = tolua.cast(seq0:copy():autorelease(), "CCAction")
+    local  seq2 = tolua.cast(seq0:copy():autorelease(), "CCAction")
+    local  seq3 = tolua.cast(seq0:copy():autorelease(), "CCAction")
 
     tile0:runAction(seq0)
     tile1:runAction(seq1)
@@ -411,7 +409,7 @@ local function TMXReadWriteTest()
     tile3:runAction(seq3)
 
 
-    m_gid = layer:getTileGIDAt(CCPoint(0,63))
+    m_gid = layer:tileGIDAt(ccp(0,63))
     --------cclog("Tile GID at:(0,63) is: %d", m_gid)
     local updateColScheduler     = nil
     local repainWithGIDScheduler = nil
@@ -429,7 +427,7 @@ local function TMXReadWriteTest()
         local s = layer:getLayerSize()
         local y = 0
         for y=0, s.height-1, 1 do
-            layer:setTileGID(m_gid2, CCPoint(3, y))
+            layer:setTileGID(m_gid2, ccp(3, y))
         end
 
         m_gid2 = (m_gid2 + 1) % 80
@@ -444,8 +442,8 @@ local function TMXReadWriteTest()
         local x = 0
         for x=0, s.width-1, 1 do
             local y = s.height-1
-            local tmpgid = layer:getTileGIDAt( CCPoint(x, y) )
-            layer:setTileGID(tmpgid+1, CCPoint(x, y))
+            local tmpgid = layer:tileGIDAt( ccp(x, y) )
+            layer:setTileGID(tmpgid+1, ccp(x, y))
         end
     end
 
@@ -457,7 +455,7 @@ local function TMXReadWriteTest()
         local s = layer:getLayerSize()
         local y = 0
         for y=0, s.height-1, 1 do
-            layer:removeTileAt( CCPoint(5.0, y) )
+            layer:removeTileAt( ccp(5.0, y) )
         end
     end
 
@@ -498,7 +496,7 @@ end
 --------------------------------------------------------------------
 local function TMXHexTest()
     local ret = createTileDemoLayer("TMX Hex tes")
-    local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     ret:addChild(color, -1)
 
     local  map = CCTMXTiledMap:create("TileMaps/hexa-test.tmx")
@@ -516,7 +514,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest()
     local ret = createTileDemoLayer("TMX Isometric test 0")
-    local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     ret:addChild(color, -1)
 
     local  map = CCTMXTiledMap:create("TileMaps/iso-test.tmx")
@@ -525,7 +523,7 @@ local function TMXIsoTest()
     -- move map to the center of the screen
     local ms = map:getMapSize()
     local ts = map:getTileSize()
-    map:runAction( CCMoveTo:create(1.0, CCPoint( -ms.width * ts.width/2, -ms.height * ts.height/2 )) )
+    map:runAction( CCMoveTo:create(1.0, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 )) )
     return ret
 end
 
@@ -536,7 +534,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest1()
     local ret = createTileDemoLayer("TMX Isometric test + anchorPoint")
-    local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = CCTMXTiledMap:create("TileMaps/iso-test1.tmx")
@@ -545,7 +543,7 @@ local function TMXIsoTest1()
     local  s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
-    map:setAnchorPoint(CCPoint(0.5, 0.5))
+    map:setAnchorPoint(ccp(0.5, 0.5))
     return ret
 end
 
@@ -556,7 +554,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest2()
     local ret = createTileDemoLayer("TMX Isometric test 2")
-    local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = CCTMXTiledMap:create("TileMaps/iso-test2.tmx")
@@ -568,7 +566,7 @@ local function TMXIsoTest2()
     -- move map to the center of the screen
     local ms = map:getMapSize()
     local ts = map:getTileSize()
-    map:runAction( CCMoveTo:create(1.0, CCPoint( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ))
+    map:runAction( CCMoveTo:create(1.0, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ))
     return ret
 end
 
@@ -579,7 +577,7 @@ end
 --------------------------------------------------------------------
 local function TMXUncompressedTest()
     local ret = createTileDemoLayer("TMX Uncompressed test")
-    local  color = CCLayerColor:create( Color4B(64,64,64,255) )
+    local  color = CCLayerColor:create( ccc4(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = CCTMXTiledMap:create("TileMaps/iso-test2-uncompressed.tmx")
@@ -591,7 +589,7 @@ local function TMXUncompressedTest()
     -- move map to the center of the screen
     local ms = map:getMapSize()
     local ts = map:getTileSize()
-    map:runAction(CCMoveTo:create(1.0, CCPoint( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ))
+    map:runAction(CCMoveTo:create(1.0, ccp( -ms.width * ts.width/2, -ms.height * ts.height/2 ) ))
 
     -- testing release map
     local  pChildrenArray = map:getChildren()
@@ -621,13 +619,13 @@ local function TMXTilesetTest()
     local  s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
-    local layer = map:getLayer("Layer 0")
+    local layer = map:layerNamed("Layer 0")
     layer:getTexture():setAntiAliasTexParameters()
 
-    layer = map:getLayer("Layer 1")
+    layer = map:layerNamed("Layer 1")
     layer:getTexture():setAntiAliasTexParameters()
 
-    layer = map:getLayer("Layer 2")
+    layer = map:layerNamed("Layer 2")
     layer:getTexture():setAntiAliasTexParameters()
     return ret
 end
@@ -646,7 +644,7 @@ local function TMXOrthoObjectsTest()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
     --------cclog("---: Iterating over all the group objets")
-    local  group   = map:getObjectGroup("Object Group 1")
+    local  group   = map:objectGroupNamed("Object Group 1")
     local  objects = group:getObjects()
 
     local  dict    = nil
@@ -671,7 +669,7 @@ end
 local function draw()
 
     local  map = tolua.cast(getChildByTag(kTagTileMap), "CCTMXTiledMap")
-    local  group = map:getObjectGroup("Object Group 1")
+    local  group = map:objectGroupNamed("Object Group 1")
 
     local  objects = group:getObjects()
     local  dict = nil
@@ -695,10 +693,10 @@ local function draw()
 
         glLineWidth(3)
 
-        CCDrawPrimitives.ccDrawLine( CCPoint(x, y), CCPoint((x+width), y) )
-        CCDrawPrimitives.ccDrawLine( CCPoint((x+width), y), CCPoint((x+width), (y+height)) )
-        CCDrawPrimitives.ccDrawLine( CCPoint((x+width), (y+height)), CCPoint(x, (y+height)) )
-        CCDrawPrimitives.ccDrawLine( CCPoint(x, (y+height)), CCPoint(x, y) )
+        ccDrawLine( ccp(x, y), ccp((x+width), y) )
+        ccDrawLine( ccp((x+width), y), ccp((x+width), (y+height)) )
+        ccDrawLine( ccp((x+width), (y+height)), ccp(x, (y+height)) )
+        ccDrawLine( ccp(x, (y+height)), ccp(x, y) )
 
         glLineWidth(1)
     end
@@ -718,7 +716,7 @@ local function TMXIsoObjectsTest()
     local  s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
-    local  group = map:getObjectGroup("Object Group 1")
+    local  group = map:objectGroupNamed("Object Group 1")
 
     --UxMutableArray* objects = group:objects()
     local  objects = group:getObjects()
@@ -740,7 +738,7 @@ end
 local function draw()
 
     local map = tolua.cast(getChildByTag(kTagTileMap), "CCTMXTiledMap")
-    local group = map:getObjectGroup("Object Group 1")
+    local group = map:objectGroupNamed("Object Group 1")
 
     local  objects = group:getObjects()
     local  dict = nil
@@ -764,10 +762,10 @@ local function draw()
 
         glLineWidth(3)
 
-        CCDrawPrimitives.ccDrawLine( CCPoint(x,y), CCPoint(x+width,y) )
-        CCDrawPrimitives.ccDrawLine( CCPoint(x+width,y), CCPoint(x+width,y+height) )
-        CCDrawPrimitives.ccDrawLine( CCPoint(x+width,y+height), CCPoint(x,y+height) )
-        CCDrawPrimitives.ccDrawLine( CCPoint(x,y+height), CCPoint(x,y) )
+        ccDrawLine( ccp(x,y), ccp(x+width,y) )
+        ccDrawLine( ccp(x+width,y), ccp(x+width,y+height) )
+        ccDrawLine( ccp(x+width,y+height), ccp(x,y+height) )
+        ccDrawLine( ccp(x,y+height), ccp(x,y) )
 
         glLineWidth(1)
     end
@@ -787,13 +785,13 @@ local function TMXResizeTest()
     local  s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
 
-    local layer = map:getLayer("Layer 0")
+    local layer = map:layerNamed("Layer 0")
     local ls = layer:getLayerSize()
     local x = 0
     local y = 0
     for y = 0, ls.height-1, 1 do
         for  x = 0, ls.width-1, 1 do
-            layer:setTileGID(1, CCPoint( x, y ) )
+            layer:setTileGID(1, ccp( x, y ) )
         end
     end
     return ret
@@ -812,16 +810,16 @@ local function TMXIsoZorder()
 
     local s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
-    map:setPosition(CCPoint(-s.width/2,0))
+    map:setPosition(ccp(-s.width/2,0))
 
     m_tamara = CCSprite:create(s_pPathSister1)
     map:addChild(m_tamara, map:getChildren():count() )
     m_tamara:retain()
     local mapWidth = map:getMapSize().width * map:getTileSize().width
-    m_tamara:setPosition(CC_POINT_PIXELS_TO_POINTS(CCPoint( mapWidth/2,0)))
-    m_tamara:setAnchorPoint(CCPoint(0.5,0))
+    m_tamara:setPosition(CC_POINT_PIXELS_TO_POINTS(ccp( mapWidth/2,0)))
+    m_tamara:setAnchorPoint(ccp(0.5,0))
 
-    local  move = CCMoveBy:create(10, CCPoint(300,250))
+    local  move = CCMoveBy:create(10, ccp(300,250))
     local  back = move:reverse()
     local  arr  = CCArray:create()
     arr:addObject(move)
@@ -831,7 +829,7 @@ local function TMXIsoZorder()
 
     local function repositionSprite(dt)
         local x,y = m_tamara:getPosition()
-        local p = CCPoint(x, y)
+        local p = ccp(x, y)
         p = CC_POINT_POINTS_TO_PIXELS(p)
         local map = ret:getChildByTag(kTagTileMap)
 
@@ -880,10 +878,10 @@ local function TMXOrthoZorder()
     m_tamara = CCSprite:create(s_pPathSister1)
     map:addChild(m_tamara,  map:getChildren():count())
     m_tamara:retain()
-    m_tamara:setAnchorPoint(CCPoint(0.5,0))
+    m_tamara:setAnchorPoint(ccp(0.5,0))
 
 
-    local  move = CCMoveBy:create(10, CCPoint(400,450))
+    local  move = CCMoveBy:create(10, ccp(400,450))
     local  back = move:reverse()
     local  arr = CCArray:create()
     arr:addObject(move)
@@ -893,7 +891,7 @@ local function TMXOrthoZorder()
 
     local function repositionSprite(dt)
         local x, y = m_tamara:getPosition()
-        local p = CCPoint(x, y)
+        local p = ccp(x, y)
         p = CC_POINT_POINTS_TO_PIXELS(p)
         local  map = ret:getChildByTag(kTagTileMap)
 
@@ -937,16 +935,16 @@ local function TMXIsoVertexZ()
     ret:addChild(map, 0, kTagTileMap)
 
     local s = map:getContentSize()
-    map:setPosition( CCPoint(-s.width/2,0) )
+    map:setPosition( ccp(-s.width/2,0) )
     cclog("ContentSize: %f, %f", s.width,s.height)
 
     -- because I'm lazy, I'm reusing a tile as an sprite, but since this method uses vertexZ, you
     -- can use any CCSprite and it will work OK.
-    local  layer = map:getLayer("Trees")
-    m_tamara = layer:getTileAt( CCPoint(29,29) )
+    local  layer = map:layerNamed("Trees")
+    m_tamara = layer:tileAt( ccp(29,29) )
     m_tamara:retain()
 
-    local  move = CCMoveBy:create(10, CCPoint.__mul( CCPoint(300,250), 1/CC_CONTENT_SCALE_FACTOR() ) )
+    local  move = CCMoveBy:create(10, ccpMult( ccp(300,250), 1/CC_CONTENT_SCALE_FACTOR() ) )
     local  back = move:reverse()
     local  arr  = CCArray:create()
     arr:addObject(move)
@@ -958,7 +956,7 @@ local function TMXIsoVertexZ()
         -- tile height is 64x32
         -- map size: 30x30
         local x, y = m_tamara:getPosition()
-        local p = CCPoint(x, y)
+        local p = ccp(x, y)
         p = CC_POINT_POINTS_TO_PIXELS(p)
         local newZ = -(p.y+32) /16
         m_tamara:setVertexZ( newZ )
@@ -968,11 +966,11 @@ local function TMXIsoVertexZ()
     local function onNodeEvent(event)
         if event == "enter" then
             -- TIP: 2d projection should be used
-            CCDirector:getInstance():setProjection(kCCDirectorProjection2D)
+            CCDirector:sharedDirector():setProjection(kCCDirectorProjection2D)
             schedulerEntry = scheduler:scheduleScriptFunc(repositionSprite, 0, false)
         elseif event == "exit" then
             -- At exit use any other projection.
-            --    CCDirector:getInstance():setProjection:kCCDirectorProjection3D)
+            --    CCDirector:sharedDirector():setProjection:kCCDirectorProjection3D)
 
             if m_tamara ~= nil then
                 m_tamara:release()
@@ -1001,12 +999,12 @@ local function TMXOrthoVertexZ()
 
     -- because I'm lazy, I'm reusing a tile as an sprite, but since this method uses vertexZ, you
     -- can use any CCSprite and it will work OK.
-    local  layer = map:getLayer("trees")
-    m_tamara = layer:getTileAt(CCPoint(0,11))
+    local  layer = map:layerNamed("trees")
+    m_tamara = layer:tileAt(ccp(0,11))
     cclog("vertexZ:"..m_tamara:getVertexZ())
     m_tamara:retain()
 
-    local  move = CCMoveBy:create(10, CCPoint.__mul( CCPoint(400,450), 1/CC_CONTENT_SCALE_FACTOR()))
+    local  move = CCMoveBy:create(10, ccpMult( ccp(400,450), 1/CC_CONTENT_SCALE_FACTOR()))
     local  back = move:reverse()
     local  arr  = CCArray:create()
     arr:addObject(move)
@@ -1018,7 +1016,7 @@ local function TMXOrthoVertexZ()
         -- tile height is 101x81
         -- map size: 12x12
         local x, y = m_tamara:getPosition()
-        local p = CCPoint(x, y)
+        local p = ccp(x, y)
         p = CC_POINT_POINTS_TO_PIXELS(p)
         m_tamara:setVertexZ( -( (p.y+81) /81) )
     end
@@ -1027,11 +1025,11 @@ local function TMXOrthoVertexZ()
     local function onNodeEvent(event)
         if event == "enter" then
             -- TIP: 2d projection should be used
-            CCDirector:getInstance():setProjection(kCCDirectorProjection2D)
+            CCDirector:sharedDirector():setProjection(kCCDirectorProjection2D)
             schedulerEntry = scheduler:scheduleScriptFunc(repositionSprite, 0, false)
         elseif event == "exit" then
             -- At exit use any other projection.
-            --    CCDirector:getInstance():setProjection:kCCDirectorProjection3D)
+            --    CCDirector:sharedDirector():setProjection:kCCDirectorProjection3D)
             if m_tamara ~= nil then
                 m_tamara:release()
             end
@@ -1052,7 +1050,7 @@ local function TMXIsoMoveLayer()
     local  map = CCTMXTiledMap:create("TileMaps/iso-test-movelayer.tmx")
     ret:addChild(map, 0, kTagTileMap)
 
-    map:setPosition(CCPoint(-700,-50))
+    map:setPosition(ccp(-700,-50))
 
     local  s = map:getContentSize()
     cclog("ContentSize: %f, %f", s.width,s.height)
@@ -1087,7 +1085,7 @@ local function TMXTilePropertyTest()
     ret:addChild(map ,0 ,kTagTileMap)
     local i = 0
     for i=1, 20, 1 do
-        cclog("GID:%i, Properties:", i)--, map:getPropertiesForGID(i))
+        cclog("GID:%i, Properties:", i)--, map:propertiesForGID(i))
     end
     return ret
 end
@@ -1142,12 +1140,12 @@ local function TMXOrthoFlipRunTimeTest()
     local function flipIt(dt)
 
         -- local map = tolua.cast(ret:getChildByTag(kTagTileMap), "CCTMXTiledMap")
-        -- local layer = map:getLayer("Layer 0")
+        -- local layer = map:layerNamed("Layer 0")
 
         -- --blue diamond
-        -- local tileCoord = CCPoint(1,10)
+        -- local tileCoord = ccp(1,10)
         -- local flags = 0
-        -- local GID = layer:getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
+        -- local GID = layer:tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
         -- -- Vertical
         -- if( flags & kCCTMXTileVerticalFlag )
         -- flags &= ~kCCTMXTileVerticalFlag
@@ -1156,8 +1154,8 @@ local function TMXOrthoFlipRunTimeTest()
         --     layer:setTileGID(GID ,tileCoord, (ccTMXTileFlags)flags)
 
 
-        --     tileCoord = CCPoint(1,8)
-        --     GID = layer:getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
+        --     tileCoord = ccp(1,8)
+        --     GID = layer:tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
         --     -- Vertical
         --     if( flags & kCCTMXTileVerticalFlag )
         --     flags &= ~kCCTMXTileVerticalFlag
@@ -1166,8 +1164,8 @@ local function TMXOrthoFlipRunTimeTest()
         --         layer:setTileGID(GID ,tileCoord, (ccTMXTileFlags)flags)
 
 
-        --         tileCoord = CCPoint(2,8)
-        --         GID = layer:getTileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
+        --         tileCoord = ccp(2,8)
+        --         GID = layer:tileGIDAt(tileCoord, (ccTMXTileFlags*)&flags)
         --         -- Horizontal
         --         if( flags & kCCTMXTileHorizontalFlag )
         --         flags &= ~kCCTMXTileHorizontalFlag
@@ -1198,8 +1196,8 @@ local function TMXOrthoFromXMLTest()
     local resources = "TileMaps"        -- partial paths are OK as resource paths.
     local file = resources.."/orthogonal-test1.tmx"
 
-    local  str = CCString:createWithContentsOfFile(CCFileUtils:getInstance():fullPathForFilename(file)):getCString()
-    --    CCASSERT(str != NULL, "Unable to open file")
+    local  str = CCString:createWithContentsOfFile(CCFileUtils:sharedFileUtils():fullPathForFilename(file)):getCString()
+    --    CCAssert(str != NULL, "Unable to open file")
     if (str == nil) then
         cclog("Unable to open file")
     end
@@ -1248,9 +1246,9 @@ local function TMXBug987()
         pNode:getTexture():setAntiAliasTexParameters()
     end
 
-    map:setAnchorPoint(CCPoint(0, 0))
-    local layer = map:getLayer("Tile Layer 1")
-    layer:setTileGID(3, CCPoint(2,2))
+    map:setAnchorPoint(ccp(0, 0))
+    local layer = map:layerNamed("Tile Layer 1")
+    layer:setTileGID(3, ccp(2,2))
     return ret
 end
 
@@ -1270,7 +1268,7 @@ end
 function TileMapTestMain()
     cclog("TileMapTestMain")
     Helper.index = 1
-    CCDirector:getInstance():setDepthTest(true)
+    CCDirector:sharedDirector():setDepthTest(true)
     local scene = CCScene:create()
 
     Helper.createFunctionTable = {

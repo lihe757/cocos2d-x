@@ -30,84 +30,84 @@ using namespace std;
 
 NS_CC_BEGIN
 
-AffineTransform __CCAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
+CCAffineTransform __CCAffineTransformMake(float a, float b, float c, float d, float tx, float ty)
 {
-  AffineTransform t;
+  CCAffineTransform t;
   t.a = a; t.b = b; t.c = c; t.d = d; t.tx = tx; t.ty = ty;
   return t;
 }
 
-Point __CCPointApplyAffineTransform(const Point& point, const AffineTransform& t)
+CCPoint __CCPointApplyAffineTransform(const CCPoint& point, const CCAffineTransform& t)
 {
-  Point p;
+  CCPoint p;
   p.x = (float)((double)t.a * point.x + (double)t.c * point.y + t.tx);
   p.y = (float)((double)t.b * point.x + (double)t.d * point.y + t.ty);
   return p;
 }
 
-Size __CCSizeApplyAffineTransform(const Size& size, const AffineTransform& t)
+CCSize __CCSizeApplyAffineTransform(const CCSize& size, const CCAffineTransform& t)
 {
-  Size s;
+  CCSize s;
   s.width = (float)((double)t.a * size.width + (double)t.c * size.height);
   s.height = (float)((double)t.b * size.width + (double)t.d * size.height);
   return s;
 }
 
 
-AffineTransform AffineTransformMakeIdentity()
+CCAffineTransform CCAffineTransformMakeIdentity()
 {
     return __CCAffineTransformMake(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 }
 
-extern const AffineTransform AffineTransformIdentity = AffineTransformMakeIdentity();
+extern const CCAffineTransform CCAffineTransformIdentity = CCAffineTransformMakeIdentity();
 
 
-Rect RectApplyAffineTransform(const Rect& rect, const AffineTransform& anAffineTransform)
+CCRect CCRectApplyAffineTransform(const CCRect& rect, const CCAffineTransform& anAffineTransform)
 {
     float top    = rect.getMinY();
     float left   = rect.getMinX();
     float right  = rect.getMaxX();
     float bottom = rect.getMaxY();
     
-    Point topLeft = PointApplyAffineTransform(Point(left, top), anAffineTransform);
-    Point topRight = PointApplyAffineTransform(Point(right, top), anAffineTransform);
-    Point bottomLeft = PointApplyAffineTransform(Point(left, bottom), anAffineTransform);
-    Point bottomRight = PointApplyAffineTransform(Point(right, bottom), anAffineTransform);
+    CCPoint topLeft = CCPointApplyAffineTransform(CCPointMake(left, top), anAffineTransform);
+    CCPoint topRight = CCPointApplyAffineTransform(CCPointMake(right, top), anAffineTransform);
+    CCPoint bottomLeft = CCPointApplyAffineTransform(CCPointMake(left, bottom), anAffineTransform);
+    CCPoint bottomRight = CCPointApplyAffineTransform(CCPointMake(right, bottom), anAffineTransform);
 
     float minX = min(min(topLeft.x, topRight.x), min(bottomLeft.x, bottomRight.x));
     float maxX = max(max(topLeft.x, topRight.x), max(bottomLeft.x, bottomRight.x));
     float minY = min(min(topLeft.y, topRight.y), min(bottomLeft.y, bottomRight.y));
     float maxY = max(max(topLeft.y, topRight.y), max(bottomLeft.y, bottomRight.y));
         
-    return Rect(minX, minY, (maxX - minX), (maxY - minY));
+    return CCRectMake(minX, minY, (maxX - minX), (maxY - minY));
 }
 
-AffineTransform AffineTransformTranslate(const AffineTransform& t, float tx, float ty)
+CCAffineTransform CCAffineTransformTranslate(const CCAffineTransform& t, float tx, float ty)
 {
     return __CCAffineTransformMake(t.a, t.b, t.c, t.d, t.tx + t.a * tx + t.c * ty, t.ty + t.b * tx + t.d * ty);
 }
 
-AffineTransform AffineTransformScale(const AffineTransform& t, float sx, float sy)
+CCAffineTransform CCAffineTransformScale(const CCAffineTransform& t, float sx, float sy)
 {
     return __CCAffineTransformMake(t.a * sx, t.b * sx, t.c * sy, t.d * sy, t.tx, t.ty);
 }
 
-AffineTransform AffineTransformRotate(const AffineTransform& t, float anAngle)
+CCAffineTransform CCAffineTransformRotate(const CCAffineTransform& t, float anAngle)
 {
-    float sine = sinf(anAngle);
-    float cosine = cosf(anAngle);
+    float fSin = sin(anAngle);
+    float fCos = cos(anAngle);
 
-    return __CCAffineTransformMake(    t.a * cosine + t.c * sine,
-                                    t.b * cosine + t.d * sine,
-                                    t.c * cosine - t.a * sine,
-                                    t.d * cosine - t.b * sine,
+    return __CCAffineTransformMake(    t.a * fCos + t.c * fSin,
+                                    t.b * fCos + t.d * fSin,
+                                    t.c * fCos - t.a * fSin,
+                                    t.d * fCos - t.b * fSin,
                                     t.tx,
                                     t.ty);
 }
 
 /* Concatenate `t2' to `t1' and return the result:
      t' = t1 * t2 */
-AffineTransform AffineTransformConcat(const AffineTransform& t1, const AffineTransform& t2)
+CCAffineTransform CCAffineTransformConcat(const CCAffineTransform& t1, const CCAffineTransform& t2)
 {
     return __CCAffineTransformMake(    t1.a * t2.a + t1.b * t2.c, t1.a * t2.b + t1.b * t2.d, //a,b
                                     t1.c * t2.a + t1.d * t2.c, t1.c * t2.b + t1.d * t2.d, //c,d
@@ -116,12 +116,12 @@ AffineTransform AffineTransformConcat(const AffineTransform& t1, const AffineTra
 }
 
 /* Return true if `t1' and `t2' are equal, false otherwise. */
-bool AffineTransformEqualToTransform(const AffineTransform& t1, const AffineTransform& t2)
+bool CCAffineTransformEqualToTransform(const CCAffineTransform& t1, const CCAffineTransform& t2)
 {
     return (t1.a == t2.a && t1.b == t2.b && t1.c == t2.c && t1.d == t2.d && t1.tx == t2.tx && t1.ty == t2.ty);
 }
 
-AffineTransform AffineTransformInvert(const AffineTransform& t)
+CCAffineTransform CCAffineTransformInvert(const CCAffineTransform& t)
 {
     float determinant = 1 / (t.a * t.d - t.b * t.c);
 

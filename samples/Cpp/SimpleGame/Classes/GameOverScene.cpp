@@ -30,7 +30,7 @@ using namespace cocos2d;
 
 bool GameOverScene::init()
 {
-	if( Scene::init() )
+	if( CCScene::init() )
 	{
 		this->_layer = GameOverLayer::create();
 		this->_layer->retain();
@@ -56,18 +56,19 @@ GameOverScene::~GameOverScene()
 
 bool GameOverLayer::init()
 {
-	if ( LayerColor::initWithColor( Color4B(255,255,255,255) ) )
+	if ( CCLayerColor::initWithColor( ccc4(255,255,255,255) ) )
 	{
-		Size winSize = Director::getInstance()->getWinSize();
-		this->_label = LabelTTF::create("","Artial", 32);
+		CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+		this->_label = CCLabelTTF::create("","Artial", 32);
 		_label->retain();
-		_label->setColor( Color3B(0, 0, 0) );
-		_label->setPosition( Point(winSize.width/2, winSize.height/2) );
+		_label->setColor( ccc3(0, 0, 0) );
+		_label->setPosition( ccp(winSize.width/2, winSize.height/2) );
 		this->addChild(_label);
 		
-		this->runAction( Sequence::create(
-                                DelayTime::create(3),
-                                CallFunc::create( CC_CALLBACK_0(GameOverLayer::gameOverDone, this)),
+		this->runAction( CCSequence::create(
+                                CCDelayTime::create(3),
+                                CCCallFunc::create(this, 
+                                callfunc_selector(GameOverLayer::gameOverDone)),
                                 NULL));
 		
 		return true;
@@ -80,7 +81,7 @@ bool GameOverLayer::init()
 
 void GameOverLayer::gameOverDone()
 {
-	Director::getInstance()->replaceScene( HelloWorld::scene() );
+	CCDirector::sharedDirector()->replaceScene( HelloWorld::scene() );
 }
 
 GameOverLayer::~GameOverLayer()

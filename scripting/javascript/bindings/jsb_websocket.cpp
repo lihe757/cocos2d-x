@@ -74,7 +74,7 @@ public:
         
         jsval args = OBJECT_TO_JSVAL(jsobj);
         
-        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(_JSDelegate), "onopen", 1, &args);
+        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(m_pJSDelegate), "onopen", 1, &args);
     }
     
     virtual void onMessage(WebSocket* ws, const WebSocket::Data& data)
@@ -103,7 +103,7 @@ public:
             JS_SetProperty(cx, jsobj, "data", &dataVal);
         }
 
-        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(_JSDelegate), "onmessage", 1, &args);
+        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(m_pJSDelegate), "onmessage", 1, &args);
     }
     
     virtual void onClose(WebSocket* ws)
@@ -117,7 +117,7 @@ public:
         JS_SetProperty(cx, jsobj, "type", &vp);
         
         jsval args = OBJECT_TO_JSVAL(jsobj);
-        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(_JSDelegate), "onclose", 1, &args);
+        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(m_pJSDelegate), "onclose", 1, &args);
 
         js_proxy_t* jsproxy = jsb_get_js_proxy(p->obj);
         JS_RemoveObjectRoot(cx, &jsproxy->obj);
@@ -137,15 +137,15 @@ public:
         
         jsval args = OBJECT_TO_JSVAL(jsobj);
         
-        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(_JSDelegate), "onerror", 1, &args);
+        ScriptingCore::getInstance()->executeFunctionWithOwner(OBJECT_TO_JSVAL(m_pJSDelegate), "onerror", 1, &args);
     }
     
     void setJSDelegate(JSObject* pJSDelegate)
     {
-        _JSDelegate = pJSDelegate;
+        m_pJSDelegate = pJSDelegate;
     }
 private:
-    JSObject* _JSDelegate;
+    JSObject* m_pJSDelegate;
 };
 
 JSClass  *js_cocos2dx_websocket_class;
@@ -365,13 +365,13 @@ void register_jsb_websocket(JSContext *cx, JSObject *global) {
     
     JSObject* jsclassObj = JSVAL_TO_OBJECT(anonEvaluate(cx, global, "(function () { return WebSocket; })()"));
 
-    JS_DefineProperty(cx, jsclassObj, "CONNECTING", INT_TO_JSVAL((int)WebSocket::State::CONNECTING)
+    JS_DefineProperty(cx, jsclassObj, "CONNECTING", INT_TO_JSVAL((int)WebSocket::kStateConnecting)
                       , NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT | JSPROP_READONLY);
-	JS_DefineProperty(cx, jsclassObj, "OPEN", INT_TO_JSVAL((int)WebSocket::State::OPEN)
+	JS_DefineProperty(cx, jsclassObj, "OPEN", INT_TO_JSVAL((int)WebSocket::kStateOpen)
                       , NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT | JSPROP_READONLY);
-	JS_DefineProperty(cx, jsclassObj, "CLOSING", INT_TO_JSVAL((int)WebSocket::State::CLOSING)
+	JS_DefineProperty(cx, jsclassObj, "CLOSING", INT_TO_JSVAL((int)WebSocket::kStateClosing)
                       , NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT | JSPROP_READONLY);
-	JS_DefineProperty(cx, jsclassObj, "CLOSED", INT_TO_JSVAL((int)WebSocket::State::CLOSED)
+	JS_DefineProperty(cx, jsclassObj, "CLOSED", INT_TO_JSVAL((int)WebSocket::kStateClosed)
                       , NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT | JSPROP_READONLY);
     
     // make the class enumerable in the registered namespace

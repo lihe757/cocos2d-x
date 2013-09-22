@@ -23,12 +23,13 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "CCControlUtils.h"
+#include "support/CCPointExtension.h"
 
 NS_CC_EXT_BEGIN
 
-Sprite* ControlUtils::addSpriteToTargetWithPosAndAnchor(const char* spriteName, Node * target, Point pos, Point anchor)
+CCSprite* CCControlUtils::addSpriteToTargetWithPosAndAnchor(const char* spriteName, CCNode * target, CCPoint pos, CCPoint anchor)
 {
-    Sprite *sprite =Sprite::createWithSpriteFrameName(spriteName);
+    CCSprite *sprite =CCSprite::createWithSpriteFrameName(spriteName);
     
     if (!sprite)
         return NULL;
@@ -41,7 +42,7 @@ Sprite* ControlUtils::addSpriteToTargetWithPosAndAnchor(const char* spriteName, 
 }
 
 
-HSV ControlUtils::HSVfromRGB(RGBA value)
+HSV CCControlUtils::HSVfromRGB(RGBA value)
 {
     HSV         out;
     double      min, max, delta;
@@ -83,7 +84,7 @@ HSV ControlUtils::HSVfromRGB(RGBA value)
     return out;
 }
 
-RGBA ControlUtils::RGBfromHSV(HSV value)
+RGBA CCControlUtils::RGBfromHSV(HSV value)
 {
     double      hh, p, q, t, ff;
     long        i;
@@ -154,17 +155,17 @@ RGBA ControlUtils::RGBfromHSV(HSV value)
     return out;     
 }
 
-Rect ControlUtils::RectUnion(const Rect& src1, const Rect& src2) 
+CCRect CCControlUtils::CCRectUnion(const CCRect& src1, const CCRect& src2) 
 {
-    Rect result;
+    CCRect result;
     
     float x1 = MIN(src1.getMinX(), src2.getMinX());
     float y1 = MIN(src1.getMinY(), src2.getMinY());
     float x2 = MAX(src1.getMaxX(), src2.getMaxX());
     float y2 = MAX(src1.getMaxY(), src2.getMaxY());
     
-    result.origin=Point(x1,x2);
-    result.size=Size(x2-x1, y2-y1);
+    result.origin=ccp(x1,x2);
+    result.size=CCSizeMake(x2-x1, y2-y1);
     return result;
 }
 

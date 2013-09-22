@@ -24,13 +24,6 @@ $(TARGET).js: $(OBJECTS) $(STATICLIBS) $(COCOS_LIBS) $(CORE_MAKEFILE_LIST)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@ $(SHAREDLIBS) $(STATICLIBS)
 
-
-ifeq ($(shell uname -s),Darwin)
-ARIAL_TTF := /Library/Fonts/Arial.ttf
-else
-ARIAL_TTF := $(COCOS_ROOT)/samples/Cpp/TestCpp/Resources/fonts/arial.ttf
-endif
-
 $(TARGET).data:
 	@mkdir -p $(@D)
 	$(eval RESTMP := $(shell mktemp -d /tmp/cocos-emscripten.XXXXXX))
@@ -39,16 +32,15 @@ $(TARGET).data:
 	(cd $(RESOURCE_PATH) && cp -a $(RESOURCES) $(RESTMP))
 	(cd $(FONT_PATH) && cp -a * $(RESTMP)/fonts)
 	# NOTE: we copy the system arial.ttf so that there is always a fallback.
-	cp $(ARIAL_TTF) $(RESTMP)/fonts/arial.ttf
+	cp /Library/Fonts/Arial.ttf $(RESTMP)/fonts/arial.ttf
 	(cd $(RESTMP); python $(PACKAGER) $(EXECUTABLE).data $(patsubst %,--preload %,$(RESOURCES)) --preload fonts --pre-run > $(EXECUTABLE).data.js)
 	mv $(RESTMP)/$(EXECUTABLE).data $@
 	mv $(RESTMP)/$(EXECUTABLE).data.js $@.js
 	rm -rf $(RESTMP)
 
-$(BIN_DIR)/$(HTMLTPL_FILE): $(HTMLTPL_DIR)/$(HTMLTPL_FILE)
+$(BIN_DIR)/index.html: index.html
 	@mkdir -p $(@D)
-	@cp -Rf $(HTMLTPL_DIR)/* $(BIN_DIR)
-	@sed -i -e "s/JS_APPLICATION/$(EXECUTABLE)/g" $(BIN_DIR)/$(HTMLTPL_FILE)
+	cp index.html $(@D)
 
 $(OBJ_DIR)/%.o: %.cpp $(CORE_MAKEFILE_LIST)
 	@mkdir -p $(@D)

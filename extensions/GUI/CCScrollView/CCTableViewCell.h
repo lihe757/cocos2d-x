@@ -34,10 +34,10 @@ NS_CC_EXT_BEGIN
 /**
  * Abstract class for SWTableView cell node
  */
-class TableViewCell: public Node, public SortableObject
+class CCTableViewCell: public CCNode, public CCSortableObject
 {
 public:
-    TableViewCell() {}
+    CCTableViewCell() {}
     /**
      * The index used internally by SWTableView and its subclasses
      */
@@ -51,7 +51,7 @@ public:
     void setObjectID(unsigned int uIdx);
     unsigned int getObjectID();
 private:
-    unsigned int _idx;
+    unsigned int m_uIdx;
 };
 
 NS_CC_EXT_END

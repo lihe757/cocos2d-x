@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "CCShaderNode.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 enum
 {
@@ -32,81 +32,81 @@ enum
     SIZE_Y = 128,
 };
 
-ShaderNode::ShaderNode()
-    : _center(Vertex2F(0.0f, 0.0f))
-    , _resolution(Vertex2F(0.0f, 0.0f))
-    , _time(0.0f)
-    , _uniformCenter(0)
-    , _uniformResolution(0)
-    , _uniformTime(0)
+CCShaderNode::CCShaderNode()
+    : m_center(vertex2(0.0f, 0.0f))
+    , m_resolution(vertex2(0.0f, 0.0f))
+    , m_time(0.0f)
+    , m_uniformCenter(0)
+    , m_uniformResolution(0)
+    , m_uniformTime(0)
 {
 }
 
-ShaderNode *ShaderNode::shaderNodeWithVertex(const char *vert, const char *frag)
+CCShaderNode *CCShaderNode::shaderNodeWithVertex(const char *vert, const char *frag)
 {
-    ShaderNode *node = new ShaderNode();
+    CCShaderNode *node = new CCShaderNode();
     node->initWithVertex(vert, frag);
     node->autorelease();
 
     return node;
 }
 
-bool ShaderNode::initWithVertex(const char *vert, const char *frag)
+bool CCShaderNode::initWithVertex(const char *vert, const char *frag)
 {
 
     loadShaderVertex(vert, frag);
 
-    _time = 0;
-    _resolution = Vertex2F(SIZE_X, SIZE_Y);
+    m_time = 0;
+    m_resolution = vertex2(SIZE_X, SIZE_Y);
 
     scheduleUpdate();
 
-    setContentSize(Size(SIZE_X, SIZE_Y));
-    setAnchorPoint(Point(0.5f, 0.5f));
+    setContentSize(CCSizeMake(SIZE_X, SIZE_Y));
+    setAnchorPoint(ccp(0.5f, 0.5f));
 
     return true;
 }
 
-void ShaderNode::loadShaderVertex(const char *vert, const char *frag)
+void CCShaderNode::loadShaderVertex(const char *vert, const char *frag)
 {
-    GLProgram *shader = new GLProgram();
+    CCGLProgram *shader = new CCGLProgram();
     shader->initWithVertexShaderFilename(vert, frag);
 
-    shader->addAttribute("aVertex", GLProgram::VERTEX_ATTRIB_POSITION);
+    shader->addAttribute("aVertex", kCCVertexAttrib_Position);
     shader->link();
 
     shader->updateUniforms();
 
-    _uniformCenter = glGetUniformLocation(shader->getProgram(), "center");
-    _uniformResolution = glGetUniformLocation(shader->getProgram(), "resolution");
-    _uniformTime = glGetUniformLocation(shader->getProgram(), "time");
+    m_uniformCenter = glGetUniformLocation(shader->getProgram(), "center");
+    m_uniformResolution = glGetUniformLocation(shader->getProgram(), "resolution");
+    m_uniformTime = glGetUniformLocation(shader->getProgram(), "time");
 
     this->setShaderProgram(shader);
 
     shader->release();
 }
 
-void ShaderNode::update(float dt)
+void CCShaderNode::update(float dt)
 {
-    _time += dt;
+    m_time += dt;
 }
 
-void ShaderNode::translateFormOtherNode(AffineTransform &transform)
+void CCShaderNode::translateFormOtherNode(CCAffineTransform &transform)
 {
-    Node::setAdditionalTransform(transform);
+    CCNode::setAdditionalTransform(transform);
 
-    _center = Vertex2F(_additionalTransform.tx * CC_CONTENT_SCALE_FACTOR(), _additionalTransform.ty * CC_CONTENT_SCALE_FACTOR());
-    _resolution = Vertex2F( SIZE_X * _additionalTransform.a, SIZE_Y * _additionalTransform.d);
+    m_center = vertex2(m_sAdditionalTransform.tx * CC_CONTENT_SCALE_FACTOR(), m_sAdditionalTransform.ty * CC_CONTENT_SCALE_FACTOR());
+    m_resolution = vertex2( SIZE_X * m_sAdditionalTransform.a, SIZE_Y * m_sAdditionalTransform.d);
 }
 
-void ShaderNode::setPosition(const Point &newPosition)
+void CCShaderNode::setPosition(const CCPoint &newPosition)
 {
-    Node::setPosition(newPosition);
-    Point position = getPosition();
-    _center = Vertex2F(position.x * CC_CONTENT_SCALE_FACTOR(), position.y * CC_CONTENT_SCALE_FACTOR());
+    CCNode::setPosition(newPosition);
+    CCPoint position = getPosition();
+    m_center = vertex2(position.x * CC_CONTENT_SCALE_FACTOR(), position.y * CC_CONTENT_SCALE_FACTOR());
 }
 
-void ShaderNode::draw()
+void CCShaderNode::draw()
 {
     CC_NODE_DRAW_SETUP();
 
@@ -116,16 +116,16 @@ void ShaderNode::draw()
     //
     // Uniforms
     //
-    getShaderProgram()->setUniformLocationWith2f(_uniformCenter, _center.x, _center.y);
-    getShaderProgram()->setUniformLocationWith2f(_uniformResolution, _resolution.x, _resolution.y);
+    getShaderProgram()->setUniformLocationWith2f(m_uniformCenter, m_center.x, m_center.y);
+    getShaderProgram()->setUniformLocationWith2f(m_uniformResolution, m_resolution.x, m_resolution.y);
 
 
     // time changes all the time, so it is Ok to call OpenGL directly, and not the "cached" version
-    glUniform1f(_uniformTime, _time);
+    glUniform1f(m_uniformTime, m_time);
 
-    GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POSITION);
+    ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position );
 
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, vertices);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -133,4 +133,4 @@ void ShaderNode::draw()
 }
 
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

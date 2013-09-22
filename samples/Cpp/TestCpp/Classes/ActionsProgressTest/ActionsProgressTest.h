@@ -2,9 +2,8 @@
 #define _ACTIONS_PROGRESS_TEST_H_
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class SpriteDemo : public BaseTest
+class SpriteDemo : public CCLayer
 {
 public:
     SpriteDemo(void);
@@ -14,9 +13,9 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class SpriteProgressToRadial : public SpriteDemo

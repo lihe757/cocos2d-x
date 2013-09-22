@@ -5,14 +5,14 @@
 #include "cocos-ext.h"
 
 
-class PlayerController : public cocos2d::extension::ComController
+class PlayerController : public cocos2d::extension::CCComController
 {
 protected:
     PlayerController(void);
     virtual ~PlayerController(void);
     
 public:
-    virtual void ccTouchesEnded(cocos2d::Set  *touches, cocos2d::Event  *event);
+    virtual void ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
     
 public:
     virtual bool init();

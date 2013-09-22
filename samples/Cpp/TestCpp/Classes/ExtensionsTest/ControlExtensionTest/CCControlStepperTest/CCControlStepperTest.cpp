@@ -25,72 +25,72 @@
 
 #include "CCControlStepperTest.h"
 
-ControlStepperTest::ControlStepperTest()
-: _displayValueLabel(NULL)
+CCControlStepperTest::CCControlStepperTest()
+: m_pDisplayValueLabel(NULL)
 {
 
 }
 
-ControlStepperTest::~ControlStepperTest()
+CCControlStepperTest::~CCControlStepperTest()
 {
-    CC_SAFE_RELEASE(_displayValueLabel);
+    CC_SAFE_RELEASE(m_pDisplayValueLabel);
 }
 
-bool ControlStepperTest::init()
+bool CCControlStepperTest::init()
 {
-    if (ControlScene::init())
+    if (CCControlScene::init())
     {
-        Size screenSize = Director::getInstance()->getWinSize();
+        CCSize screenSize = CCDirector::sharedDirector()->getWinSize();
         
-        Node *layer = Node::create();
-        layer->setPosition(Point (screenSize.width / 2, screenSize.height / 2));
+        CCNode *layer = CCNode::create();
+        layer->setPosition(ccp (screenSize.width / 2, screenSize.height / 2));
         this->addChild(layer, 1);
         
         double layer_width          = 0;
         
         // Add the black background for the text
-        Scale9Sprite *background  = Scale9Sprite::create("extensions/buttonBackground.png");
-        background->setContentSize(Size(100, 50));
-        background->setPosition(Point(layer_width + background->getContentSize().width / 2.0f, 0));
+        CCScale9Sprite *background  = CCScale9Sprite::create("extensions/buttonBackground.png");
+        background->setContentSize(CCSizeMake(100, 50));
+        background->setPosition(ccp(layer_width + background->getContentSize().width / 2.0f, 0));
         layer->addChild(background);
         
-        this->setDisplayValueLabel(LabelTTF::create("0", "HelveticaNeue-Bold", 30));
+        this->setDisplayValueLabel(CCLabelTTF::create("0", "HelveticaNeue-Bold", 30));
 
-        _displayValueLabel->setPosition(background->getPosition());
-        layer->addChild(_displayValueLabel);
+        m_pDisplayValueLabel->setPosition(background->getPosition());
+        layer->addChild(m_pDisplayValueLabel);
         
         layer_width                 += background->getContentSize().width;
         
-        ControlStepper *stepper   = this->makeControlStepper();
-        stepper->setPosition(Point(layer_width + 10 + stepper->getContentSize().width / 2, 0));
-        stepper->addTargetWithActionForControlEvents(this, cccontrol_selector(ControlStepperTest::valueChanged), Control::EventType::VALUE_CHANGED);
+        CCControlStepper *stepper   = this->makeControlStepper();
+        stepper->setPosition(ccp (layer_width + 10 + stepper->getContentSize().width / 2, 0));
+        stepper->addTargetWithActionForControlEvents(this, cccontrol_selector(CCControlStepperTest::valueChanged), CCControlEventValueChanged);
         layer->addChild(stepper);
         
         layer_width                 += stepper->getContentSize().width;
         
         // Set the layer size
-        layer->setContentSize(Size(layer_width, 0));
-        layer->setAnchorPoint(Point(0.5f, 0.5f));
+        layer->setContentSize(CCSizeMake(layer_width, 0));
+        layer->setAnchorPoint(ccp (0.5f, 0.5f));
         
         // Update the value label
-        this->valueChanged(stepper, Control::EventType::VALUE_CHANGED);
+        this->valueChanged(stepper, CCControlEventValueChanged);
         return true;
     }
     return false;
 }
 
-ControlStepper *ControlStepperTest::makeControlStepper()
+CCControlStepper *CCControlStepperTest::makeControlStepper()
 {
-    Sprite *minusSprite       = Sprite::create("extensions/stepper-minus.png");
-    Sprite *plusSprite        = Sprite::create("extensions/stepper-plus.png");
+    CCSprite *minusSprite       = CCSprite::create("extensions/stepper-minus.png");
+    CCSprite *plusSprite        = CCSprite::create("extensions/stepper-plus.png");
     
-    return ControlStepper::create(minusSprite, plusSprite);
+    return CCControlStepper::create(minusSprite, plusSprite);
 }
 
-void ControlStepperTest::valueChanged(Object *sender, Control::EventType controlEvent)
+void CCControlStepperTest::valueChanged(CCObject *sender, CCControlEvent controlEvent)
 {
-    ControlStepper* pControl = (ControlStepper*)sender;
+    CCControlStepper* pControl = (CCControlStepper*)sender;
     // Change value of label.
-    _displayValueLabel->setString(String::createWithFormat("%0.02f", (float)pControl->getValue())->getCString());	
+    m_pDisplayValueLabel->setString(CCString::createWithFormat("%0.02f", (float)pControl->getValue())->getCString());	
 }
 

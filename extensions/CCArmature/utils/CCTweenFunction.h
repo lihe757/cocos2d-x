@@ -29,9 +29,9 @@ THE SOFTWARE.
 #include "CCArmatureDefine.h"
 #include <math.h>
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
     
-enum TweenType{
+enum CCTweenType{
     TWEEN_EASING_MIN = -1,
     
     Linear,
@@ -80,10 +80,10 @@ enum TweenType{
     TWEEN_EASING_MAX = 10000
 };
     
-class  TweenFunction{
+class  CCTweenFunction{
 public:
     
-    static float tweenTo(float from, float change, float time, float duration, TweenType tweenType);
+    static float tweenTo(float from, float change, float time, float duration, CCTweenType tweenType);
     
     static float linear(float t, float b, float c, float d);
     
@@ -129,6 +129,6 @@ public:
 };
     
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif /*__CCTWEENFUNCTION_H__*/

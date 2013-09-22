@@ -43,10 +43,10 @@ static bool        s_bVertexAttribTexCoords = false;
 
 #if CC_ENABLE_GL_STATE_CACHE
 
-#define kMaxActiveTexture 16
+#define kCCMaxActiveTexture 16
 
 static GLuint    s_uCurrentShaderProgram = -1;
-static GLuint    s_uCurrentBoundTexture[kMaxActiveTexture] =  {(GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, };
+static GLuint    s_uCurrentBoundTexture[kCCMaxActiveTexture] =  {(GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, (GLuint)-1,(GLuint)-1,(GLuint)-1,(GLuint)-1, };
 static GLenum    s_eBlendingSource = -1;
 static GLenum    s_eBlendingDest = -1;
 static int       s_eGLServerState = 0;
@@ -57,9 +57,7 @@ static GLuint    s_uVAO = 0;
 
 // GL State Cache functions
 
-namespace GL {
-
-void invalidateStateCache( void )
+void ccGLInvalidateStateCache( void )
 {
     kmGLFreeAll();
     
@@ -70,7 +68,7 @@ void invalidateStateCache( void )
     
 #if CC_ENABLE_GL_STATE_CACHE
     s_uCurrentShaderProgram = -1;
-    for( int i=0; i < kMaxActiveTexture; i++ )
+    for( int i=0; i < kCCMaxActiveTexture; i++ )
     {
         s_uCurrentBoundTexture[i] = -1;
     }
@@ -78,14 +76,10 @@ void invalidateStateCache( void )
     s_eBlendingSource = -1;
     s_eBlendingDest = -1;
     s_eGLServerState = 0;
-#if CC_TEXTURE_ATLAS_USE_VAO
-    s_uVAO = 0;
 #endif
-    
-#endif // CC_ENABLE_GL_STATE_CACHE
 }
 
-void deleteProgram( GLuint program )
+void ccGLDeleteProgram( GLuint program )
 {
 #if CC_ENABLE_GL_STATE_CACHE
     if(program == s_uCurrentShaderProgram)
@@ -97,7 +91,7 @@ void deleteProgram( GLuint program )
     glDeleteProgram( program );
 }
 
-void useProgram( GLuint program )
+void ccGLUseProgram( GLuint program )
 {
 #if CC_ENABLE_GL_STATE_CACHE
     if( program != s_uCurrentShaderProgram ) {
@@ -122,7 +116,7 @@ static void SetBlending(GLenum sfactor, GLenum dfactor)
 	}
 }
 
-void blendFunc(GLenum sfactor, GLenum dfactor)
+void ccGLBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 #if CC_ENABLE_GL_STATE_CACHE
     if (sfactor != s_eBlendingSource || dfactor != s_eBlendingDest)
@@ -136,7 +130,7 @@ void blendFunc(GLenum sfactor, GLenum dfactor)
 #endif // CC_ENABLE_GL_STATE_CACHE
 }
 
-void blendResetToCache(void)
+void ccGLBlendResetToCache(void)
 {
 	glBlendEquation(GL_FUNC_ADD);
 #if CC_ENABLE_GL_STATE_CACHE
@@ -146,15 +140,15 @@ void blendResetToCache(void)
 #endif // CC_ENABLE_GL_STATE_CACHE
 }
 
-void bindTexture2D(GLuint textureId)
+void ccGLBindTexture2D(GLuint textureId)
 {
-    GL::bindTexture2DN(0, textureId);
+    ccGLBindTexture2DN(0, textureId);
 }
 
-void bindTexture2DN(GLuint textureUnit, GLuint textureId)
+void ccGLBindTexture2DN(GLuint textureUnit, GLuint textureId)
 {
 #if CC_ENABLE_GL_STATE_CACHE
-    CCASSERT(textureUnit < kMaxActiveTexture, "textureUnit is too big");
+    CCAssert(textureUnit < kCCMaxActiveTexture, "textureUnit is too big");
     if (s_uCurrentBoundTexture[textureUnit] != textureId)
     {
         s_uCurrentBoundTexture[textureUnit] = textureId;
@@ -168,12 +162,12 @@ void bindTexture2DN(GLuint textureUnit, GLuint textureId)
 }
 
 
-void deleteTexture(GLuint textureId)
+void ccGLDeleteTexture(GLuint textureId)
 {
-    deleteTextureN(0, textureId);
+    ccGLDeleteTextureN(0, textureId);
 }
 
-void deleteTextureN(GLuint textureUnit, GLuint textureId)
+void ccGLDeleteTextureN(GLuint textureUnit, GLuint textureId)
 {
 #if CC_ENABLE_GL_STATE_CACHE
 	if (s_uCurrentBoundTexture[textureUnit] == textureId)
@@ -185,7 +179,7 @@ void deleteTextureN(GLuint textureUnit, GLuint textureId)
 	glDeleteTextures(1, &textureId);
 }
 
-void bindVAO(GLuint vaoId)
+void ccGLBindVAO(GLuint vaoId)
 {
 #if CC_TEXTURE_ATLAS_USE_VAO  
     
@@ -202,44 +196,69 @@ void bindVAO(GLuint vaoId)
 #endif
 }
 
+void ccGLEnable(ccGLServerState flags)
+{
+#if CC_ENABLE_GL_STATE_CACHE
+
+//    int enabled = 0;
+//
+//    /* GL_BLEND */
+//    if( (enabled = (flags & CC_GL_BLEND)) != (s_eGLServerState & CC_GL_BLEND) ) {
+//        if( enabled ) {
+//            glEnable( GL_BLEND );
+//            s_eGLServerState |= CC_GL_BLEND;
+//        } else {
+//            glDisable( GL_BLEND );
+//            s_eGLServerState &=  ~CC_GL_BLEND;
+//        }
+//    }
+
+#else
+//    if( flags & CC_GL_BLEND )
+//        glEnable( GL_BLEND );
+//    else
+//        glDisable( GL_BLEND );
+#endif
+}
+
 //#pragma mark - GL Vertex Attrib functions
 
-void enableVertexAttribs( unsigned int flags )
+void ccGLEnableVertexAttribs( unsigned int flags )
 {
-    bindVAO(0);
+    ccGLBindVAO(0);
     
     /* Position */
-    bool enablePosition = flags & VERTEX_ATTRIB_FLAG_POSITION;
+    bool enablePosition = flags & kCCVertexAttribFlag_Position;
 
     if( enablePosition != s_bVertexAttribPosition ) {
         if( enablePosition )
-            glEnableVertexAttribArray( GLProgram::VERTEX_ATTRIB_POSITION );
+            glEnableVertexAttribArray( kCCVertexAttrib_Position );
         else
-            glDisableVertexAttribArray( GLProgram::VERTEX_ATTRIB_POSITION );
+            glDisableVertexAttribArray( kCCVertexAttrib_Position );
 
         s_bVertexAttribPosition = enablePosition;
     }
 
     /* Color */
-    bool enableColor = (flags & VERTEX_ATTRIB_FLAG_COLOR) != 0 ? true : false;
+    bool enableColor = (flags & kCCVertexAttribFlag_Color) != 0 ? true : false;
 
     if( enableColor != s_bVertexAttribColor ) {
         if( enableColor )
-            glEnableVertexAttribArray( GLProgram::VERTEX_ATTRIB_COLOR );
+            glEnableVertexAttribArray( kCCVertexAttrib_Color );
         else
-            glDisableVertexAttribArray( GLProgram::VERTEX_ATTRIB_COLOR );
+            glDisableVertexAttribArray( kCCVertexAttrib_Color );
 
         s_bVertexAttribColor = enableColor;
     }
 
     /* Tex Coords */
-    bool enableTexCoords = (flags & VERTEX_ATTRIB_FLAG_TEX_COORDS) != 0 ? true : false;
+    bool enableTexCoords = (flags & kCCVertexAttribFlag_TexCoords) != 0 ? true : false;
 
     if( enableTexCoords != s_bVertexAttribTexCoords ) {
         if( enableTexCoords )
-            glEnableVertexAttribArray( GLProgram::VERTEX_ATTRIB_TEX_COORDS );
+            glEnableVertexAttribArray( kCCVertexAttrib_TexCoords );
         else
-            glDisableVertexAttribArray( GLProgram::VERTEX_ATTRIB_TEX_COORDS );
+            glDisableVertexAttribArray( kCCVertexAttrib_TexCoords );
 
         s_bVertexAttribTexCoords = enableTexCoords;
     }
@@ -247,11 +266,9 @@ void enableVertexAttribs( unsigned int flags )
 
 //#pragma mark - GL Uniforms functions
 
-void setProjectionMatrixDirty( void )
+void ccSetProjectionMatrixDirty( void )
 {
     s_uCurrentProjectionMatrix = -1;
 }
-
-} // Namespace GL
 
 NS_CC_END

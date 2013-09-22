@@ -27,7 +27,7 @@
 
 #include <string>
 #include <curl/curl.h>
-#include <mutex>
+#include <pthread.h>
 
 #include "cocos2d.h"
 #include "ExtensionMacros.h"
@@ -44,19 +44,19 @@ class AssetsManagerDelegateProtocol;
 class AssetsManager
 {
 public:
-    enum class ErrorCode
+    enum ErrorCode
     {
         // Error caused by creating a file to store downloaded data
-        CREATE_FILE,
+        kCreateFile,
         /** Error caused by network
          -- network unavaivable
          -- timeout
          -- ...
          */
-        NETWORK,
+        kNetwork,
         /** There is not a new version
          */
-        NO_NEW_VERSION,
+        kNoNewVersion,
         /** Error caused in uncompressing stage
          -- can not open zip file
          -- can not read file global information
@@ -64,7 +64,7 @@ public:
          -- can not create a directory
          -- ...
          */
-        UNCOMPRESS,
+        kUncompress,
     };
     
     /* @brief Creates a AssetsManager with new package url, version code url and storage path.
@@ -137,6 +137,7 @@ public:
     
     /* downloadAndUncompress is the entry of a new thread 
      */
+    friend void* assetsManagerDownloadAndUncompress(void*);
     friend int assetsManagerProgressFunc(void *, double, double, double, double);
     
 protected:
@@ -146,7 +147,6 @@ protected:
     bool createDirectory(const char *path);
     void setSearchPath();
     void sendErrorMessage(ErrorCode code);
-    void downloadAndUncompress();
     
 private:
     typedef struct _Message
@@ -157,7 +157,7 @@ private:
         void* obj;
     } Message;
     
-    class Helper : public cocos2d::Object
+    class Helper : public cocos2d::CCObject
     {
     public:
         Helper();
@@ -170,7 +170,7 @@ private:
         void handleUpdateSucceed(Message *msg);
         
         std::list<Message*> *_messageQueue;
-        std::mutex _messageQueueMutex;
+        pthread_mutex_t _messageQueueMutex;
     };
     
 private:
@@ -187,11 +187,10 @@ private:
     
     CURL *_curl;
     Helper *_schedule;
+    pthread_t *_tid;
     unsigned int _connectionTimeout;
     
     AssetsManagerDelegateProtocol *_delegate; // weak reference
-    
-    bool _isDownloading;
 };
 
 class AssetsManagerDelegateProtocol
@@ -203,7 +202,7 @@ public:
     virtual void onError(AssetsManager::ErrorCode errorCode) {};
     /** @brief Call back function for recording downloading percent
         @param percent How much percent downloaded
-        @warning    This call back function just for recording downloading percent.
+        @warn This call back function just for recording downloading percent.
               AssetsManager will do some other thing after downloading, you should
               write code in onSuccess() after downloading. 
      */
@@ -212,10 +211,6 @@ public:
      */
     virtual void onSuccess() {};
 };
-
-// Deprecated declaration
-CC_DEPRECATED_ATTRIBUTE typedef AssetsManager CCAssetsManager;
-CC_DEPRECATED_ATTRIBUTE typedef AssetsManagerDelegateProtocol CCAssetsManagerDelegateProtocol;
 
 NS_CC_EXT_END;
 

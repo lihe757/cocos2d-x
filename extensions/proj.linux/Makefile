@@ -10,7 +10,7 @@ INCLUDES = -I$(COCOS_ROOT)/external \
 	-I../GUI/CCControlExtension \
 	-I../GUI/CCEditBox \
 	-I../network \
-	-I../Components \
+    -I../Components \
 	-I../CCArmature
 
 SOURCES = ../CCBReader/CCBFileLoader.cpp \
@@ -35,6 +35,7 @@ SOURCES = ../CCBReader/CCBFileLoader.cpp \
 ../CCBReader/CCBSequence.cpp \
 ../CCBReader/CCBSequenceProperty.cpp \
 ../CCBReader/CCBValue.cpp \
+../CCBReader/CCData.cpp \
 ../CCBReader/CCNode+CCBRelativePositioning.cpp \
 ../GUI/CCScrollView/CCScrollView.cpp \
 ../GUI/CCScrollView/CCSorting.cpp \
@@ -78,6 +79,10 @@ SOURCES = ../CCBReader/CCBFileLoader.cpp \
 ../spine/spine-cocos2dx.cpp \
 ../spine/CCSkeleton.cpp \
 ../spine/CCSkeletonAnimation.cpp \
+../Components/CCComAttribute.cpp \
+../Components/CCComAudio.cpp \
+../Components/CCComController.cpp \
+../Components/CCInputDelegate.cpp \
 ../CCArmature/CCArmature.cpp \
 ../CCArmature/CCBone.cpp \
 ../CCArmature/animation/CCArmatureAnimation.cpp \
@@ -103,15 +108,10 @@ SOURCES = ../CCBReader/CCBFileLoader.cpp \
 ../CCArmature/utils/CCTransformHelp.cpp \
 ../CCArmature/utils/CCTweenFunction.cpp \
 ../CCArmature/utils/CCUtilMath.cpp \
-../Components/CCComAttribute.cpp \
-../Components/CCComAudio.cpp \
-../Components/CCComController.cpp \
-../Components/CCInputDelegate.cpp \
-../CCDeprecated-ext.cpp
 
 include $(COCOS_ROOT)/cocos2dx/proj.linux/cocos2dx.mk
 
-CXXFLAGS += -Wno-multichar
+CXXFLAGS += -Wno-multichar -Wno-delete-non-virtual-dtor
 
 TARGET := $(LIB_DIR)/$(TARGET)
 

@@ -27,40 +27,40 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-Component::Component(void)
-: _owner(NULL)
-, _enabled(true)
+CCComponent::CCComponent(void)
+: m_pOwner(NULL)
+, m_bEnabled(true)
 {
 }
 
-Component::~Component(void)
+CCComponent::~CCComponent(void)
 {
 }
 
-bool Component::init()
+bool CCComponent::init()
 {
     return true;
 }
 
-void Component::onEnter()
+void CCComponent::onEnter()
 {
 }
 
-void Component::onExit()
+void CCComponent::onExit()
 {
 }
 
-void Component::update(float delta)
+void CCComponent::update(float delta)
 {
 }
 
-void Component::serialize(void *ar)
+void CCComponent::serialize(void *ar)
 {
 }
 
-Component* Component::create(void)
+CCComponent* CCComponent::create(void)
 {
-    Component * pRet = new Component();
+    CCComponent * pRet = new CCComponent();
     if (pRet != NULL && pRet->init())
     {
         pRet->autorelease();
@@ -72,29 +72,29 @@ Component* Component::create(void)
 	return pRet;
 }
 
-const char* Component::getName() const
+const char* CCComponent::getName() const
 {
-    return _name.c_str();
+    return m_strName.c_str();
 }
 
-Node* Component::getOwner() const
+CCNode* CCComponent::getOwner() const
 {
-    return _owner;
+    return m_pOwner;
 }
 
-void Component::setOwner(Node *pOwner)
+void CCComponent::setOwner(CCNode *pOwner)
 {
-    _owner = pOwner;
+    m_pOwner = pOwner;
 }
 
-bool Component::isEnabled() const
+bool CCComponent::isEnabled() const
 {
-    return _enabled;
+    return m_bEnabled;
 }
 
-void Component::setEnabled(bool b)
+void CCComponent::setEnabled(bool b)
 {
-    _enabled = b;
+    m_bEnabled = b;
 }
 
 NS_CC_END

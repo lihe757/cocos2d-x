@@ -11,15 +11,15 @@ public:
     virtual void runThisTest();
 };
 
-class TestLayer1 : public Layer
+class TestLayer1 : public CCLayer
 {
 public:
     TestLayer1(void);
     ~TestLayer1(void);
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
     void step(float dt);
 
@@ -29,15 +29,15 @@ public:
     virtual void onExit();
 };
 
-class TestLayer2 : public Layer
+class TestLayer2 : public CCLayer
 {
 public:
     TestLayer2(void);
     ~TestLayer2(void);
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
     void step(float dt);
 

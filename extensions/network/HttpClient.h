@@ -43,35 +43,35 @@ NS_CC_EXT_BEGIN
 /** @brief Singleton that handles asynchrounous http requests
  * Once the request completed, a callback will issued in main thread when it provided during make request
  */
-class HttpClient : public Object
+class CCHttpClient : public CCObject
 {
 public:
     /** Return the shared instance **/
-    static HttpClient *getInstance();
+    static CCHttpClient *getInstance();
     
     /** Relase the shared instance **/
     static void destroyInstance();
-
-    /** Enable cookie support. **/
-    void enableCookies(const char* cookieFile);
         
     /**
      * Add a get request to task queue
-     * @param request a HttpRequest object, which includes url, response callback etc.
+     * @param request a CCHttpRequest object, which includes url, response callback etc.
                       please make sure request->_requestData is clear before calling "send" here.
+     * @return NULL
      */
-    void send(HttpRequest* request);
+    void send(CCHttpRequest* request);
   
     
     /**
      * Change the connect timeout
-     * @param value The desired timeout.
+     * @param timeout 
+     * @return NULL
      */
     inline void setTimeoutForConnect(int value) {_timeoutForConnect = value;};
     
     /**
      * Get connect timeout
      * @return int
+     *
      */
     inline int getTimeoutForConnect() {return _timeoutForConnect;}
     
@@ -79,6 +79,7 @@ public:
     /**
      * Change the download timeout
      * @param value
+     * @return NULL
      */
     inline void setTimeoutForRead(int value) {_timeoutForRead = value;};
     
@@ -90,8 +91,8 @@ public:
     inline int getTimeoutForRead() {return _timeoutForRead;};
         
 private:
-    HttpClient();
-    virtual ~HttpClient();
+    CCHttpClient();
+    virtual ~CCHttpClient();
     bool init(void);
     
     /**

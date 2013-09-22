@@ -2,7 +2,7 @@
 
 NS_CC_BEGIN
 
-int Device::getDPI()
+int CCDevice::getDPI()
 {
     return 160;
 }

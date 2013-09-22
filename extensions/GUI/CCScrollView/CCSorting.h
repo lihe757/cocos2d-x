@@ -31,18 +31,18 @@
 
 NS_CC_EXT_BEGIN
 
-class SortableObject
+class CCSortableObject
 {
 public:
-    virtual ~SortableObject() {}
+    virtual ~CCSortableObject() {}
     virtual void setObjectID(unsigned int objectID) = 0;
     virtual unsigned int getObjectID() = 0;
 };
 
-class ArrayForObjectSorting : public Array
+class CCArrayForObjectSorting : public CCArray
 {
 public:
-    ArrayForObjectSorting() : Array() {}
+    CCArrayForObjectSorting() : CCArray() {}
     /*!
      * Inserts a given object into array.
      * 
@@ -52,9 +52,9 @@ public:
      * If the compare message does not result NSComparisonResult, sorting behavior
      * is not defined. It ignores duplicate entries and inserts next to it.
      *
-     * @param object    The object to be inserted.
+     * @param object to insert
      */
-    void insertSortedObject(SortableObject* object);
+    void insertSortedObject(CCSortableObject* object);
 
     /*!
      * Removes an object in array.
@@ -62,9 +62,9 @@ public:
      * Removes an object with given key and value. If no object is found in array
      * with the key and value, no action is taken.
      *
-     * @param object    The object to be removed.
+     * @param value to remove
      */
-    void removeSortedObject(SortableObject* object);
+    void removeSortedObject(CCSortableObject* object);
     /*!
      * Sets a new value of the key for the given object.
      * 
@@ -72,22 +72,22 @@ public:
      * keep consistency of being sorted. If it is changed externally, it must be
      * sorted completely again.
      *
-     * @param tag       The value to be set to.
-     * @param object    The object which has the value.
+     * @param value to set
+     * @param object the object which has the value
      */
-    void setObjectID_ofSortedObject(unsigned int tag, SortableObject* object);
+    void setObjectID_ofSortedObject(unsigned int tag, CCSortableObject* object);
 
-    SortableObject* objectWithObjectID(unsigned int tag);
+    CCSortableObject* objectWithObjectID(unsigned int tag);
     /*!
      * Returns an object with given key and value.
      * 
      * Returns an object with given key and value. If no object is found,
      * it returns nil.
      *
-     * @param tag   The value to locate object
+     * @param value to locate object
      * @return object found or nil.
      */
-    SortableObject* getObjectWithObjectID(unsigned int tag);
+    CCSortableObject* getObjectWithObjectID(unsigned int tag);
 
     /*!
      * Returns an index of the object with given key and value.
@@ -97,10 +97,10 @@ public:
      * would have been located. If object must be located at the end of array,
      * it returns the length of the array, which is out of bound.
      * 
-     * @param obj   The object
-     * @return index of the object
+     * @param value to locate object
+     * @return index of an object found
      */
-    unsigned int indexOfSortedObject(SortableObject* obj);
+    unsigned int indexOfSortedObject(CCSortableObject* obj);
 
 };
 

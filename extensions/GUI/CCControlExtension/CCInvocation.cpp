@@ -28,9 +28,9 @@
 
 NS_CC_EXT_BEGIN
 
-Invocation* Invocation::create(Object* target, Control::Handler action, Control::EventType controlEvent)
+CCInvocation* CCInvocation::create(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent)
 {
-    Invocation* pRet = new Invocation(target, action, controlEvent);
+    CCInvocation* pRet = new CCInvocation(target, action, controlEvent);
     if (pRet != NULL)
     {
         pRet->autorelease();
@@ -38,18 +38,18 @@ Invocation* Invocation::create(Object* target, Control::Handler action, Control:
     return pRet;
 }
 
-Invocation::Invocation(Object* target, Control::Handler action, Control::EventType controlEvent)
+CCInvocation::CCInvocation(CCObject* target, SEL_CCControlHandler action, CCControlEvent controlEvent)
 {
-    _target=target;
-    _action=action;
-    _controlEvent=controlEvent;
+    m_target=target;
+    m_action=action;
+    m_controlEvent=controlEvent;
 }
 
-void Invocation::invoke(Object* sender)
+void CCInvocation::invoke(CCObject* sender)
 {
-    if (_target && _action)
+    if (m_target && m_action)
     {
-        (_target->*_action)(sender, _controlEvent);
+        (m_target->*m_action)(sender, m_controlEvent);
     }                
 }
 

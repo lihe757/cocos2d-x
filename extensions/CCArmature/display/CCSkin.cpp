@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "CCSkin.h"
 #include "../utils/CCTransformHelp.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 #if CC_SPRITEBATCHNODE_RENDER_SUBPIXEL
 #define RENDER_IN_SUBPIXEL
@@ -33,9 +33,9 @@ namespace cocos2d { namespace extension { namespace armature {
 #define RENDER_IN_SUBPIXEL(__ARGS__) (ceil(__ARGS__))
 #endif
 
-Skin *Skin::create()
+CCSkin *CCSkin::create()
 {
-    Skin *skin = new Skin();
+    CCSkin *skin = new CCSkin();
     if(skin && skin->init())
     {
         skin->autorelease();
@@ -45,9 +45,9 @@ Skin *Skin::create()
     return NULL;
 }
 
-Skin *Skin::createWithSpriteFrameName(const char *pszSpriteFrameName)
+CCSkin *CCSkin::createWithSpriteFrameName(const char *pszSpriteFrameName)
 {
-    Skin *skin = new Skin();
+    CCSkin *skin = new CCSkin();
     if(skin && skin->initWithSpriteFrameName(pszSpriteFrameName))
     {
         skin->autorelease();
@@ -57,39 +57,39 @@ Skin *Skin::createWithSpriteFrameName(const char *pszSpriteFrameName)
     return NULL;
 }
 
-Skin::Skin()
-    : _bone(NULL)
+CCSkin::CCSkin()
+    : m_pBone(NULL)
 {
 }
 
-void Skin::setSkinData(const BaseData &var)
+void CCSkin::setSkinData(const CCBaseData &var)
 {
-    _skinData = var;
+    m_sSkinData = var;
 
-    setScaleX(_skinData.scaleX);
-    setScaleY(_skinData.scaleY);
-    setRotation(CC_RADIANS_TO_DEGREES(_skinData.skewX));
-    setPosition(Point(_skinData.x, _skinData.y));
+    setScaleX(m_sSkinData.scaleX);
+    setScaleY(m_sSkinData.scaleY);
+    setRotation(CC_RADIANS_TO_DEGREES(m_sSkinData.skewX));
+    setPosition(ccp(m_sSkinData.x, m_sSkinData.y));
 
-    _skinTransform = getNodeToParentTransform();
+    m_tSkinTransform = nodeToParentTransform();
 }
 
-const BaseData &Skin::getSkinData() const
+const CCBaseData &CCSkin::getSkinData()
 {
-    return _skinData;
+    return m_sSkinData;
 }
 
-void Skin::updateTransform()
+void CCSkin::updateTransform()
 {
-    _transform = AffineTransformConcat(_skinTransform, _bone->nodeToArmatureTransform());
+    m_sTransform = CCAffineTransformConcat(m_tSkinTransform, m_pBone->nodeToArmatureTransform());
 }
 
-void Skin::draw()
+void CCSkin::draw()
 {
     // If it is not visible, or one of its ancestors is not visible, then do nothing:
-    if( !_visible)
+    if( !m_bVisible)
     {
-        _quad.br.vertices = _quad.tl.vertices = _quad.tr.vertices = _quad.bl.vertices = Vertex3F(0, 0, 0);
+        m_sQuad.br.vertices = m_sQuad.tl.vertices = m_sQuad.tr.vertices = m_sQuad.bl.vertices = vertex3(0, 0, 0);
     }
     else
     {
@@ -97,21 +97,21 @@ void Skin::draw()
         // calculate the Quad based on the Affine Matrix
         //
 
-        Size size = _rect.size;
+        CCSize size = m_obRect.size;
 
-        float x1 = _offsetPosition.x;
-        float y1 = _offsetPosition.y;
+        float x1 = m_obOffsetPosition.x;
+        float y1 = m_obOffsetPosition.y;
 
         float x2 = x1 + size.width;
         float y2 = y1 + size.height;
 
-        float x = _transform.tx;
-        float y = _transform.ty;
+        float x = m_sTransform.tx;
+        float y = m_sTransform.ty;
 
-        float cr = _transform.a;
-        float sr = _transform.b;
-        float cr2 = _transform.d;
-        float sr2 = -_transform.c;
+        float cr = m_sTransform.a;
+        float sr = m_sTransform.b;
+        float cr2 = m_sTransform.d;
+        float sr2 = -m_sTransform.c;
         float ax = x1 * cr - y1 * sr2 + x;
         float ay = x1 * sr + y1 * cr2 + y;
 
@@ -124,17 +124,17 @@ void Skin::draw()
         float dx = x1 * cr - y2 * sr2 + x;
         float dy = x1 * sr + y2 * cr2 + y;
 
-        _quad.bl.vertices = Vertex3F( RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), _vertexZ );
-        _quad.br.vertices = Vertex3F( RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), _vertexZ );
-        _quad.tl.vertices = Vertex3F( RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), _vertexZ );
-        _quad.tr.vertices = Vertex3F( RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), _vertexZ );
+        m_sQuad.bl.vertices = vertex3( RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), m_fVertexZ );
+        m_sQuad.br.vertices = vertex3( RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), m_fVertexZ );
+        m_sQuad.tl.vertices = vertex3( RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), m_fVertexZ );
+        m_sQuad.tr.vertices = vertex3( RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), m_fVertexZ );
     }
 
     // MARMALADE CHANGE: ADDED CHECK FOR NULL, TO PERMIT SPRITES WITH NO BATCH NODE / TEXTURE ATLAS
-    if (_textureAtlas)
+    if (m_pobTextureAtlas)
     {
-        _textureAtlas->updateQuad(&_quad, _textureAtlas->getTotalQuads());
+        m_pobTextureAtlas->updateQuad(&m_sQuad, m_pobTextureAtlas->getTotalQuads());
     }
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

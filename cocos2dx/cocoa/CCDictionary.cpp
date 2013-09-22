@@ -32,82 +32,82 @@ using namespace std;
 NS_CC_BEGIN
 
 // -----------------------------------------------------------------------
-// DictElement
+// CCDictElement
 
-DictElement::DictElement(const char* pszKey, Object* pObject)
+CCDictElement::CCDictElement(const char* pszKey, CCObject* pObject)
 {
-    CCASSERT(pszKey && strlen(pszKey) > 0, "Invalid key value.");
-    _intKey = 0;
+    CCAssert(pszKey && strlen(pszKey) > 0, "Invalid key value.");
+    m_iKey = 0;
     const char* pStart = pszKey;
     
-    size_t len = strlen(pszKey);
+    int len = strlen(pszKey);
     if (len > MAX_KEY_LEN )
     {
         char* pEnd = (char*)&pszKey[len-1];
         pStart = pEnd - (MAX_KEY_LEN-1);
     }
     
-    strcpy(_strKey, pStart);
+    strcpy(m_szKey, pStart);
     
-    _object = pObject;
+    m_pObject = pObject;
     memset(&hh, 0, sizeof(hh));
 }
 
-DictElement::DictElement(intptr_t iKey, Object* pObject)
+CCDictElement::CCDictElement(intptr_t iKey, CCObject* pObject)
 {
-    _strKey[0] = '\0';
-    _intKey = iKey;
-    _object = pObject;
+    m_szKey[0] = '\0';
+    m_iKey = iKey;
+    m_pObject = pObject;
     memset(&hh, 0, sizeof(hh));
 }
 
-DictElement::~DictElement()
+CCDictElement::~CCDictElement()
 {
 
 }
 
 // -----------------------------------------------------------------------
-// Dictionary
+// CCDictionary
 
-Dictionary::Dictionary()
-: _elements(NULL)
-, _dictType(kDictUnknown)
+CCDictionary::CCDictionary()
+: m_pElements(NULL)
+, m_eDictType(kCCDictUnknown)
 {
 
 }
 
-Dictionary::~Dictionary()
+CCDictionary::~CCDictionary()
 {
     removeAllObjects();
 }
 
-unsigned int Dictionary::count()
+unsigned int CCDictionary::count()
 {
-    return HASH_COUNT(_elements);
+    return HASH_COUNT(m_pElements);
 }
 
-Array* Dictionary::allKeys()
+CCArray* CCDictionary::allKeys()
 {
     int iKeyCount = this->count();
     if (iKeyCount <= 0) return NULL;
 
-    Array* pArray = Array::createWithCapacity(iKeyCount);
+    CCArray* pArray = CCArray::createWithCapacity(iKeyCount);
 
-    DictElement *pElement, *tmp;
-    if (_dictType == kDictStr)
+    CCDictElement *pElement, *tmp;
+    if (m_eDictType == kCCDictStr)
     {
-        HASH_ITER(hh, _elements, pElement, tmp) 
+        HASH_ITER(hh, m_pElements, pElement, tmp) 
         {
-            String* pOneKey = new String(pElement->_strKey);
+            CCString* pOneKey = new CCString(pElement->m_szKey);
             pArray->addObject(pOneKey);
             CC_SAFE_RELEASE(pOneKey);
         }
     }
-    else if (_dictType == kDictInt)
+    else if (m_eDictType == kCCDictInt)
     {
-        HASH_ITER(hh, _elements, pElement, tmp) 
+        HASH_ITER(hh, m_pElements, pElement, tmp) 
         {
-            Integer* pOneKey = new Integer(pElement->_intKey);
+            CCInteger* pOneKey = new CCInteger(pElement->m_iKey);
             pArray->addObject(pOneKey);
             CC_SAFE_RELEASE(pOneKey);
         }
@@ -116,33 +116,33 @@ Array* Dictionary::allKeys()
     return pArray;
 }
 
-Array* Dictionary::allKeysForObject(Object* object)
+CCArray* CCDictionary::allKeysForObject(CCObject* object)
 {
     int iKeyCount = this->count();
     if (iKeyCount <= 0) return NULL;
-    Array* pArray = Array::create();
+    CCArray* pArray = CCArray::create();
 
-    DictElement *pElement, *tmp;
+    CCDictElement *pElement, *tmp;
 
-    if (_dictType == kDictStr)
+    if (m_eDictType == kCCDictStr)
     {
-        HASH_ITER(hh, _elements, pElement, tmp) 
+        HASH_ITER(hh, m_pElements, pElement, tmp) 
         {
-            if (object == pElement->_object)
+            if (object == pElement->m_pObject)
             {
-                String* pOneKey = new String(pElement->_strKey);
+                CCString* pOneKey = new CCString(pElement->m_szKey);
                 pArray->addObject(pOneKey);
                 CC_SAFE_RELEASE(pOneKey);
             }
         }
     }
-    else if (_dictType == kDictInt)
+    else if (m_eDictType == kCCDictInt)
     {
-        HASH_ITER(hh, _elements, pElement, tmp) 
+        HASH_ITER(hh, m_pElements, pElement, tmp) 
         {
-            if (object == pElement->_object)
+            if (object == pElement->m_pObject)
             {
-                Integer* pOneKey = new Integer(pElement->_intKey);
+                CCInteger* pOneKey = new CCInteger(pElement->m_iKey);
                 pArray->addObject(pOneKey);
                 CC_SAFE_RELEASE(pOneKey);
             }
@@ -151,81 +151,81 @@ Array* Dictionary::allKeysForObject(Object* object)
     return pArray;
 }
 
-Object* Dictionary::objectForKey(const std::string& key)
+CCObject* CCDictionary::objectForKey(const std::string& key)
 {
     // if dictionary wasn't initialized, return NULL directly.
-    if (_dictType == kDictUnknown) return NULL;
-    // Dictionary only supports one kind of key, string or integer.
-    // This method uses string as key, therefore we should make sure that the key type of this Dictionary is string.
-    CCASSERT(_dictType == kDictStr, "this dictionary does not use string as key.");
+    if (m_eDictType == kCCDictUnknown) return NULL;
+    // CCDictionary only supports one kind of key, string or integer.
+    // This method uses string as key, therefore we should make sure that the key type of this CCDictionary is string.
+    CCAssert(m_eDictType == kCCDictStr, "this dictionary does not use string as key.");
 
-    Object* pRetObject = NULL;
-    DictElement *pElement = NULL;
-    HASH_FIND_STR(_elements, key.c_str(), pElement);
+    CCObject* pRetObject = NULL;
+    CCDictElement *pElement = NULL;
+    HASH_FIND_STR(m_pElements, key.c_str(), pElement);
     if (pElement != NULL)
     {
-        pRetObject = pElement->_object;
+        pRetObject = pElement->m_pObject;
     }
     return pRetObject;
 }
 
-Object* Dictionary::objectForKey(intptr_t key)
+CCObject* CCDictionary::objectForKey(intptr_t key)
 {
     // if dictionary wasn't initialized, return NULL directly.
-    if (_dictType == kDictUnknown) return NULL;
-    // Dictionary only supports one kind of key, string or integer.
-    // This method uses integer as key, therefore we should make sure that the key type of this Dictionary is integer.
-    CCASSERT(_dictType == kDictInt, "this dictionary does not use integer as key.");
+    if (m_eDictType == kCCDictUnknown) return NULL;
+    // CCDictionary only supports one kind of key, string or integer.
+    // This method uses integer as key, therefore we should make sure that the key type of this CCDictionary is integer.
+    CCAssert(m_eDictType == kCCDictInt, "this dictionary does not use integer as key.");
 
-    Object* pRetObject = NULL;
-    DictElement *pElement = NULL;
-    HASH_FIND_PTR(_elements, &key, pElement);
+    CCObject* pRetObject = NULL;
+    CCDictElement *pElement = NULL;
+    HASH_FIND_PTR(m_pElements, &key, pElement);
     if (pElement != NULL)
     {
-        pRetObject = pElement->_object;
+        pRetObject = pElement->m_pObject;
     }
     return pRetObject;
 }
 
-const String* Dictionary::valueForKey(const std::string& key)
+const CCString* CCDictionary::valueForKey(const std::string& key)
 {
-    String* pStr = dynamic_cast<String*>(objectForKey(key));
+    CCString* pStr = dynamic_cast<CCString*>(objectForKey(key));
     if (pStr == NULL)
     {
-        pStr = String::create("");
+        pStr = CCString::create("");
     }
     return pStr;
 }
 
-const String* Dictionary::valueForKey(intptr_t key)
+const CCString* CCDictionary::valueForKey(intptr_t key)
 {
-    String* pStr = dynamic_cast<String*>(objectForKey(key));
+    CCString* pStr = dynamic_cast<CCString*>(objectForKey(key));
     if (pStr == NULL)
     {
-        pStr = String::create("");
+        pStr = CCString::create("");
     }
     return pStr;
 }
 
-void Dictionary::setObject(Object* pObject, const std::string& key)
+void CCDictionary::setObject(CCObject* pObject, const std::string& key)
 {
-    CCASSERT(key.length() > 0 && pObject != NULL, "Invalid Argument!");
-    if (_dictType == kDictUnknown)
+    CCAssert(key.length() > 0 && pObject != NULL, "Invalid Argument!");
+    if (m_eDictType == kCCDictUnknown)
     {
-        _dictType = kDictStr;
+        m_eDictType = kCCDictStr;
     }
 
-    CCASSERT(_dictType == kDictStr, "this dictionary doesn't use string as key.");
+    CCAssert(m_eDictType == kCCDictStr, "this dictionary doesn't use string as key.");
 
-    DictElement *pElement = NULL;
-    HASH_FIND_STR(_elements, key.c_str(), pElement);
+    CCDictElement *pElement = NULL;
+    HASH_FIND_STR(m_pElements, key.c_str(), pElement);
     if (pElement == NULL)
     {
         setObjectUnSafe(pObject, key);
     }
-    else if (pElement->_object != pObject)
+    else if (pElement->m_pObject != pObject)
     {
-        Object* pTmpObj = pElement->_object;
+        CCObject* pTmpObj = pElement->m_pObject;
         pTmpObj->retain();
         removeObjectForElememt(pElement);
         setObjectUnSafe(pObject, key);
@@ -233,25 +233,25 @@ void Dictionary::setObject(Object* pObject, const std::string& key)
     }
 }
 
-void Dictionary::setObject(Object* pObject, intptr_t key)
+void CCDictionary::setObject(CCObject* pObject, intptr_t key)
 {
-    CCASSERT(pObject != NULL, "Invalid Argument!");
-    if (_dictType == kDictUnknown)
+    CCAssert(pObject != NULL, "Invalid Argument!");
+    if (m_eDictType == kCCDictUnknown)
     {
-        _dictType = kDictInt;
+        m_eDictType = kCCDictInt;
     }
 
-    CCASSERT(_dictType == kDictInt, "this dictionary doesn't use integer as key.");
+    CCAssert(m_eDictType == kCCDictInt, "this dictionary doesn't use integer as key.");
 
-    DictElement *pElement = NULL;
-    HASH_FIND_PTR(_elements, &key, pElement);
+    CCDictElement *pElement = NULL;
+    HASH_FIND_PTR(m_pElements, &key, pElement);
     if (pElement == NULL)
     {
         setObjectUnSafe(pObject, key);
     }
-    else if (pElement->_object != pObject)
+    else if (pElement->m_pObject != pObject)
     {
-        Object* pTmpObj = pElement->_object;
+        CCObject* pTmpObj = pElement->m_pObject;
         pTmpObj->retain();
         removeObjectForElememt(pElement);
         setObjectUnSafe(pObject, key);
@@ -260,95 +260,125 @@ void Dictionary::setObject(Object* pObject, intptr_t key)
 
 }
 
-void Dictionary::removeObjectForKey(const std::string& key)
+void CCDictionary::removeObjectForKey(const std::string& key)
 {
-    if (_dictType == kDictUnknown)
+    if (m_eDictType == kCCDictUnknown)
     {
         return;
     }
     
-    CCASSERT(_dictType == kDictStr, "this dictionary doesn't use string as its key");
-    CCASSERT(key.length() > 0, "Invalid Argument!");
-    DictElement *pElement = NULL;
-    HASH_FIND_STR(_elements, key.c_str(), pElement);
+    CCAssert(m_eDictType == kCCDictStr, "this dictionary doesn't use string as its key");
+    CCAssert(key.length() > 0, "Invalid Argument!");
+    CCDictElement *pElement = NULL;
+    HASH_FIND_STR(m_pElements, key.c_str(), pElement);
     removeObjectForElememt(pElement);
 }
 
-void Dictionary::removeObjectForKey(intptr_t key)
+void CCDictionary::removeObjectForKey(intptr_t key)
 {
-    if (_dictType == kDictUnknown)
+    if (m_eDictType == kCCDictUnknown)
     {
         return;
     }
     
-    CCASSERT(_dictType == kDictInt, "this dictionary doesn't use integer as its key");
-    DictElement *pElement = NULL;
-    HASH_FIND_PTR(_elements, &key, pElement);
+    CCAssert(m_eDictType == kCCDictInt, "this dictionary doesn't use integer as its key");
+    CCDictElement *pElement = NULL;
+    HASH_FIND_PTR(m_pElements, &key, pElement);
     removeObjectForElememt(pElement);
 }
 
-void Dictionary::setObjectUnSafe(Object* pObject, const std::string& key)
+void CCDictionary::setObjectUnSafe(CCObject* pObject, const std::string& key)
 {
     pObject->retain();
-    DictElement* pElement = new DictElement(key.c_str(), pObject);
-    HASH_ADD_STR(_elements, _strKey, pElement);
+    CCDictElement* pElement = new CCDictElement(key.c_str(), pObject);
+    HASH_ADD_STR(m_pElements, m_szKey, pElement);
 }
 
-void Dictionary::setObjectUnSafe(Object* pObject, const intptr_t key)
+void CCDictionary::setObjectUnSafe(CCObject* pObject, const intptr_t key)
 {
     pObject->retain();
-    DictElement* pElement = new DictElement(key, pObject);
-    HASH_ADD_PTR(_elements, _intKey, pElement);
+    CCDictElement* pElement = new CCDictElement(key, pObject);
+    HASH_ADD_PTR(m_pElements, m_iKey, pElement);
 }
 
-void Dictionary::removeObjectsForKeys(Array* pKeyArray)
+void CCDictionary::removeObjectsForKeys(CCArray* pKeyArray)
 {
-    Object* pObj = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(pKeyArray, pObj)
     {
-        String* pStr = static_cast<String*>(pObj);
+        CCString* pStr = (CCString*)pObj;
         removeObjectForKey(pStr->getCString());
     }
 }
 
-void Dictionary::removeObjectForElememt(DictElement* pElement)
+void CCDictionary::removeObjectForElememt(CCDictElement* pElement)
 {
     if (pElement != NULL)
     {
-        HASH_DEL(_elements, pElement);
-        pElement->_object->release();
+        HASH_DEL(m_pElements, pElement);
+        pElement->m_pObject->release();
         CC_SAFE_DELETE(pElement);
     }
 }
 
-void Dictionary::removeAllObjects()
+void CCDictionary::removeAllObjects()
 {
-    DictElement *pElement, *tmp;
-    HASH_ITER(hh, _elements, pElement, tmp) 
+    CCDictElement *pElement, *tmp;
+    HASH_ITER(hh, m_pElements, pElement, tmp) 
     {
-        HASH_DEL(_elements, pElement);
-        pElement->_object->release();
+        HASH_DEL(m_pElements, pElement);
+        pElement->m_pObject->release();
         CC_SAFE_DELETE(pElement);
 
     }
 }
 
-Object* Dictionary::randomObject()
+CCObject* CCDictionary::copyWithZone(CCZone* pZone)
 {
-    if (_dictType == kDictUnknown)
+    CCAssert(pZone == NULL, "CCDictionary should not be inherited.");
+    CCDictionary* pNewDict = new CCDictionary();
+
+    CCDictElement* pElement = NULL;
+    CCObject* pTmpObj = NULL;
+
+    if (m_eDictType == kCCDictInt)
+    {
+        CCDICT_FOREACH(this, pElement)
+        {
+            pTmpObj = pElement->getObject()->copy();
+            pNewDict->setObject(pTmpObj, pElement->getIntKey());
+            pTmpObj->release();
+        }
+    }
+    else if (m_eDictType == kCCDictStr)
+    {
+        CCDICT_FOREACH(this, pElement)
+        {
+            pTmpObj = pElement->getObject()->copy();
+            pNewDict->setObject(pTmpObj, pElement->getStrKey());
+            pTmpObj->release();
+        }
+    }
+
+    return pNewDict;
+}
+
+CCObject* CCDictionary::randomObject()
+{
+    if (m_eDictType == kCCDictUnknown)
     {
         return NULL;
     }
     
-    Object* key = allKeys()->randomObject();
+    CCObject* key = allKeys()->randomObject();
     
-    if (_dictType == kDictInt)
+    if (m_eDictType == kCCDictInt)
     {
-        return objectForKey( static_cast<Integer*>(key)->getValue());
+        return objectForKey(((CCInteger*)key)->getValue());
     }
-    else if (_dictType == kDictStr)
+    else if (m_eDictType == kCCDictStr)
     {
-        return objectForKey( static_cast<String*>(key)->getCString());
+        return objectForKey(((CCString*)key)->getCString());
     }
     else
     {
@@ -356,9 +386,9 @@ Object* Dictionary::randomObject()
     }
 }
 
-Dictionary* Dictionary::create()
+CCDictionary* CCDictionary::create()
 {
-    Dictionary* pRet = new Dictionary();
+    CCDictionary* pRet = new CCDictionary();
     if (pRet != NULL)
     {
         pRet->autorelease();
@@ -366,81 +396,34 @@ Dictionary* Dictionary::create()
     return pRet;
 }
 
-Dictionary* Dictionary::createWithDictionary(Dictionary* srcDict)
+CCDictionary* CCDictionary::createWithDictionary(CCDictionary* srcDict)
 {
-    return srcDict->clone();
+    CCDictionary* pNewDict = (CCDictionary*)srcDict->copy();
+    pNewDict->autorelease();
+    return pNewDict;
 }
 
-Dictionary* Dictionary::createWithContentsOfFileThreadSafe(const char *pFileName)
+CCDictionary* CCDictionary::createWithContentsOfFileThreadSafe(const char *pFileName)
 {
-    return FileUtils::getInstance()->createDictionaryWithContentsOfFile(pFileName);
+    return CCFileUtils::sharedFileUtils()->createCCDictionaryWithContentsOfFile(pFileName);
 }
 
-void Dictionary::acceptVisitor(DataVisitor &visitor)
+void CCDictionary::acceptVisitor(CCDataVisitor &visitor)
 {
     return visitor.visit(this);
 }
 
-Dictionary* Dictionary::createWithContentsOfFile(const char *pFileName)
+CCDictionary* CCDictionary::createWithContentsOfFile(const char *pFileName)
 {
-    Dictionary* pRet = createWithContentsOfFileThreadSafe(pFileName);
+    CCDictionary* pRet = createWithContentsOfFileThreadSafe(pFileName);
     pRet->autorelease();
     return pRet;
 }
 
-bool Dictionary::writeToFile(const char *fullPath)
+bool CCDictionary::writeToFile(const char *fullPath)
 {
-    return FileUtils::getInstance()->writeToFile(this, fullPath);
+    return CCFileUtils::sharedFileUtils()->writeToFile(this, fullPath);
 }
 
-Dictionary* Dictionary::clone() const
-{
-    Dictionary* newDict = new Dictionary();
-    newDict->autorelease();
-    
-    DictElement* element = NULL;
-    Object* tmpObj = NULL;
-    Clonable* obj = NULL;
-    if (_dictType == kDictInt)
-    {
-        CCDICT_FOREACH(this, element)
-        {
-            obj = dynamic_cast<Clonable*>(element->getObject());
-            if (obj)
-            {
-                tmpObj = dynamic_cast<Object*>(obj->clone());
-                if (tmpObj)
-                {
-                    newDict->setObject(tmpObj, element->getIntKey());
-                }
-            }
-            else
-            {
-                CCLOGWARN("%s isn't clonable.", typeid(*element->getObject()).name());
-            }
-        }
-    }
-    else if (_dictType == kDictStr)
-    {
-        CCDICT_FOREACH(this, element)
-        {
-            obj = dynamic_cast<Clonable*>(element->getObject());
-            if (obj)
-            {
-                tmpObj = dynamic_cast<Object*>(obj->clone());
-                if (tmpObj)
-                {
-                    newDict->setObject(tmpObj, element->getStrKey());
-                }
-            }
-            else
-            {
-                CCLOGWARN("%s isn't clonable.", typeid(*element->getObject()).name());
-            }
-        }
-    }
-    
-    return newDict;
-}
 
 NS_CC_END

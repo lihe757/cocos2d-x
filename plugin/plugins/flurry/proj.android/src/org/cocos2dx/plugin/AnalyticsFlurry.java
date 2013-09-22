@@ -120,7 +120,7 @@ public class AnalyticsFlurry implements InterfaceAnalytics {
 
     @Override
     public String getSDKVersion() {
-        return "3.2.1";
+        return "3.2.0";
     }
 
     protected void logTimedEventBeginWithParams(JSONObject eventInfo) {

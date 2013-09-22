@@ -35,58 +35,53 @@
 
 NS_CC_BEGIN
 
-/** DrawNode
+/** CCDrawNode
  Node that draws dots, segments and polygons.
  Faster than the "drawing primitives" since they it draws everything in one single batch.
  
  @since v2.1
  */
-class CC_DLL DrawNode : public Node
+class CC_DLL CCDrawNode : public CCNode
 {
+protected:
+    GLuint      m_uVao;
+    GLuint      m_uVbo;
+    
+    unsigned int    m_uBufferCapacity;
+    GLsizei         m_nBufferCount;
+    ccV2F_C4B_T2F   *m_pBuffer;
+    
+    ccBlendFunc     m_sBlendFunc;
+    
+    bool            m_bDirty;
+    
 public:
-    /** creates and initialize a DrawNode node */
-    static DrawNode* create();
-    DrawNode();
-    virtual ~DrawNode();
+    static CCDrawNode* create();
+    virtual ~CCDrawNode();
     
     virtual bool init();
-
+    virtual void draw();
+    
     /** draw a dot at a position, with a given radius and color */
-    void drawDot(const Point &pos, float radius, const Color4F &color);
+    void drawDot(const CCPoint &pos, float radius, const ccColor4F &color);
     
     /** draw a segment with a radius and color */
-    void drawSegment(const Point &from, const Point &to, float radius, const Color4F &color);
+    void drawSegment(const CCPoint &from, const CCPoint &to, float radius, const ccColor4F &color);
     
     /** draw a polygon with a fill color and line color */
-    void drawPolygon(Point *verts, unsigned int count, const Color4F &fillColor, float borderWidth, const Color4F &borderColor);
+    void drawPolygon(CCPoint *verts, unsigned int count, const ccColor4F &fillColor, float borderWidth, const ccColor4F &borderColor);
     
     /** Clear the geometry in the node's buffer. */
     void clear();
     
-    const BlendFunc& getBlendFunc() const;
-    void setBlendFunc(const BlendFunc &blendFunc);
+    ccBlendFunc getBlendFunc() const;
+    void setBlendFunc(const ccBlendFunc &blendFunc);
     
-    /** listen the event that coming to foreground on Android
-     */
-    void listenBackToForeground(Object *obj);
-
-    // Overrides
-    virtual void draw() override;
-
-protected:
-    void ensureCapacity(int count);
+    CCDrawNode();
+    
+private:
+    void ensureCapacity(unsigned int count);
     void render();
-
-    GLuint      _vao;
-    GLuint      _vbo;
-
-    int         _bufferCapacity;
-    GLsizei     _bufferCount;
-    V2F_C4B_T2F *_buffer;
-
-    BlendFunc   _blendFunc;
-
-    bool        _dirty;
 };
 
 NS_CC_END

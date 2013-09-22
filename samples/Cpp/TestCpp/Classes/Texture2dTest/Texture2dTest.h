@@ -2,10 +2,9 @@
 #define __TEXTURE2D_TEST_H__
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 
-class TextureDemo : public BaseTest
+class TextureDemo : public CCLayer
 {
 public:
     virtual ~TextureDemo();
@@ -13,9 +12,9 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class TextureTIFF : public TextureDemo
@@ -56,7 +55,7 @@ public:
     virtual void onEnter();
 };
 
-class TexturePVRTest : public TextureDemo
+class TexturePVR : public TextureDemo
 {
 public:
     virtual std::string title();
@@ -348,12 +347,12 @@ class TextureAsync : public TextureDemo
 public:
     virtual ~TextureAsync();
     void loadImages(float dt);
-    void imageLoaded(Object* pObj);
+    void imageLoaded(CCObject* pObj);
     virtual std::string title();
     virtual std::string subtitle();
     virtual void onEnter();
 private:
-    int _imageOffset;
+    int m_nImageOffset;
 };
 
 class TextureGlRepeat : public TextureDemo
@@ -399,7 +398,7 @@ public:
     virtual void onEnter();
     virtual void draw();
 private:
-    Texture2D* _tex1, *_Tex2F;
+    CCTexture2D* m_pTex1, *m_pTex2;
 };
 
 class TextureDrawInRect : public TextureDemo
@@ -411,7 +410,7 @@ public:
     virtual void onEnter();
     virtual void draw();
 private:
-    Texture2D* _tex1, *_Tex2F;
+    CCTexture2D* m_pTex1, *m_pTex2;
 };
 
 class TextureTestScene : public TestScene
@@ -426,10 +425,10 @@ public:
     virtual void onEnter();
     virtual std::string title();
     virtual std::string subtitle();
-    void updateImage(Object *sender);
-    void changeBackgroundVisible(Object *sender);
+    void updateImage(CCObject *sender);
+    void changeBackgroundVisible(CCObject *sender);
 private:
-    Sprite *_background;
+    CCSprite *m_pBackground;
 };
 
 class TexturePVRv3Premult : public TextureDemo
@@ -440,7 +439,7 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
     
-    void transformSprite(cocos2d::Sprite *sprite);
+    void transformSprite(cocos2d::CCSprite *sprite);
 };
 
 // ETC1 texture format test
@@ -449,42 +448,6 @@ class TextureETC1 : public TextureDemo
 public:
     TextureETC1();
     
-    virtual std::string title();
-    virtual std::string subtitle();
-};
-
-// RGB888 texture convert test
-class TextureConvertRGB888 : public TextureDemo
-{
-public:
-    virtual void onEnter();
-    virtual std::string title();
-    virtual std::string subtitle();
-};
-
-// RGBA8888 texture convert test
-class TextureConvertRGBA8888 : public TextureDemo
-{
-public:
-    virtual void onEnter();
-    virtual std::string title();
-    virtual std::string subtitle();
-};
-
-// I8 texture convert test
-class TextureConvertI8 : public TextureDemo
-{
-public:
-    virtual void onEnter();
-    virtual std::string title();
-    virtual std::string subtitle();
-};
-
-// AI88 texture convert test
-class TextureConvertAI88 : public TextureDemo
-{
-public:
-    virtual void onEnter();
     virtual std::string title();
     virtual std::string subtitle();
 };

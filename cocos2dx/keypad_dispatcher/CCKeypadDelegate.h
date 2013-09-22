@@ -35,7 +35,7 @@ NS_CC_BEGIN
  * @{
  */
 
-class CC_DLL KeypadDelegate
+class CC_DLL CCKeypadDelegate
 {
 public:
     // The back key clicked
@@ -47,27 +47,27 @@ public:
 
 /**
 @brief
-KeypadHandler
-Object than contains the KeypadDelegate.
+CCKeypadHandler
+Object than contains the CCKeypadDelegate.
 */
-class CC_DLL KeypadHandler : public Object
+class CC_DLL CCKeypadHandler : public CCObject
 {
 public:
-    virtual ~KeypadHandler(void);
+    virtual ~CCKeypadHandler(void);
 
     /** delegate */
-    KeypadDelegate* getDelegate();
-    void setDelegate(KeypadDelegate *pDelegate);
+    CCKeypadDelegate* getDelegate();
+    void setDelegate(CCKeypadDelegate *pDelegate);
 
-    /** initializes a KeypadHandler with a delegate */
-    virtual bool initWithDelegate(KeypadDelegate *pDelegate);
+    /** initializes a CCKeypadHandler with a delegate */
+    virtual bool initWithDelegate(CCKeypadDelegate *pDelegate);
 
 public:
-    /** allocates a KeypadHandler with a delegate */
-    static KeypadHandler* handlerWithDelegate(KeypadDelegate *pDelegate);
+    /** allocates a CCKeypadHandler with a delegate */
+    static CCKeypadHandler* handlerWithDelegate(CCKeypadDelegate *pDelegate);
 
 protected:
-    KeypadDelegate* _delegate;
+    CCKeypadDelegate* m_pDelegate;
 };
 
 // end of input group

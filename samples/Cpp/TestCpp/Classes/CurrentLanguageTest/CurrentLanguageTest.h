@@ -4,7 +4,7 @@
 #include "cocos2d.h"
 #include "../testBasic.h"
 
-class CurrentLanguageTest : public Layer
+class CurrentLanguageTest : public CCLayer
 {
 public:
     CurrentLanguageTest();

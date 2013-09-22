@@ -2,57 +2,51 @@
 
 CurrentLanguageTest::CurrentLanguageTest()
 {
-    LabelTTF* label = LabelTTF::create("Current language Test", "Arial", 28);
+    CCLabelTTF* label = CCLabelTTF::create("Current language Test", "Arial", 28);
     addChild(label, 0);
-    label->setPosition( Point(VisibleRect::center().x, VisibleRect::top().y-50) );
+    label->setPosition( ccp(VisibleRect::center().x, VisibleRect::top().y-50) );
 
-    LabelTTF *labelLanguage = LabelTTF::create("", "Arial", 20);
+    CCLabelTTF *labelLanguage = CCLabelTTF::create("", "Arial", 20);
     labelLanguage->setPosition(VisibleRect::center());
 
-    LanguageType currentLanguageType = Application::getInstance()->getCurrentLanguage();
+    ccLanguageType currentLanguageType = CCApplication::sharedApplication()->getCurrentLanguage();
     switch (currentLanguageType)
     {
-    case LanguageType::ENGLISH:
+    case kLanguageEnglish:
         labelLanguage->setString("current language is English");
         break;
-    case LanguageType::CHINESE:
+    case kLanguageChinese:
         labelLanguage->setString("current language is Chinese");
         break;
-    case LanguageType::FRENCH:
+    case kLanguageFrench:
         labelLanguage->setString("current language is French");
         break;
-    case LanguageType::GERMAN:
+    case kLanguageGerman:
         labelLanguage->setString("current language is German");
         break;
-    case LanguageType::ITALIAN:
+    case kLanguageItalian:
         labelLanguage->setString("current language is Italian");
         break;
-    case LanguageType::RUSSIAN:
+    case kLanguageRussian:
         labelLanguage->setString("current language is Russian");
         break;
-    case LanguageType::SPANISH:
+    case kLanguageSpanish:
         labelLanguage->setString("current language is Spanish");
         break;
-    case LanguageType::KOREAN:
+    case kLanguageKorean:
         labelLanguage->setString("current language is Korean");
         break;
-    case LanguageType::JAPANESE:
+    case kLanguageJapanese:
         labelLanguage->setString("current language is Japanese");
         break;
-    case LanguageType::HUNGARIAN:
+    case kLanguageHungarian:
         labelLanguage->setString("current language is Hungarian");
         break;
-    case LanguageType::PORTUGUESE:
+    case kLanguagePortuguese:
         labelLanguage->setString("current language is Portuguese");
         break;
-    case LanguageType::ARABIC:
+    case kLanguageArabic:
         labelLanguage->setString("current language is Arabic");
-        break;
-    case LanguageType::NORWEGIAN:
-        labelLanguage->setString("current language is Norwegian");
-        break;
-    case LanguageType::POLISH:
-        labelLanguage->setString("current language is Polish");
         break;
     }
 
@@ -61,9 +55,9 @@ CurrentLanguageTest::CurrentLanguageTest()
 
 void CurrentLanguageTestScene::runThisTest()
 {
-    Layer* layer = new CurrentLanguageTest();
-    addChild(layer);
+    CCLayer* pLayer = new CurrentLanguageTest();
+    addChild(pLayer);
 
-    Director::getInstance()->replaceScene(this);
-    layer->release();
+    CCDirector::sharedDirector()->replaceScene(this);
+    pLayer->release();
 }

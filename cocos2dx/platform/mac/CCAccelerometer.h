@@ -25,18 +25,17 @@ THE SOFTWARE.
 #ifndef __PLATFORM_MAC_CCACCELEROMETER_H__
 #define __PLATFORM_MAC_CCACCELEROMETER_H__
 
-#include <functional>
 #include "platform/CCAccelerometerDelegate.h"
 
 NS_CC_BEGIN
 
-class CC_DLL Accelerometer
+class CC_DLL CCAccelerometer
 {
 public:
-    Accelerometer() {}
-    ~Accelerometer() {}
+    CCAccelerometer() {}
+    ~CCAccelerometer() {}
 
-    void setDelegate(std::function<void(Acceleration*)> function) { CC_UNUSED_PARAM(function); }
+    void setDelegate(CCAccelerometerDelegate* pDelegate) { CC_UNUSED_PARAM(pDelegate); }
     void setAccelerometerInterval(float interval) {CC_UNUSED_PARAM(interval);};
 };
 

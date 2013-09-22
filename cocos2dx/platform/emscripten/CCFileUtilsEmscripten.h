@@ -39,10 +39,10 @@ NS_CC_BEGIN
  */
 
 //! @brief  Helper class to handle file operations
-class CC_DLL FileUtilsEmscripten : public FileUtils
+class CC_DLL CCFileUtilsEmscripten : public CCFileUtils
 {
-    friend class FileUtils;
-    FileUtilsEmscripten();
+    friend class CCFileUtils;
+    CCFileUtilsEmscripten();
 public:
     /* override funtions */
     bool init();

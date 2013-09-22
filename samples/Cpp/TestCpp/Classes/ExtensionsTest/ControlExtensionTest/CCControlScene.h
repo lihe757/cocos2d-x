@@ -1,5 +1,5 @@
 /*
- * ControlScene.h
+ * CCControlScene.h
  *
  * Copyright (c) 2011 Yannick Loriot
  *
@@ -35,40 +35,40 @@ USING_NS_CC_EXT;
 
 #define CONTROL_SCENE_CREATE_FUNC(controlScene) \
 public: \
-static Scene* sceneWithTitle(const char * title) \
+static CCScene* sceneWithTitle(const char * title) \
 { \
-    Scene* scene = Scene::create(); \
+    CCScene* pScene = CCScene::create(); \
     controlScene* controlLayer = new controlScene(); \
     if (controlLayer && controlLayer->init()) \
     { \
         controlLayer->autorelease(); \
         controlLayer->getSceneTitleLabel()->setString(title); \
-        scene->addChild(controlLayer); \
+        pScene->addChild(controlLayer); \
     } \
     else \
     { \
         CC_SAFE_DELETE(controlLayer); \
     } \
-    return scene; \
+    return pScene; \
 }
 
 
-class ControlScene : public Layer
+class CCControlScene : public CCLayer
 {
 public:
-    ControlScene();
-    ~ControlScene();
+    CCControlScene();
+    ~CCControlScene();
     bool init();
     // Menu Callbacks
-    void toExtensionsMainLayer(Object* sender);
-    void previousCallback(Object* sender);
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
+    void toExtensionsMainLayer(CCObject* sender);
+    void previousCallback(CCObject* sender);
+    void restartCallback(CCObject* sender);
+    void nextCallback(CCObject* sender);
 
     /** Title label of the scene. */
-    CC_SYNTHESIZE_RETAIN(LabelTTF*, _sceneTitleLabel, SceneTitleLabel)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pSceneTitleLabel, SceneTitleLabel)
 
-    CONTROL_SCENE_CREATE_FUNC(ControlScene);
+    CONTROL_SCENE_CREATE_FUNC(CCControlScene);
 };
 
 #endif /* __CCCONTROLSCENE_H__ */

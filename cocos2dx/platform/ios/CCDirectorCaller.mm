@@ -67,7 +67,7 @@ static id s_sharedDirectorCaller;
 
 -(void) startMainLoop
 {
-        // Director::setAnimationInterval() is called, we should invalidate it first
+        // CCDirector::setAnimationInterval() is called, we should invalidate it first
         [displayLink invalidate];
         displayLink = nil;
         
@@ -78,7 +78,7 @@ static id s_sharedDirectorCaller;
 
 -(void) setAnimationInterval:(double)intervalNew
 {
-        // Director::setAnimationInterval() is called, we should invalidate it first
+        // CCDirector::setAnimationInterval() is called, we should invalidate it first
         [displayLink invalidate];
         displayLink = nil;
         
@@ -91,7 +91,7 @@ static id s_sharedDirectorCaller;
                       
 -(void) doCaller: (id) sender
 {
-    cocos2d::Director::getInstance()->mainLoop();
+    cocos2d::CCDirector::sharedDirector()->mainLoop();
 }
 
 @end

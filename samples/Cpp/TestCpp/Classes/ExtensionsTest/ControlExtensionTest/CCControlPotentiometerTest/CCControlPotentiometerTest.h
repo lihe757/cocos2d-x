@@ -27,17 +27,17 @@
 
 #include "../CCControlScene.h"
 
-class ControlPotentiometerTest : public ControlScene
+class CCControlPotentiometerTest : public CCControlScene
 {
 public:
-    ControlPotentiometerTest();
-    virtual ~ControlPotentiometerTest();
+    CCControlPotentiometerTest();
+    virtual ~CCControlPotentiometerTest();
     bool init();
-    CC_SYNTHESIZE_RETAIN(LabelTTF*, _displayValueLabel, DisplayValueLabel)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pDisplayValueLabel, DisplayValueLabel)
 
-    void valueChanged(Object *sender, Control::EventType controlEvent);
+    void valueChanged(CCObject *sender, CCControlEvent controlEvent);
 
-    CONTROL_SCENE_CREATE_FUNC(ControlPotentiometerTest)
+    CONTROL_SCENE_CREATE_FUNC(CCControlPotentiometerTest)
 };
 
 

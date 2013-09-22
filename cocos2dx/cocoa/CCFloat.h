@@ -34,16 +34,16 @@ NS_CC_BEGIN
  * @{
  */
 
-class CC_DLL Float : public Object, public Clonable
+class CC_DLL CCFloat : public CCObject
 {
 public:
-    Float(float v)
-        : _value(v) {}
-    float getValue() const {return _value;}
+    CCFloat(float v)
+        : m_fValue(v) {}
+    float getValue() const {return m_fValue;}
 
-    static Float* create(float v)
+    static CCFloat* create(float v)
     {
-        Float* pRet = new Float(v);
+        CCFloat* pRet = new CCFloat(v);
         if (pRet)
         {
             pRet->autorelease();
@@ -52,15 +52,10 @@ public:
     }
 
     /* override functions */
-    virtual void acceptVisitor(DataVisitor &visitor) { visitor.visit(this); }
-    
-    Float* clone() const
-    {
-        return Float::create(_value);
-    }
-    
+    virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
+
 private:
-    float _value;
+    float m_fValue;
 };
 
 // end of data_structure group

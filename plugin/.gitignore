@@ -94,5 +94,4 @@ tools/toolsForPublish/environment.sh
 .settings
 plugins/china*
 plugins/punchbox*
-plugins/touchpay*
 samplesPrivate*

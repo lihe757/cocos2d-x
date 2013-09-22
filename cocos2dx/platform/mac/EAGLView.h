@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 //PROTOCOLS:
 
-@protocol CCMacEventDelegate <NSObject>
+@protocol MacEventDelegate <NSObject>
 // Mouse
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
@@ -68,8 +68,8 @@ THE SOFTWARE.
  
  Only available for Mac OS X
  */
-@interface CCEAGLView : NSOpenGLView {
-	id<CCMacEventDelegate> eventDelegate_;
+@interface EAGLView : NSOpenGLView {
+	id<MacEventDelegate> eventDelegate_;
 
 	BOOL isFullScreen_;
 	NSWindow		*fullScreenWindow_;
@@ -82,7 +82,7 @@ THE SOFTWARE.
     float           frameZoomFactor_;
 }
 
-@property (nonatomic, readwrite, assign) id<CCMacEventDelegate> eventDelegate;
+@property (nonatomic, readwrite, assign) id<MacEventDelegate> eventDelegate;
 
 // whether or not the view is in fullscreen mode
 @property (nonatomic, readonly) BOOL isFullScreen;

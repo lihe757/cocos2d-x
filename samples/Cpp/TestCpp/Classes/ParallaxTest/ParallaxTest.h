@@ -2,12 +2,11 @@
 #define _PARALLAX_TEST_H_
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class ParallaxDemo : public BaseTest
+class ParallaxDemo : public CCLayer
 {
 protected:
-    TextureAtlas* _atlas;
+    CCTextureAtlas* m_atlas;
 
 public:
     ParallaxDemo(void);
@@ -16,17 +15,17 @@ public:
     virtual std::string title();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class Parallax1 : public ParallaxDemo
 {
 protected:
-    Node*        _root;
-    Node*        _target;
-    MotionStreak*        _streak;
+    CCNode*        m_root;
+    CCNode*        m_target;
+    CCMotionStreak*        m_streak;
 
 public:
     Parallax1();
@@ -36,14 +35,14 @@ public:
 class Parallax2 : public ParallaxDemo
 {
 protected:
-    Node*        _root;
-    Node*        _target;
-    MotionStreak*        _streak;
+    CCNode*        m_root;
+    CCNode*        m_target;
+    CCMotionStreak*        m_streak;
 
 public:
     Parallax2();
     
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
 
     virtual std::string title();
 };

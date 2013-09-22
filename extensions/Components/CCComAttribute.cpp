@@ -26,27 +26,27 @@ THE SOFTWARE.
 
 NS_CC_EXT_BEGIN
 
-ComAttribute::ComAttribute(void)
-: _attributes(NULL)
+CCComAttribute::CCComAttribute(void)
+: m_pAttributes(NULL)
 {
-    _name = "ComAttribute";
+    m_strName = "ComAttribute";
 }
 
-ComAttribute::~ComAttribute(void)
+CCComAttribute::~CCComAttribute(void)
 {
-    CC_SAFE_RELEASE(_attributes);
+    CC_SAFE_RELEASE(m_pAttributes);
 }
 
-bool ComAttribute::init()
+bool CCComAttribute::init()
 {
-    _attributes = Dictionary::create();
-    _attributes->retain();
+    m_pAttributes = CCDictionary::create();
+    m_pAttributes->retain();
     return true;
 }
 
-ComAttribute* ComAttribute::create(void)
+CCComAttribute* CCComAttribute::create(void)
 {
-    ComAttribute * pRet = new ComAttribute();
+    CCComAttribute * pRet = new CCComAttribute();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -58,51 +58,51 @@ ComAttribute* ComAttribute::create(void)
     return pRet;
 }
 
-void ComAttribute::setInt(const char *key, int value)
+void CCComAttribute::setInt(const char *key, int value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(Integer::create(value), key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(CCInteger::create(value), key);
 }
 
-void ComAttribute::setDouble(const char *key, double value)
+void CCComAttribute::setDouble(const char *key, double value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(Double::create(value), key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(CCDouble::create(value), key);
 }
 
-void ComAttribute::setFloat(const char *key, float value)
+void CCComAttribute::setFloat(const char *key, float value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(Float::create(value), key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(CCFloat::create(value), key);
 }
 
-void ComAttribute::setBool(const char *key, bool value)
+void CCComAttribute::setBool(const char *key, bool value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(Bool::create(value), key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(CCBool::create(value), key);
 }
 
-void ComAttribute::setCString(const char *key, const char *value)
+void CCComAttribute::setCString(const char *key, const char *value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(String::create(value), key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(CCString::create(value), key);
 }
 
-void ComAttribute::setObject(const char *key, Object *value)
+void CCComAttribute::setObject(const char *key, CCObject *value)
 {
-    CCASSERT(key != NULL, "Argument must be non-nil"); 
-    _attributes->setObject(value, key);
+    CCAssert(key != NULL, "Argument must be non-nil"); 
+    m_pAttributes->setObject(value, key);
 }
 
-int ComAttribute::getInt(const char *key) const
+int CCComAttribute::getInt(const char *key) const
 {
-    Object *ret = _attributes->objectForKey(key);
+    CCObject *ret = m_pAttributes->objectForKey(key);
 	if( ret )
     {
-		if( Integer *obj=dynamic_cast<Integer*>(ret) )
+		if( CCInteger *obj=dynamic_cast<CCInteger*>(ret) )
 			return obj->getValue();
 
-		CCASSERT(false, "Key found, type is not integer");
+		CCAssert(false, "Key found, type is not integer");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -110,15 +110,15 @@ int ComAttribute::getInt(const char *key) const
 	return 0;
 }
 
-double ComAttribute::getDouble(const char *key) const
+double CCComAttribute::getDouble(const char *key) const
 {
-    Object *ret = _attributes->objectForKey(key);
+    CCObject *ret = m_pAttributes->objectForKey(key);
 	if( ret )
     {
-		if( Double *obj=dynamic_cast<Double*>(ret) )
+		if( CCDouble *obj=dynamic_cast<CCDouble*>(ret) )
 			return obj->getValue();
 
-		CCASSERT(false, "Key found, type is not double");
+		CCAssert(false, "Key found, type is not double");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -126,15 +126,15 @@ double ComAttribute::getDouble(const char *key) const
 	return 0.0;
 }
 
-float ComAttribute::getFloat(const char *key) const
+float CCComAttribute::getFloat(const char *key) const
 {
-    Object *ret = _attributes->objectForKey(key);
+    CCObject *ret = m_pAttributes->objectForKey(key);
 	if( ret )
     {
-		if( Float *obj=dynamic_cast<Float*>(ret) )
+		if( CCFloat *obj=dynamic_cast<CCFloat*>(ret) )
 			return obj->getValue();
 
-		CCASSERT(false, "Key found, type is not float");
+		CCAssert(false, "Key found, type is not float");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -142,16 +142,16 @@ float ComAttribute::getFloat(const char *key) const
 	return 0.0;
 }
 
-bool ComAttribute::getBool(const char *key) const
+bool CCComAttribute::getBool(const char *key) const
 {
-    Object *ret = _attributes->objectForKey(key);
+    CCObject *ret = m_pAttributes->objectForKey(key);
 	if( ret )
     {
-		if( Bool *boolobj=dynamic_cast<Bool*>(ret) )
+		if( CCBool *boolobj=dynamic_cast<CCBool*>(ret) )
 			return boolobj->getValue();
-		if( String *strobj=dynamic_cast<String*>(ret) )
+		if( CCString *strobj=dynamic_cast<CCString*>(ret) )
 			return strobj->boolValue();
-		CCASSERT(false, "Key found, type is not Bool");
+		CCAssert(false, "Key found, type is not Bool");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -159,15 +159,15 @@ bool ComAttribute::getBool(const char *key) const
 	return false;
 }
 
-const char* ComAttribute::getCString(const char *key) const
+const char* CCComAttribute::getCString(const char *key) const
 {
-   Object *ret = _attributes->objectForKey(key);
+   CCObject *ret = m_pAttributes->objectForKey(key);
 	if( ret )
     {
-		if( String *str=dynamic_cast<String*>(ret) )
+		if( CCString *str=dynamic_cast<CCString*>(ret) )
 			return str->getCString();
 
-		CCASSERT(false, "Key found, type is not CString");
+		CCAssert(false, "Key found, type is not CString");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -175,9 +175,9 @@ const char* ComAttribute::getCString(const char *key) const
 	return NULL;
 }
 
-Object* ComAttribute::getObject(const char *key) const
+CCObject* CCComAttribute::getObject(const char *key) const
 {
-    return _attributes->objectForKey(key);
+    return m_pAttributes->objectForKey(key);
 }
 
 NS_CC_EXT_END

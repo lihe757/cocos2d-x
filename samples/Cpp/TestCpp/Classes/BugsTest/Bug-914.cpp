@@ -9,18 +9,18 @@
 // Import the interfaces
 #include"Bug-914.h"
 
-Scene* Bug914Layer::scene()
+CCScene* Bug914Layer::scene()
 {
     // 'scene' is an autorelease object.
-    Scene *scene = Scene::create();
+    CCScene *pScene = CCScene::create();
     // 'layer' is an autorelease object.
     Bug914Layer* layer = Bug914Layer::create();
 
     // add layer as a child to scene
-    scene->addChild(layer);
+    pScene->addChild(layer);
 
     // return the scene
-    return scene;
+    return pScene;
 }
 
 // on "init" you need to initialize your instance
@@ -32,29 +32,29 @@ bool Bug914Layer::init()
     {
         setTouchEnabled(true);
         // ask director the the window size
-        Size size = Director::getInstance()->getWinSize();
-        LayerColor *layer;
+        CCSize size = CCDirector::sharedDirector()->getWinSize();
+        CCLayerColor *layer;
         for( int i=0;i < 5;i++)
         {
-            layer = LayerColor::create(Color4B(i*20, i*20, i*20,255));
-            layer->setContentSize(Size(i*100, i*100));
-            layer->setPosition(Point(size.width/2, size.height/2));
-            layer->setAnchorPoint(Point(0.5f, 0.5f));
+            layer = CCLayerColor::create(ccc4(i*20, i*20, i*20,255));
+            layer->setContentSize(CCSizeMake(i*100, i*100));
+            layer->setPosition(ccp(size.width/2, size.height/2));
+            layer->setAnchorPoint(ccp(0.5f, 0.5f));
             layer->ignoreAnchorPointForPosition(false);
             addChild(layer, -1-i);
         }
 
         // create and initialize a Label
-        LabelTTF *label = LabelTTF::create("Hello World", "Marker Felt", 64);
-        MenuItem *item1 = MenuItemFont::create("restart", CC_CALLBACK_1(Bug914Layer::restart, this));
+        CCLabelTTF *label = CCLabelTTF::create("Hello World", "Marker Felt", 64);
+        CCMenuItem *item1 = CCMenuItemFont::create("restart", this, menu_selector(Bug914Layer::restart));
 
-        Menu *menu = Menu::create(item1, NULL);
+        CCMenu *menu = CCMenu::create(item1, NULL);
         menu->alignItemsVertically();
-        menu->setPosition(Point(size.width/2, 100));
+        menu->setPosition(ccp(size.width/2, 100));
         addChild(menu);
 
         // position the label on the center of the screen
-        label->setPosition(Point( size.width /2 , size.height/2 ));
+        label->setPosition(ccp( size.width /2 , size.height/2 ));
 
         // add the label as a child to this Layer
         addChild(label);
@@ -63,17 +63,17 @@ bool Bug914Layer::init()
     return false;
 }
 
-void Bug914Layer::ccTouchesMoved(Set *touches, Event * event)
+void Bug914Layer::ccTouchesMoved(CCSet *touches, CCEvent * event)
 {
-    log("Number of touches: %d", touches->count());
+    CCLog("Number of touches: %d", touches->count());
 }
 
-void Bug914Layer::ccTouchesBegan(Set *touches, Event * event)
+void Bug914Layer::ccTouchesBegan(CCSet *touches, CCEvent * event)
 {
     ccTouchesMoved(touches, event);
 }
 
-void Bug914Layer::restart(Object* sender)
+void Bug914Layer::restart(CCObject* sender)
 {
-    Director::getInstance()->replaceScene(Bug914Layer::scene());
+    CCDirector::sharedDirector()->replaceScene(Bug914Layer::scene());
 }

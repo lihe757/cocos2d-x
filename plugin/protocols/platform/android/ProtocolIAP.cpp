@@ -48,10 +48,10 @@ extern "C" {
 	}
 }
 
-bool ProtocolIAP::_paying = false;
+bool ProtocolIAP::m_bPaying = false;
 
 ProtocolIAP::ProtocolIAP()
-: _listener(NULL)
+: m_pListener(NULL)
 {
 }
 
@@ -88,7 +88,7 @@ void ProtocolIAP::configDeveloperInfo(TIAPDeveloperInfo devInfo)
 
 void ProtocolIAP::payForProduct(TProductInfo info)
 {
-    if (_paying)
+    if (m_bPaying)
     {
         PluginUtils::outputLog("ProtocolIAP", "Now is paying");
         return;
@@ -96,7 +96,7 @@ void ProtocolIAP::payForProduct(TProductInfo info)
 
     if (info.empty())
     {
-        if (NULL != _listener)
+        if (NULL != m_pListener)
         {
             onPayResult(kPayFail, "Product info error");
         }
@@ -105,8 +105,8 @@ void ProtocolIAP::payForProduct(TProductInfo info)
     }
     else
     {
-        _paying = true;
-        _curInfo = info;
+        m_bPaying = true;
+        m_curInfo = info;
 
         PluginJavaData* pData = PluginUtils::getPluginJavaData(this);
 		PluginJniMethodInfo t;
@@ -128,21 +128,21 @@ void ProtocolIAP::payForProduct(TProductInfo info)
 
 void ProtocolIAP::setResultListener(PayResultListener* pListener)
 {
-	_listener = pListener;
+	m_pListener = pListener;
 }
 
 void ProtocolIAP::onPayResult(PayResultCode ret, const char* msg)
 {
-    _paying = false;
-    if (_listener)
+    m_bPaying = false;
+    if (m_pListener)
     {
-    	_listener->onPayResult(ret, msg, _curInfo);
+    	m_pListener->onPayResult(ret, msg, m_curInfo);
     }
     else
     {
         PluginUtils::outputLog("ProtocolIAP", "Result listener is null!");
     }
-    _curInfo.clear();
+    m_curInfo.clear();
     PluginUtils::outputLog("ProtocolIAP", "Pay result is : %d(%s)", (int) ret, msg);
 }
 

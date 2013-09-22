@@ -34,13 +34,13 @@ NS_CC_BEGIN
 
 typedef LRESULT (*CUSTOM_WND_PROC)(UINT message, WPARAM wParam, LPARAM lParam, BOOL* pProcessed);
 
-class EGL;
+class CCEGL;
 
-class CC_DLL EGLView : public EGLViewProtocol
+class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
 public:
-    EGLView();
-    virtual ~EGLView();
+    CCEGLView();
+    virtual ~CCEGLView();
 
     /* override functions */
     virtual bool isOpenGLReady();
@@ -79,24 +79,22 @@ public:
     /**
     @brief    get the shared main open gl window
     */
-    static EGLView* getInstance();
+    static CCEGLView* sharedOpenGLView();
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static EGLView* sharedOpenGLView();
 protected:
 
 private:
-    bool _captured;
-    HWND _wnd;
-    HDC  _DC;
-    HGLRC _RC;
-    LPFN_ACCELEROMETER_KEYHOOK _lpfnAccelerometerKeyHook;
-    bool _supportTouch;
+    bool m_bCaptured;
+    HWND m_hWnd;
+    HDC  m_hDC;
+    HGLRC m_hRC;
+    LPFN_ACCELEROMETER_KEYHOOK m_lpfnAccelerometerKeyHook;
+    bool m_bSupportTouch;
 
-    LPCWSTR _menu;
-    CUSTOM_WND_PROC _wndproc;
+    LPCWSTR m_menu;
+    CUSTOM_WND_PROC m_wndproc;
 
-    float _frameZoomFactor;
+    float m_fFrameZoomFactor;
 };
 
 NS_CC_END

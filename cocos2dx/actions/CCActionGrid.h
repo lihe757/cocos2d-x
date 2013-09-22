@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class GridBase;
+class CCGridBase;
 
 /**
  * @addtogroup actions
@@ -38,201 +38,177 @@ class GridBase;
  */
 
 /** @brief Base class for Grid actions */
-class CC_DLL GridAction : public ActionInterval
+class CC_DLL CCGridAction : public CCActionInterval
 {
 public:
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCActionInterval* reverse(void);
+
     /** initializes the action with size and duration */
-    bool initWithDuration(float duration, const Size& gridSize);
+    virtual bool initWithDuration(float duration, const CCSize& gridSize);
 
     /** returns the grid */
-    virtual GridBase* getGrid();
+    virtual CCGridBase* getGrid(void);
 
-    // overrides
-	virtual GridAction * clone() const override = 0;
-    virtual GridAction* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
+public:
+    /** creates the action with size and duration */
+    // We can't make this create function compatible with previous version, bindings-generator will be confused since they
+    // have the same function name and the same number of arguments. So sorry about that.
+    //CC_DEPRECATED_ATTRIBUTE static CCGridAction* create(const CCSize& gridSize, float duration);
 
+    /** creates the action with size and duration */
+    static CCGridAction* create(float duration, const CCSize& gridSize);
 protected:
-    Size _gridSize;
+    CCSize m_sGridSize;
 };
 
 /** 
- @brief Base class for Grid3D actions.
+ @brief Base class for CCGrid3D actions.
  Grid3D actions can modify a non-tiled grid.
  */
-class CC_DLL Grid3DAction : public GridAction
+class CC_DLL CCGrid3DAction : public CCGridAction
 {
 public:
-
     /** returns the grid */
-    virtual GridBase* getGrid(void);
+    virtual CCGridBase* getGrid(void);
     /** returns the vertex than belongs to certain position in the grid */
-    Vertex3F getVertex(const Point& position) const;
-
-    /** @deprecated Use getVertex() instead */
-    CC_DEPRECATED_ATTRIBUTE inline Vertex3F vertex(const Point& position) { return getVertex(position); }
-
+    ccVertex3F vertex(const CCPoint& position);
     /** returns the non-transformed vertex than belongs to certain position in the grid */
-    Vertex3F getOriginalVertex(const Point& position) const;
-
-    /** @deprecated Use getOriginalVertex() instead */
-    CC_DEPRECATED_ATTRIBUTE inline Vertex3F originalVertex(const Point& position) { return getOriginalVertex(position); }
-
+    ccVertex3F originalVertex(const CCPoint& position);
     /** sets a new vertex to a certain position of the grid */
-    void setVertex(const Point& position, const Vertex3F& vertex);
+    void setVertex(const CCPoint& position, const ccVertex3F& vertex);
 
-    // Overrides
-	virtual Grid3DAction * clone() const override = 0;
-};
-
-/** @brief Base class for TiledGrid3D actions */
-class CC_DLL TiledGrid3DAction : public GridAction
-{
 public:
     /** creates the action with size and duration */
-    static TiledGrid3DAction* create(float duration, const Size& gridSize);
+    static CCGrid3DAction* create(float duration, const CCSize& gridSize);
+};
 
+/** @brief Base class for CCTiledGrid3D actions */
+class CC_DLL CCTiledGrid3DAction : public CCGridAction
+{
+public:
     /** returns the tile that belongs to a certain position of the grid */
-    Quad3 getTile(const Point& position) const;
-
-    /** @deprecated Use getTile() instead */
-    CC_DEPRECATED_ATTRIBUTE Quad3 tile(const Point& position) { return getTile(position); }
-
+    ccQuad3 tile(const CCPoint& position);
     /** returns the non-transformed tile that belongs to a certain position of the grid */
-    Quad3 getOriginalTile(const Point& position) const;
-
-    /** @deprecated Use getOriginalTile() instead */
-    CC_DEPRECATED_ATTRIBUTE Quad3 originalTile(const Point& position) { return getOriginalTile(position); }
-
+    ccQuad3 originalTile(const CCPoint& position);
     /** sets a new tile to a certain position of the grid */
-    void setTile(const Point& position, const Quad3& coords);
+    void setTile(const CCPoint& position, const ccQuad3& coords);
 
     /** returns the grid */
-    virtual GridBase* getGrid(void);
+    virtual CCGridBase* getGrid(void);
 
-    // Override
-    virtual TiledGrid3DAction * clone() const override = 0;
+public:
+    /** creates the action with size and duration */
+    static CCTiledGrid3DAction* create(float duration, const CCSize& gridSize);
 };
 
-/** @brief AccelDeccelAmplitude action */
-class CC_DLL AccelDeccelAmplitude : public ActionInterval
+/** @brief CCAccelDeccelAmplitude action */
+class CC_DLL CCAccelDeccelAmplitude : public CCActionInterval
 {
 public:
-    /** creates the action with an inner action that has the amplitude property, and a duration time */
-    static AccelDeccelAmplitude* create(Action *pAction, float duration);
-
-    virtual ~AccelDeccelAmplitude(void);
+    virtual ~CCAccelDeccelAmplitude(void);
     /** initializes the action with an inner action that has the amplitude property, and a duration time */
-    bool initWithAction(Action *pAction, float duration);
+    bool initWithAction(CCAction *pAction, float duration);
 
-	/** returns a new clone of the action */
-	virtual AccelDeccelAmplitude* clone() const;
-	/** returns a new reversed action */
-	virtual AccelDeccelAmplitude* reverse() const;
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
     /** get amplitude rate */
-    inline float getRate(void) const { return _rate; }
+    inline float getRate(void) { return m_fRate; }
     /** set amplitude rate */
-    inline void setRate(float fRate) { _rate = fRate; }
+    inline void setRate(float fRate) { m_fRate = fRate; }
 
-    // Overrides
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
-
-protected:
-    float _rate;
-    ActionInterval *_other;
-};
-
-/** @brief AccelAmplitude action */
-class CC_DLL AccelAmplitude : public ActionInterval
-{
 public:
     /** creates the action with an inner action that has the amplitude property, and a duration time */
-    static AccelAmplitude* create(Action *pAction, float duration);
-
-    virtual ~AccelAmplitude(void);
-
-    /** initializes the action with an inner action that has the amplitude property, and a duration time */
-    bool initWithAction(Action *pAction, float duration);
-
-    /** get amplitude rate */
-    inline float getRate(void) const { return _rate; }
-    /** set amplitude rate */
-    inline void setRate(float fRate) { _rate = fRate; }
-
-    // Overrides
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
-	virtual AccelAmplitude* clone() const override;
-	virtual AccelAmplitude* reverse() const override;
+    static CCAccelDeccelAmplitude* create(CCAction *pAction, float duration);
 
 protected:
-    float _rate;
-    ActionInterval *_other;
+    float m_fRate;
+    CCActionInterval *m_pOther;
 };
 
-/** @brief DeccelAmplitude action */
-class CC_DLL DeccelAmplitude : public ActionInterval
+/** @brief CCAccelAmplitude action */
+class CC_DLL CCAccelAmplitude : public CCActionInterval
 {
 public:
-    /** creates the action with an inner action that has the amplitude property, and a duration time */
-    static DeccelAmplitude* create(Action *pAction, float duration);
-
-    virtual ~DeccelAmplitude();
+    ~CCAccelAmplitude(void);
     /** initializes the action with an inner action that has the amplitude property, and a duration time */
-    bool initWithAction(Action *pAction, float duration);
+    bool initWithAction(CCAction *pAction, float duration);
 
     /** get amplitude rate */
-    inline float getRate(void) const { return _rate; }
+    inline float getRate(void) { return m_fRate; }
     /** set amplitude rate */
-    inline void setRate(float fRate) { _rate = fRate; }
+    inline void setRate(float fRate) { m_fRate = fRate; }
 
-    // overrides
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
-	virtual DeccelAmplitude* clone() const;
-	virtual DeccelAmplitude* reverse() const;
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates the action with an inner action that has the amplitude property, and a duration time */
+    static CCAccelAmplitude* create(CCAction *pAction, float duration);
 protected:
-    float _rate;
-    ActionInterval *_other;
+    float m_fRate;
+    CCActionInterval *m_pOther;
 };
 
-/** @brief StopGrid action.
+/** @brief CCDeccelAmplitude action */
+class CC_DLL CCDeccelAmplitude : public CCActionInterval
+{
+public:
+    ~CCDeccelAmplitude(void);
+    /** initializes the action with an inner action that has the amplitude property, and a duration time */
+    bool initWithAction(CCAction *pAction, float duration);
+
+    /** get amplitude rate */
+    inline float getRate(void) { return m_fRate; }
+    /** set amplitude rate */
+    inline void setRate(float fRate) { m_fRate = fRate; }
+
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+
+public:
+    /** creates the action with an inner action that has the amplitude property, and a duration time */
+    static CCDeccelAmplitude* create(CCAction *pAction, float duration);
+
+protected:
+    float m_fRate;
+    CCActionInterval *m_pOther;
+};
+
+/** @brief CCStopGrid action.
  @warning Don't call this action if another grid action is active.
  Call if you want to remove the the grid effect. Example:
- Sequence::actions(Lens::action(...), StopGrid::action(...), NULL);
+ CCSequence::actions(Lens::action(...), CCStopGrid::action(...), NULL);
  */
-class CC_DLL StopGrid : public ActionInstant
+class CC_DLL CCStopGrid : public CCActionInstant
 {
+public:
+    virtual void startWithTarget(CCNode *pTarget);
+
 public:
     /** Allocates and initializes the action */
-    static StopGrid* create(void);
-
-    // Overrides
-    virtual void startWithTarget(Node *target) override;
-	virtual StopGrid* clone() const override;
-	virtual StopGrid* reverse() const override;
+    static CCStopGrid* create(void);
 };
 
-/** @brief ReuseGrid action */
-class CC_DLL ReuseGrid : public ActionInstant
+/** @brief CCReuseGrid action */
+class CC_DLL CCReuseGrid : public CCActionInstant
 {
 public:
-    /** creates an action with the number of times that the current grid will be reused */
-    static ReuseGrid* create(int times);
-
     /** initializes an action with the number of times that the current grid will be reused */
     bool initWithTimes(int times);
 
-    // Override
-    virtual void startWithTarget(Node *target) override;
-	virtual ReuseGrid* clone() const override;
-	virtual ReuseGrid* reverse() const override;
+    virtual void startWithTarget(CCNode *pTarget);
 
+public:
+    /** creates an action with the number of times that the current grid will be reused */
+    static CCReuseGrid* create(int times);
 protected:
-    int _times;
+    int m_nTimes;
 };
 
 // end of actions group

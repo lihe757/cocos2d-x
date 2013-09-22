@@ -26,10 +26,11 @@ THE SOFTWARE.
 #include "CCInstance.h"
 #include "CCApplication.h"
 #include "CCEGLView.h"
-
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/module.h>
-#include <nacl_io/nacl_io.h>
+#ifndef OLD_NACL_MOUNTS
+#include "nacl_io/nacl_io.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -41,7 +42,10 @@ THE SOFTWARE.
 USING_NS_CC;
 
 CocosPepperInstance::CocosPepperInstance(PP_Instance instance) : pp::Instance(instance),
-    _running(false)
+#ifdef OLD_NACL_MOUNTS
+    m_runner(NULL),
+#endif
+    m_running(false)
 {
     RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
     RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_KEYBOARD);
@@ -50,34 +54,38 @@ CocosPepperInstance::CocosPepperInstance(PP_Instance instance) : pp::Instance(in
 void CocosPepperInstance::DidChangeView(const pp::View& view)
 {
     pp::Rect position = view.GetRect();
-    if (_size == position.size())
+    if (m_size == position.size())
     {
         // Size did not change.
         return;
     }
 
-    if (_running)
+    if (m_running)
     {
         CCLOG("DidChangeView (%dx%d) while cocos thread already running",
                position.size().width(), position.size().height());
         return;
     }
 
-    _size = position.size();
-    assert(!EGLView::g_instance);
-    EGLView::g_instance = this;
-    CCLOG("DidChangeView %dx%d", _size.width(), _size.height());
-    pthread_create(&_cocos_thread, NULL, cocos_main, this);
-    _running = true;
+    m_size = position.size();
+    assert(!CCEGLView::g_instance);
+    CCEGLView::g_instance = this;
+    CCLOG("DidChangeView %dx%d", m_size.width(), m_size.height());
+    pthread_create(&m_cocos_thread, NULL, cocos_main, this);
+    m_running = true;
 }
 
 
 bool CocosPepperInstance::Init(uint32_t argc, const char* argn[], const char* argv[])
 {
-    log("CocosPepperInstance::Init: %x %p", pp_instance(),
-          pp::Module::Get()->get_browser_interface());
-    nacl_io_init_ppapi(pp_instance(),
-                       pp::Module::Get()->get_browser_interface());
+    CCLog("CocosPepperInstance::Init");
+#ifdef OLD_NACL_MOUNTS
+    m_runner = new MainThreadRunner(this);
+#else
+    CCLOG("%p %p", (void*)pp_instance(), (void*)pp::Module::Get()->get_browser_interface());
+    nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
+    CCLOG("done nacl_mounts_init_ppapi");
+
 
     umount("/");
     int rtn = mount("Resources",  /* source. Use relative URL */
@@ -92,13 +100,14 @@ bool CocosPepperInstance::Init(uint32_t argc, const char* argn[], const char* ar
         return false;
     }
 
+#endif
     return true;
 }
 
 bool CocosPepperInstance::HandleInputEvent(const pp::InputEvent& event)
 {
-    if (!Application::isRunning())
+    if (!CCApplication::isRunning())
       return false;
-    EGLView::getInstance()->AddEvent(event);
+    CCEGLView::sharedOpenGLView()->AddEvent(event);
     return true;
 }

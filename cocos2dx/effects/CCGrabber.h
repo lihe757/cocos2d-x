@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Texture2D;
+class CCTexture2D;
 
 /**
  * @addtogroup effects
@@ -39,20 +39,20 @@ class Texture2D;
  */
 
 /** FBO class that grabs the the contents of the screen */
-class Grabber : public Object
+class CCGrabber : public CCObject
 {
 public:
-    Grabber(void);
-    ~Grabber(void);
+    CCGrabber(void);
+    ~CCGrabber(void);
 
-    void grab(Texture2D *texture);
-    void beforeRender(Texture2D *texture);
-    void afterRender(Texture2D *texture);
+    void grab(CCTexture2D *pTexture);
+    void beforeRender(CCTexture2D *pTexture);
+    void afterRender(CCTexture2D *pTexture);
 
 protected:
-    GLuint _FBO;
-    GLint _oldFBO;
-    GLfloat    _oldClearColor[4];
+    GLuint m_FBO;
+    GLint m_oldFBO;
+    GLfloat    m_oldClearColor[4];
 };
 
 // end of effects group

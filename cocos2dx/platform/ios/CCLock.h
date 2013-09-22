@@ -29,11 +29,11 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Lock
+class CCLock
 {
 public:
-    Lock(void);
-    ~Lock(void);
+    CCLock(void);
+    ~CCLock(void);
 
     void lock(void);
     void unlock(void);

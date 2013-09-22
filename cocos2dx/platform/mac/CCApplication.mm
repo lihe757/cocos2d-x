@@ -32,21 +32,21 @@
 
 NS_CC_BEGIN
 
-Application* Application::sm_pSharedApplication = 0;
+CCApplication* CCApplication::sm_pSharedApplication = 0;
 
-Application::Application()
+CCApplication::CCApplication()
 {
-    CCASSERT(! sm_pSharedApplication, "sm_pSharedApplication already exist");
+    CCAssert(! sm_pSharedApplication, "sm_pSharedApplication already exist");
     sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
-    CCASSERT(this == sm_pSharedApplication, "sm_pSharedApplication != this");
+    CCAssert(this == sm_pSharedApplication, "sm_pSharedApplication != this");
     sm_pSharedApplication = 0;
 }
 
-int Application::run()
+int CCApplication::run()
 {
     if (/*initInstance() &&*/ applicationDidFinishLaunching()) 
     {
@@ -55,33 +55,27 @@ int Application::run()
     return 0;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
     [[CCDirectorCaller sharedDirectorCaller] setAnimationInterval: interval ];
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_MAC;
+    return kTargetMacOS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
-    CCASSERT(sm_pSharedApplication, "sm_pSharedApplication not set");
+    CCAssert(sm_pSharedApplication, "sm_pSharedApplication not set");
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
-{
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
     // get the current language and country config
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -92,83 +86,78 @@ LanguageType Application::getCurrentLanguage()
     NSDictionary* temp = [NSLocale componentsFromLocaleIdentifier:currentLanguage];
     NSString * languageCode = [temp objectForKey:NSLocaleLanguageCode];
 
-    LanguageType ret = LanguageType::ENGLISH;
+    ccLanguageType ret = kLanguageEnglish;
     if ([languageCode isEqualToString:@"zh"])
     {
-        ret = LanguageType::CHINESE;
+        ret = kLanguageChinese;
     }
     else if ([languageCode isEqualToString:@"en"])
     {
-        ret = LanguageType::ENGLISH;;
+        ret = kLanguageEnglish;
     }
     else if ([languageCode isEqualToString:@"fr"]){
-        ret = LanguageType::FRENCH;
+        ret = kLanguageFrench;
     }
     else if ([languageCode isEqualToString:@"it"]){
-        ret = LanguageType::ITALIAN;
+        ret = kLanguageItalian;
     }
     else if ([languageCode isEqualToString:@"de"]){
-        ret = LanguageType::GERMAN;
+        ret = kLanguageGerman;
     }
     else if ([languageCode isEqualToString:@"es"]){
-        ret = LanguageType::SPANISH;
+        ret = kLanguageSpanish;
     }
     else if ([languageCode isEqualToString:@"ru"]){
-        ret = LanguageType::RUSSIAN;
+        ret = kLanguageRussian;
     }
     else if ([languageCode isEqualToString:@"ko"]){
-        ret = LanguageType::KOREAN;
+        ret = kLanguageKorean;
     }
     else if ([languageCode isEqualToString:@"ja"]){
-        ret = LanguageType::JAPANESE;
+        ret = kLanguageJapanese;
     }
     else if ([languageCode isEqualToString:@"hu"]){
-        ret = LanguageType::HUNGARIAN;
+        ret = kLanguageHungarian;
     }
     else if ([languageCode isEqualToString:@"pt"])
     {
-        ret = LanguageType::PORTUGUESE;
+        ret = kLanguagePortuguese;
     }
     else if ([languageCode isEqualToString:@"ar"])
     {
-        ret = LanguageType::ARABIC;
+        ret = kLanguageArabic;
     }
-    else if ([languageCode isEqualToString:@"nb"]){
-        ret = LanguageType::NORWEGIAN;
-    }
-    else if ([languageCode isEqualToString:@"pl"]){
-        ret = LanguageType::POLISH;
-    }
+    
     return ret;
 }
 
-void Application::setResourceRootPath(const std::string& rootResDir)
+void CCApplication::setResourceRootPath(const std::string& rootResDir)
 {
-    _resourceRootPath = rootResDir;
-    if (_resourceRootPath[_resourceRootPath.length() - 1] != '/')
+    m_resourceRootPath = rootResDir;
+    if (m_resourceRootPath[m_resourceRootPath.length() - 1] != '/')
     {
-        _resourceRootPath += '/';
+        m_resourceRootPath += '/';
     }
-    FileUtils* pFileUtils = FileUtils::getInstance();
+    CCFileUtils* pFileUtils = CCFileUtils::sharedFileUtils();
     std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
-    searchPaths.insert(searchPaths.begin(), _resourceRootPath);
+    searchPaths.insert(searchPaths.begin(), m_resourceRootPath);
     pFileUtils->setSearchPaths(searchPaths);
 }
 
-const std::string& Application::getResourceRootPath(void)
+const std::string& CCApplication::getResourceRootPath(void)
 {
-    return _resourceRootPath;
+    return m_resourceRootPath;
 }
 
-void Application::setStartupScriptFilename(const std::string& startupScriptFile)
+void CCApplication::setStartupScriptFilename(const std::string& startupScriptFile)
 {
-    _startupScriptFilename = startupScriptFile;
-    std::replace(_startupScriptFilename.begin(), _startupScriptFilename.end(), '\\', '/');
+    m_startupScriptFilename = startupScriptFile;
+    std::replace(m_startupScriptFilename.begin(), m_startupScriptFilename.end(), '\\', '/');
 }
 
-const std::string& Application::getStartupScriptFilename(void)
+const std::string& CCApplication::getStartupScriptFilename(void)
 {
-    return _startupScriptFilename;
+    return m_startupScriptFilename;
 }
 
 NS_CC_END

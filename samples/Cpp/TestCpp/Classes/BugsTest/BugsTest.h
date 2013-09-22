@@ -3,24 +3,25 @@
 
 #include "../testBasic.h"
 
-class BugsTestMainLayer : public Layer
+class BugsTestMainLayer : public CCLayer
 {
 public:
     virtual void onEnter();
+    void menuCallback(CCObject* pSender);
 
-    virtual void ccTouchesBegan(Set  *touches, Event  *event);
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
+    virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
 
 protected:
-    Point _beginPos;
-    Menu* _itmeMenu;
+    CCPoint m_tBeginPos;
+    CCMenu* m_pItmeMenu;
 };
 
-class BugsTestBaseLayer : public Layer
+class BugsTestBaseLayer : public CCLayer
 {
 public:
     virtual void onEnter();
-    void backCallback(Object* sender);
+    void backCallback(CCObject* pSender);
 };
 
 class BugsTestScene : public TestScene

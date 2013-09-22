@@ -31,75 +31,75 @@ THE SOFTWARE.
 class b2Body;
 struct b2Filter;
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-class Bone;
+class CCBone;
 
-class ColliderBody : public Object
+class ColliderBody : public CCObject
 {
 public:
-	ColliderBody(b2Body *b2b, ContourData *contourData)
-		:_pB2b(NULL)
-		,_contourData(NULL)
+	ColliderBody(b2Body *b2b, CCContourData *contourData)
+		:m_pB2b(NULL)
+		,m_pContourData(NULL)
 	{
-		this->_pB2b = b2b;
-		this->_contourData = contourData;
-		CC_SAFE_RETAIN(_contourData);
+		this->m_pB2b = b2b;
+		this->m_pContourData = contourData;
+		CC_SAFE_RETAIN(m_pContourData);
 	}
 
 	~ColliderBody()
 	{
-		CC_SAFE_RELEASE(_contourData);
+		CC_SAFE_RELEASE(m_pContourData);
 	}
 
 	inline b2Body *getB2Body()
 	{
-		return _pB2b;
+		return m_pB2b;
 	}
 
-	inline ContourData *getContourData()
+	inline CCContourData *getContourData()
 	{
-		return _contourData;
+		return m_pContourData;
 	}
 
 private:
-	b2Body *_pB2b;
-	ContourData *_contourData;
+	b2Body *m_pB2b;
+	CCContourData *m_pContourData;
 };
 
 /*
  *  @brief  ContourSprite used to draw the contour of the display
  */
-class ColliderDetector : public Object
+class CCColliderDetector : public CCObject
 {
 public:
-	static ColliderDetector *create();
-    static ColliderDetector *create(Bone *bone);
+	static CCColliderDetector *create();
+    static CCColliderDetector *create(CCBone *bone);
 public:
-	ColliderDetector();
-	~ColliderDetector(void);
+	CCColliderDetector();
+	~CCColliderDetector(void);
     
     virtual bool init();
-	virtual bool init(Bone *bone);
+	virtual bool init(CCBone *bone);
     
-    void addContourData(ContourData *contourData);
-    void addContourDataList(Array *contourDataList);
+    void addContourData(CCContourData *contourData);
+    void addContourDataList(CCArray *contourDataList);
     
-	void removeContourData(ContourData *contourData);
+	void removeContourData(CCContourData *contourData);
 	void removeAll();
     
-    void updateTransform(AffineTransform &t);
+    void updateTransform(CCAffineTransform &t);
 
 	void setColliderFilter(b2Filter &filter);
 
     void setActive(bool active);
 private:
-    Array *_colliderBodyList;
+    CCArray *m_pColliderBodyList;
     
-	CC_SYNTHESIZE(Bone*, _bone, Bone);
+	CC_SYNTHESIZE(CCBone*, m_pBone, Bone);
 
 };
 		
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif /*__CCCOLLIDERDETECTOR_H__*/

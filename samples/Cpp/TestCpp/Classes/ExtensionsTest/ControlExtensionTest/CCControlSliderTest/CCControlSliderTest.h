@@ -1,5 +1,5 @@
 /*
- * ControlSliderTest.h
+ * CCControlSliderTest.h
  *
  * Copyright (c) 2011 Yannick Loriot
  *
@@ -25,15 +25,15 @@
 
 #include "../CCControlScene.h"
 
-class ControlSliderTest : public ControlScene
+class CCControlSliderTest : public CCControlScene
 {
 public:
-    ControlSliderTest();
-    virtual ~ControlSliderTest();
+    CCControlSliderTest();
+    virtual ~CCControlSliderTest();
     bool init();
-    void valueChanged(Object *sender, Control::EventType controlEvent);
+    void valueChanged(CCObject *sender, CCControlEvent controlEvent);
 protected:
-    LabelTTF* _displayValueLabel;
-    CONTROL_SCENE_CREATE_FUNC(ControlSliderTest)
+    CCLabelTTF* m_pDisplayValueLabel;
+    CONTROL_SCENE_CREATE_FUNC(CCControlSliderTest)
 };
 

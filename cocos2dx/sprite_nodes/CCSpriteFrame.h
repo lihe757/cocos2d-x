@@ -34,120 +34,121 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Texture2D;
+class CCTexture2D;
+class CCZone;
 
 /**
  * @addtogroup sprite_nodes
  * @{
  */
 
-/** @brief A SpriteFrame has:
-    - texture: A Texture2D that will be used by the Sprite
+/** @brief A CCSpriteFrame has:
+    - texture: A CCTexture2D that will be used by the CCSprite
     - rectangle: A rectangle of the texture
 
 
- You can modify the frame of a Sprite by doing:
+ You can modify the frame of a CCSprite by doing:
  
-    SpriteFrame *frame = SpriteFrame::frameWithTexture(texture, rect, offset);
+    CCSpriteFrame *frame = CCSpriteFrame::frameWithTexture(texture, rect, offset);
     sprite->setDisplayFrame(frame);
  */
-class CC_DLL SpriteFrame : public Object, public Clonable
+class CC_DLL CCSpriteFrame : public CCObject
 {
 public:
+    // attributes
 
-    /** Create a SpriteFrame with a texture filename, rect in points.
+    inline const CCRect& getRectInPixels(void) { return m_obRectInPixels; }
+    void setRectInPixels(const CCRect& rectInPixels);
+
+    inline bool isRotated(void) { return m_bRotated; }
+    inline void setRotated(bool bRotated) { m_bRotated = bRotated; }
+
+    /** get rect of the frame */
+    inline const CCRect& getRect(void) { return m_obRect; }
+    /** set rect of the frame */
+    void setRect(const CCRect& rect);
+
+    /** get offset of the frame */
+    const CCPoint& getOffsetInPixels(void);
+    /** set offset of the frame */
+    void setOffsetInPixels(const CCPoint& offsetInPixels);
+
+    /** get original size of the trimmed image */
+    inline const CCSize& getOriginalSizeInPixels(void) { return m_obOriginalSizeInPixels; }
+    /** set original size of the trimmed image */
+    inline void setOriginalSizeInPixels(const CCSize& sizeInPixels) { m_obOriginalSizeInPixels = sizeInPixels; }
+
+    /** get original size of the trimmed image */
+    inline const CCSize& getOriginalSize(void) { return m_obOriginalSize; }
+    /** set original size of the trimmed image */
+    inline void setOriginalSize(const CCSize& sizeInPixels) { m_obOriginalSize = sizeInPixels; }
+
+    /** get texture of the frame */
+    CCTexture2D* getTexture(void);
+    /** set texture of the frame, the texture is retained */
+    void setTexture(CCTexture2D* pobTexture);
+
+    const CCPoint& getOffset(void);
+    void setOffset(const CCPoint& offsets);
+
+public:
+    ~CCSpriteFrame(void);
+    virtual CCObject* copyWithZone(CCZone *pZone);
+
+    /** Create a CCSpriteFrame with a texture filename, rect in points.
      It is assumed that the frame was not trimmed.
      */
-    static SpriteFrame* create(const char* filename, const Rect& rect);
+    static CCSpriteFrame* create(const char* filename, const CCRect& rect);
     
-    /** Create a SpriteFrame with a texture filename, rect, rotated, offset and originalSize in pixels.
+    /** Create a CCSpriteFrame with a texture filename, rect, rotated, offset and originalSize in pixels.
      The originalSize is the size in pixels of the frame before being trimmed.
      */
-    static SpriteFrame* create(const char* filename, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize);
+    static CCSpriteFrame* create(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
     
-    /** Create a SpriteFrame with a texture, rect in points.
+    /** Create a CCSpriteFrame with a texture, rect in points.
      It is assumed that the frame was not trimmed.
      */
-    static SpriteFrame* createWithTexture(Texture2D* pobTexture, const Rect& rect);
+    static CCSpriteFrame* createWithTexture(CCTexture2D* pobTexture, const CCRect& rect);
 
-    /** Create a SpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
+    /** Create a CCSpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
      The originalSize is the size in points of the frame before being trimmed.
      */
-    static SpriteFrame* createWithTexture(Texture2D* pobTexture, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize);
+    static CCSpriteFrame* createWithTexture(CCTexture2D* pobTexture, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
-    virtual ~SpriteFrame(void);
-
-    /** Initializes a SpriteFrame with a texture, rect in points.
+public:
+    /** Initializes a CCSpriteFrame with a texture, rect in points.
      It is assumed that the frame was not trimmed.
      */
-    bool initWithTexture(Texture2D* pobTexture, const Rect& rect);
+    bool initWithTexture(CCTexture2D* pobTexture, const CCRect& rect);
 
-    /** Initializes a SpriteFrame with a texture filename, rect in points;
+    /** Initializes a CCSpriteFrame with a texture filename, rect in points;
      It is assumed that the frame was not trimmed.
      */
-    bool initWithTextureFilename(const char* filename, const Rect& rect);
+    bool initWithTextureFilename(const char* filename, const CCRect& rect);
 
-    /** Initializes a SpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
+    /** Initializes a CCSpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
     The originalSize is the size in points of the frame before being trimmed.
     */
-    bool initWithTexture(Texture2D* pobTexture, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize);
+    bool initWithTexture(CCTexture2D* pobTexture, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
-    /** Initializes a SpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
+    /** Initializes a CCSpriteFrame with a texture, rect, rotated, offset and originalSize in pixels.
      The originalSize is the size in pixels of the frame before being trimmed.
 
      @since v1.1
      */
-    bool initWithTextureFilename(const char* filename, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize);
+    bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
-
-    // attributes
-    inline const Rect& getRectInPixels() const { return _rectInPixels; }
-    void setRectInPixels(const Rect& rectInPixels);
-
-    inline bool isRotated(void) const { return _rotated; }
-    inline void setRotated(bool bRotated) { _rotated = bRotated; }
-
-    /** get rect of the frame */
-    inline const Rect& getRect(void) const { return _rect; }
-    /** set rect of the frame */
-    void setRect(const Rect& rect);
-
-    /** get offset of the frame */
-    const Point& getOffsetInPixels(void) const;
-    /** set offset of the frame */
-    void setOffsetInPixels(const Point& offsetInPixels);
-
-    /** get original size of the trimmed image */
-    inline const Size& getOriginalSizeInPixels(void) const { return _originalSizeInPixels; }
-    /** set original size of the trimmed image */
-    inline void setOriginalSizeInPixels(const Size& sizeInPixels) { _originalSizeInPixels = sizeInPixels; }
-
-    /** get original size of the trimmed image */
-    inline const Size& getOriginalSize(void) const { return _originalSize; }
-    /** set original size of the trimmed image */
-    inline void setOriginalSize(const Size& sizeInPixels) { _originalSize = sizeInPixels; }
-
-    /** get texture of the frame */
-    Texture2D* getTexture(void);
-    /** set texture of the frame, the texture is retained */
-    void setTexture(Texture2D* pobTexture);
-
-    const Point& getOffset(void) const;
-    void setOffset(const Point& offsets);
-
-    // Overrides
-	virtual SpriteFrame *clone() const override;
 
 protected:
-    Point _offset;
-    Size _originalSize;
-    Rect _rectInPixels;
-    bool   _rotated;
-    Rect _rect;
-    Point _offsetInPixels;
-    Size _originalSizeInPixels;
-    Texture2D *_texture;
-    std::string  _textureFilename;
+    CCPoint m_obOffset;
+    CCSize m_obOriginalSize;
+    CCRect m_obRectInPixels;
+    bool   m_bRotated;
+    CCRect m_obRect;
+    CCPoint m_obOffsetInPixels;
+    CCSize m_obOriginalSizeInPixels;
+    CCTexture2D *m_pobTexture;
+    std::string  m_strTextureFilename;
 };
 
 // end of sprite_nodes group

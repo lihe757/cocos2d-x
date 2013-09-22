@@ -9,14 +9,14 @@ public:
     virtual void runThisTest();
 };
 
-class SpriteLayer : public Layer
+class SpriteLayer : public CCLayer
 {
 public:
     virtual void onEnter();
     CREATE_FUNC(SpriteLayer)
 };
 
-class TestLayer : public Layer
+class TestLayer : public CCLayer
 {
 public:
     virtual void onEnter();
@@ -24,7 +24,7 @@ public:
     CREATE_FUNC(TestLayer)
 };
 
-class RotateWorldMainLayer : public Layer
+class RotateWorldMainLayer : public CCLayer
 {
 public:
     virtual void onEnter();

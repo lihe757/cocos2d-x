@@ -41,10 +41,10 @@ NS_CC_BEGIN
  */
 
 //! @brief  Helper class to handle file operations
-class CC_DLL FileUtilsTizen : public FileUtils
+class CC_DLL CCFileUtilsTizen : public CCFileUtils
 {
-    friend class FileUtils;
-    FileUtilsTizen();
+    friend class CCFileUtils;
+    CCFileUtilsTizen();
 public:
     /* override funtions */
     bool init();

@@ -40,7 +40,7 @@ NS_CC_BEGIN
  */
 
 /** 
-A Camera is used in every Node.
+A CCCamera is used in every CCNode.
 Useful to look at the object from different views.
 The OpenGL gluLookAt() function is used to locate the
 camera.
@@ -53,31 +53,43 @@ World coordinates won't work if you use the camera.
 
 Limitations:
 
-- Some nodes, like ParallaxNode, Particle uses world node coordinates, and they won't work properly if you move them (or any of their ancestors)
+- Some nodes, like CCParallaxNode, CCParticle uses world node coordinates, and they won't work properly if you move them (or any of their ancestors)
 using the camera.
 
-- It doesn't work on batched nodes like Sprite objects when they are parented to a SpriteBatchNode object.
+- It doesn't work on batched nodes like CCSprite objects when they are parented to a CCSpriteBatchNode object.
 
-- It is recommended to use it ONLY if you are going to create 3D effects. For 2D effects, use the action Follow or position/scale/rotate.
+- It is recommended to use it ONLY if you are going to create 3D effects. For 2D effects, use the action CCFollow or position/scale/rotate.
 
 */
-class CC_DLL Camera : public Object
+class CC_DLL CCCamera : public CCObject
 {
-public:
-    /** returns the Z eye */
-    static float getZEye();
+protected:
+    float m_fEyeX;
+    float m_fEyeY;
+    float m_fEyeZ;
 
-    Camera(void);
-    ~Camera(void);
+    float m_fCenterX;
+    float m_fCenterY;
+    float m_fCenterZ;
+
+    float m_fUpX;
+    float m_fUpY;
+    float m_fUpZ;
+
+    bool m_bDirty;
+    kmMat4    m_lookupMatrix;
+public:
+    CCCamera(void);
+    ~CCCamera(void);
 
     void init(void);
 
-    const char* description(void) const;
+    const char* description(void);
 
     /** sets the dirty value */
-    inline void setDirty(bool bValue) { _dirty = bValue; }
+    inline void setDirty(bool bValue) { m_bDirty = bValue; }
     /** get the dirty value */
-    inline bool isDirty(void) const { return _dirty; }
+    inline bool isDirty(void) { return m_bDirty; }
 
     /** sets the camera in the default position */
     void restore(void);
@@ -91,30 +103,17 @@ public:
     void setUpXYZ(float fUpX, float fUpY, float fUpZ);
 
     /** get the eye vector values in points */
-    void getEyeXYZ(float *pEyeX, float *pEyeY, float *pEyeZ) const;
+    void getEyeXYZ(float *pEyeX, float *pEyeY, float *pEyeZ);
     /** get the center vector values int points */
-    void getCenterXYZ(float *pCenterX, float *pCenterY, float *pCenterZ) const;
+    void getCenterXYZ(float *pCenterX, float *pCenterY, float *pCenterZ);
     /** get the up vector values */
-    void getUpXYZ(float *pUpX, float *pUpY, float *pUpZ) const;
-
-protected:
-    float _eyeX;
-    float _eyeY;
-    float _eyeZ;
-
-    float _centerX;
-    float _centerY;
-    float _centerZ;
-
-    float _upX;
-    float _upY;
-    float _upZ;
-
-    bool _dirty;
-    kmMat4    _lookupMatrix;
+    void getUpXYZ(float *pUpX, float *pUpY, float *pUpZ);
+public:
+    /** returns the Z eye */
+    static float getZEye();
 
 private:
-    DISALLOW_COPY_AND_ASSIGN(Camera);
+    DISALLOW_COPY_AND_ASSIGN(CCCamera);
 };
 
 // end of base_node group

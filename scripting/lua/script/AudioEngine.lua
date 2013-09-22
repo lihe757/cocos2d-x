@@ -1,29 +1,29 @@
 --Encapsulate SimpleAudioEngine to AudioEngine,Play music and sound effects. 
 local M = {}
-local audioEngineInstance = SimpleAudioEngine:getInstance()
+local sharedEngine = SimpleAudioEngine:sharedEngine()
 
 function M.stopAllEffects()
-    audioEngineInstance:stopAllEffects()
+    sharedEngine:stopAllEffects()
 end
 
 function M.getMusicVolume()
-    return audioEngineInstance:getBackgroundMusicVolume()
+    return sharedEngine:getBackgroundMusicVolume()
 end
 
 function M.isMusicPlaying()
-    return audioEngineInstance:isBackgroundMusicPlaying()
+    return sharedEngine:isBackgroundMusicPlaying()
 end
 
 function M.getEffectsVolume()
-    return audioEngineInstance:getEffectsVolume()
+    return sharedEngine:getEffectsVolume()
 end
 
 function M.setMusicVolume(volume)
-    audioEngineInstance:setBackgroundMusicVolume(volume)
+    sharedEngine:setBackgroundMusicVolume(volume)
 end
 
 function M.stopEffect(handle)
-    audioEngineInstance:stopEffect(handle)
+    sharedEngine:stopEffect(handle)
 end
 
 function M.stopMusic(isReleaseData)
@@ -31,7 +31,7 @@ function M.stopMusic(isReleaseData)
     if nil ~= isReleaseData then
         releaseDataValue = isReleaseData
     end
-    audioEngineInstance:stopBackgroundMusic(releaseDataValue)
+    sharedEngine:stopBackgroundMusic(releaseDataValue)
 end
 
 function M.playMusic(filename, isLoop)
@@ -39,19 +39,19 @@ function M.playMusic(filename, isLoop)
     if nil ~= isLoop then
         loopValue = isLoop
     end
-    audioEngineInstance:playBackgroundMusic(filename, loopValue)
+    sharedEngine:playBackgroundMusic(filename, loopValue)
 end
 
 function M.pauseAllEffects()
-    audioEngineInstance:pauseAllEffects()
+    sharedEngine:pauseAllEffects()
 end
 
 function M.preloadMusic(filename)
-    audioEngineInstance:preloadBackgroundMusic(filename)
+    sharedEngine:preloadBackgroundMusic(filename)
 end
 
 function M.resumeMusic()
-    audioEngineInstance:resumeBackgroundMusic()
+    sharedEngine:resumeBackgroundMusic()
 end
 
 function M.playEffect(filename, isLoop)
@@ -59,43 +59,43 @@ function M.playEffect(filename, isLoop)
     if nil ~= isLoop then
         loopValue = isLoop
     end
-    return audioEngineInstance:playEffect(filename, loopValue)
+    return sharedEngine:playEffect(filename, loopValue)
 end
 
 function M.rewindMusic()
-    audioEngineInstance:rewindBackgroundMusic()
+    sharedEngine:rewindBackgroundMusic()
 end
 
 function M.willPlayMusic()
-    return audioEngineInstance:willPlayBackgroundMusic()
+    return sharedEngine:willPlayBackgroundMusic()
 end
 
 function M.unloadEffect(filename)
-    audioEngineInstance:unloadEffect(filename)
+    sharedEngine:unloadEffect(filename)
 end
 
 function M.preloadEffect(filename)
-    audioEngineInstance:preloadEffect(filename)
+    sharedEngine:preloadEffect(filename)
 end
 
 function M.setEffectsVolume(volume)
-    audioEngineInstance:setEffectsVolume(volume)
+    sharedEngine:setEffectsVolume(volume)
 end
 
 function M.pauseEffect(handle)
-    audioEngineInstance:pauseEffect(handle)
+    sharedEngine:pauseEffect(handle)
 end
 
 function M.resumeAllEffects(handle)
-    audioEngineInstance:resumeAllEffects()
+    sharedEngine:resumeAllEffects()
 end
 
 function M.pauseMusic()
-    audioEngineInstance:pauseBackgroundMusic()
+    sharedEngine:pauseBackgroundMusic()
 end
 
 function M.resumeEffect(handle)
-    audioEngineInstance:resumeEffect(handle)
+    sharedEngine:resumeEffect(handle)
 end
 
 local modename = "AudioEngine"

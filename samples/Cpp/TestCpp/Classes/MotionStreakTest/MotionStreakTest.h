@@ -3,11 +3,10 @@
 
 ////----#include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 //USING_NS_CC;
 
-class MotionStreakTest : public BaseTest
+class MotionStreakTest : public CCLayer
 {
 public:
     MotionStreakTest(void);
@@ -17,19 +16,19 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
-    void modeCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
+    void modeCallback(CCObject* pSender);
 protected:
-    MotionStreak *streak;
+    CCMotionStreak *streak;
 };
 
 class MotionStreakTest1 : public MotionStreakTest
 {
 protected:
-    Node*        _root;
-    Node*        _target;
+    CCNode*        m_root;
+    CCNode*        m_target;
 
 public:
     virtual void onEnter();
@@ -40,12 +39,12 @@ public:
 class MotionStreakTest2 : public MotionStreakTest
 {
 protected:
-    Node*        _root;
-    Node*        _target;
+    CCNode*        m_root;
+    CCNode*        m_target;
 
 public:
     virtual void onEnter();
-    void ccTouchesMoved(Set* touches, Event* event);
+    void ccTouchesMoved(CCSet* touches, CCEvent* event);
     virtual std::string title();
 };
 
@@ -57,9 +56,9 @@ public:
     virtual void onEnter();
     virtual void update(float dt);
 private:
-    Point _center;
-    float _radius;
-    float _angle;
+    CCPoint m_center;
+    float m_fRadius;
+    float m_fAngle;
 };
 
 class MotionStreakTestScene : public TestScene

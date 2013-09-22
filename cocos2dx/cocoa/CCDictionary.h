@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Dictionary;
+class CCDictionary;
 
 /**
  * @addtogroup data_structures
@@ -41,48 +41,48 @@ class Dictionary;
 
 
 /**
- *  DictElement is used for traversing Dictionary.
+ *  CCDictElement is used for traversing CCDictionary.
  *
- *  A DictElement is one element of Dictionary, it contains two properties, key and object.
+ *  A CCDictElement is one element of CCDictionary, it contains two properties, key and object.
  *  Its key has two different type (integer and string).
  *
- *  @note The key type is unique, all the elements in Dictionary has the same key type(integer or string).
+ *  @note The key type is unique, all the elements in CCDictionary has the same key type(integer or string).
  *  @code
- *  DictElement* pElement;
+ *  CCDictElement* pElement;
  *  CCDICT_FOREACH(dict, pElement)
  *  {
  *      const char*key = pElement->getStrKey();
- *      // You certainly know the type of value, so we assume that it's a Sprite.
- *      Sprite* pSprite = static_cast<Sprite*>(pElement->getObject());
+ *      // You certainly know the type of value, so we assume that it's a CCSprite.
+ *      CCSprite* pSprite = (CCSprite*)pElement->getObject();
  *      // ......
  *  }
  *  @endcode
  *
  */
-class CC_DLL DictElement
+class CC_DLL CCDictElement
 {
 private:
     /**
-     *  Constructor of DictElement. It's only for internal usage. Dictionary is its friend class.
+     *  Constructor of CCDictElement. It's only for internal usage. CCDictionary is its friend class.
      *  
      *  @param  pszKey    The string key of this element.
      *  @param  pObject   The object of this element.
      */
-    DictElement(const char* pszKey, Object* pObject);
+    CCDictElement(const char* pszKey, CCObject* pObject);
 
     /**
-     *  Constructor of DictElement. It's only for internal usage. Dictionary is its friend class.
+     *  Constructor of CCDictElement. It's only for internal usage. CCDictionary is its friend class.
      *
      *  @param  iKey    The integer key of this element.
      *  @param  pObject   The object of this element.
      */
-    DictElement(intptr_t iKey, Object* pObject);
+    CCDictElement(intptr_t iKey, CCObject* pObject);
     
 public:
     /**
-     *  The destructor of DictElement.
+     *  The destructor of CCDictElement.
      */
-    ~DictElement();
+    ~CCDictElement();
 
     // Inline functions need to be implemented in header file on Android.
     
@@ -95,8 +95,8 @@ public:
      */
     inline const char* getStrKey() const
     {
-        CCASSERT(_strKey[0] != '\0', "Should not call this function for integer dictionary");
-        return _strKey;
+        CCAssert(m_szKey[0] != '\0', "Should not call this function for integer dictionary");
+        return m_szKey;
     }
 
     /**
@@ -108,8 +108,8 @@ public:
      */
     inline intptr_t getIntKey() const
     {
-        CCASSERT(_strKey[0] == '\0', "Should not call this function for string dictionary");
-        return _intKey;
+        CCAssert(m_szKey[0] == '\0', "Should not call this function for string dictionary");
+        return m_iKey;
     }
     
     /**
@@ -117,19 +117,19 @@ public:
      *
      * @return  The object of this element.
      */
-    inline Object* getObject() const { return _object; }
+    inline CCObject* getObject() const { return m_pObject; }
 
 private:
     // The max length of string key.
     #define   MAX_KEY_LEN   256
     // char array is needed for HASH_ADD_STR in UT_HASH.
     // So it's a pain that all elements will allocate 256 bytes for this array.
-    char      _strKey[MAX_KEY_LEN];     // hash key of string type
-    intptr_t  _intKey;       // hash key of integer type
-    Object* _object;    // hash value
+    char      m_szKey[MAX_KEY_LEN];     // hash key of string type
+    intptr_t  m_iKey;       // hash key of integer type
+    CCObject* m_pObject;    // hash value
 public:
     UT_hash_handle hh;      // makes this class hashable
-    friend class Dictionary; // declare Dictionary as friend class
+    friend class CCDictionary; // declare CCDictionary as friend class
 };
 
 /** The macro for traversing dictionary
@@ -138,52 +138,52 @@ public:
  *        It's also safe to remove elements while traversing.
  */
 #define CCDICT_FOREACH(__dict__, __el__) \
-    DictElement* pTmp##__dict__##__el__ = nullptr; \
+    CCDictElement* pTmp##__dict__##__el__ = NULL; \
     if (__dict__) \
-    HASH_ITER(hh, (__dict__)->_elements, __el__, pTmp##__dict__##__el__)
+    HASH_ITER(hh, (__dict__)->m_pElements, __el__, pTmp##__dict__##__el__)
 
 
 
 /**
- *  Dictionary is a class like NSDictionary in Obj-C .
+ *  CCDictionary is a class like NSDictionary in Obj-C .
  *
- *  @note Only the pointer of Object or its subclass can be inserted to Dictionary.
+ *  @note Only the pointer of CCObject or its subclass can be inserted to CCDictionary.
  *  @code
  *  // Create a dictionary, return an autorelease object.
- *  Dictionary* pDict = Dictionary::create();
+ *  CCDictionary* pDict = CCDictionary::create();
  *
  *  // Insert objects to dictionary
- *  String* pValue1 = String::create("100");
- *  String* pValue2 = String::create("120");
- *  Integer* pValue3 = Integer::create(200);
+ *  CCString* pValue1 = CCString::create("100");
+ *  CCString* pValue2 = CCString::create("120");
+ *  CCInteger* pValue3 = CCInteger::create(200);
  *  pDict->setObject(pValue1, "key1");
  *  pDict->setObject(pValue2, "key2");
  *  pDict->setObject(pValue3, "key3");
  *
  *  // Get the object for key
- *  String* pStr1 = (String*)pDict->objectForKey("key1");
- *  log("{ key1: %s }", pStr1->getCString());
- *  Integer* pInteger = (Integer*)pDict->objectForKey("key3");
- *  log("{ key3: %d }", pInteger->getValue());
+ *  CCString* pStr1 = (CCString*)pDict->objectForKey("key1");
+ *  CCLog("{ key1: %s }", pStr1->getCString());
+ *  CCInteger* pInteger = (CCInteger*)pDict->objectForKey("key3");
+ *  CCLog("{ key3: %d }", pInteger->getValue());
  *  @endcode
  *
  */
 
-class CC_DLL Dictionary : public Object, public Clonable
+class CC_DLL CCDictionary : public CCObject
 {
 public:
     /** 
-     * The constructor of Dictionary.
+     * The constructor of CCDictionary.
      */
-    Dictionary();
+    CCDictionary();
 
     /**
-     * The destructor of Dictionary
+     * The destructor of CCDictionary
      */
-    ~Dictionary();
+    ~CCDictionary();
 
     /**
-     *  Get the count of elements in Dictionary.
+     *  Get the count of elements in CCDictionary.
      *
      *  @return  The count of elements.
      */
@@ -194,14 +194,14 @@ public:
      *
      *  @return  The array contains all keys of elements. It's an autorelease object yet.
      */
-    Array* allKeys();
+    CCArray* allKeys();
 
     /** 
      *  Get all keys according to the specified object.
      *  @warning  We use '==' to compare two objects
      *  @return   The array contains all keys for the specified object. It's an autorelease object yet.
      */
-    Array* allKeysForObject(Object* object);
+    CCArray* allKeysForObject(CCObject* object);
 
     /**
      *  Get the object according to the specified string key.
@@ -210,18 +210,18 @@ public:
      *  @param key  The string key for searching.
      *  @return The object matches the key. You need to force convert it to the type you know.
      *  @code
-     *     // Assume that the elements are String* pointers. Convert it by following code.
-     *     String* pStr = (String*)pDict->objectForKey("key1");
+     *     // Assume that the elements are CCString* pointers. Convert it by following code.
+     *     CCString* pStr = (CCString*)pDict->objectForKey("key1");
      *     // Do something about pStr.
      *     // If you don't know the object type, properly you need to use dynamic_cast<SomeType*> to check it.
-     *     String* pStr2 = dynamic_cast<String*>(pDict->objectForKey("key1"));
+     *     CCString* pStr2 = dynamic_cast<CCString*>(pDict->objectForKey("key1"));
      *     if (pStr2 != NULL) {
      *          // Do something about pStr2
      *     }
      *  @endcode
      *  @see objectForKey(intptr_t)
      */
-    Object* objectForKey(const std::string& key);
+    CCObject* objectForKey(const std::string& key);
     
     /**
      *  Get the object according to the specified integer key.
@@ -231,27 +231,27 @@ public:
      *  @return The object matches the key.
      *  @see objectForKey(const std::string&)
      */
-    Object* objectForKey(intptr_t key);
+    CCObject* objectForKey(intptr_t key);
     
     /** Get the value according to the specified string key.
      *
-     *  @note Be careful to use this function since it assumes the objects in the dictionary are String pointer.
+     *  @note Be careful to use this function since it assumes the objects in the dictionary are CCString pointer.
      *  @param key  The string key for searching
-     *  @return An instance of String.
-     *          It will return an empty string if the objects aren't String pointer or the key wasn't found.
+     *  @return An instance of CCString.
+     *          It will return an empty string if the objects aren't CCString pointer or the key wasn't found.
      *  @see valueForKey(intptr_t)
      */
-    const String* valueForKey(const std::string& key);
+    const CCString* valueForKey(const std::string& key);
     
     /** Get the value according to the specified integer key.
      *
-     *  @note Be careful to use this function since it assumes the objects in the dictionary are String pointer.
+     *  @note Be careful to use this function since it assumes the objects in the dictionary are CCString pointer.
      *  @param key  The string key for searching.
-     *  @return An instance of String.
-     *          It will return an empty string if the objects aren't String pointer or the key wasn't found.
+     *  @return An instance of CCString.
+     *          It will return an empty string if the objects aren't CCString pointer or the key wasn't found.
      *  @see valueForKey(intptr_t)
      */
-    const String* valueForKey(intptr_t key);
+    const CCString* valueForKey(intptr_t key);
 
     /** Insert an object to dictionary, and match it with the specified string key.
      *
@@ -262,9 +262,9 @@ public:
      *
      *  @param pObject  The Object to be inserted.
      *  @param key      The string key for searching.
-     *  @see setObject(Object*, intptr_t)
+     *  @see setObject(CCObject*, intptr_t)
      */
-    void setObject(Object* pObject, const std::string& key);
+    void setObject(CCObject* pObject, const std::string& key);
     
     /** Insert an object to dictionary, and match it with the specified string key.
      *
@@ -274,16 +274,16 @@ public:
      *        Then the new object will be inserted after that.
      *  @param pObject  The Object to be inserted.
      *  @param key      The string key for searching.
-     *  @see setObject(Object*, const std::string&)
+     *  @see setObject(CCObject*, const std::string&)
      */
-    void setObject(Object* pObject, intptr_t key);
+    void setObject(CCObject* pObject, intptr_t key);
 
     /** 
      *  Remove an object by the specified string key.
      *
      *  @param key  The string key for searching.
-     *  @see removeObjectForKey(intptr_t), removeObjectsForKeys(Array*),
-     *       removeObjectForElememt(DictElement*), removeAllObjects().
+     *  @see removeObjectForKey(intptr_t), removeObjectsForKeys(CCArray*),
+     *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectForKey(const std::string& key);
     
@@ -291,8 +291,8 @@ public:
      *  Remove an object by the specified integer key.
      *
      *  @param key  The integer key for searching.
-     *  @see removeObjectForKey(const std::string&), removeObjectsForKeys(Array*),
-     *       removeObjectForElememt(DictElement*), removeAllObjects().
+     *  @see removeObjectForKey(const std::string&), removeObjectsForKeys(CCArray*),
+     *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectForKey(intptr_t key);
     
@@ -301,26 +301,35 @@ public:
      *
      *  @param pKeyArray  The array contains keys to be removed.
      *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
-     *       removeObjectForElememt(DictElement*), removeAllObjects().
+     *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
-    void removeObjectsForKeys(Array* pKeyArray);
+    void removeObjectsForKeys(CCArray* pKeyArray);
     
     /**
      *  Remove an object by an element.
      *
      *  @param pElement  The element need to be removed.
      *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
-     *       removeObjectsForKeys(Array*), removeAllObjects().
+     *       removeObjectsForKeys(CCArray*), removeAllObjects().
      */
-    void removeObjectForElememt(DictElement* pElement);
+    void removeObjectForElememt(CCDictElement* pElement);
     
     /**
      *  Remove all objects in the dictionary.
      *
      *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
-     *       removeObjectsForKeys(Array*), removeObjectForElememt(DictElement*).
+     *       removeObjectsForKeys(CCArray*), removeObjectForElememt(CCDictElement*).
      */
     void removeAllObjects();
+
+    /// @{
+    /// @name Function override
+    /**
+     *  This function is used for deepcopy elements from source dictionary to destination dictionary.
+     *  You shouldn't invoke this function manually since it's called by CCObject::copy.
+     */
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    /// @}
     
     /**
      *  Return a random object in the dictionary.
@@ -328,14 +337,14 @@ public:
      *  @return The random object. 
      *  @see objectForKey(intptr_t), objectForKey(const std::string&)
      */
-    Object* randomObject();
+    CCObject* randomObject();
     
     /**
      *  Create a dictionary.
      *  @return A dictionary which is an autorelease object.
-     *  @see createWithDictionary(Dictionary*), createWithContentsOfFile(const char*), createWithContentsOfFileThreadSafe(const char*).
+     *  @see createWithDictionary(CCDictionary*), createWithContentsOfFile(const char*), createWithContentsOfFileThreadSafe(const char*).
      */
-    static Dictionary* create();
+    static CCDictionary* create();
 
     /**
      *  Create a dictionary with an existing dictionary.
@@ -344,15 +353,15 @@ public:
      *  @return A dictionary which is an autorelease object.
      *  @see create(), createWithContentsOfFile(const char*), createWithContentsOfFileThreadSafe(const char*).
      */
-    static Dictionary* createWithDictionary(Dictionary* srcDict);
+    static CCDictionary* createWithDictionary(CCDictionary* srcDict);
     
     /**
      *  Create a dictionary with a plist file.
      *  @param  pFileName  The name of the plist file.
      *  @return A dictionary which is an autorelease object.
-     *  @see create(), createWithDictionary(Dictionary*), createWithContentsOfFileThreadSafe(const char*).
+     *  @see create(), createWithDictionary(CCDictionary*), createWithContentsOfFileThreadSafe(const char*).
      */
-    static Dictionary* createWithContentsOfFile(const char *pFileName);
+    static CCDictionary* createWithContentsOfFile(const char *pFileName);
     
     /**
      *  Write a dictionary to a plist file.
@@ -372,18 +381,17 @@ public:
      *  @param  pFileName  The name of the plist file.
      *  @return A dictionary which isn't an autorelease object.
      */
-    static Dictionary* createWithContentsOfFileThreadSafe(const char *pFileName);
+    static CCDictionary* createWithContentsOfFileThreadSafe(const char *pFileName);
 
     /* override functions */
-    virtual void acceptVisitor(DataVisitor &visitor);
-    virtual Dictionary* clone() const;
-    
+    virtual void acceptVisitor(CCDataVisitor &visitor);
+
 private:
     /** 
      *  For internal usage, invoked by setObject.
      */
-    void setObjectUnSafe(Object* pObject, const std::string& key);
-    void setObjectUnSafe(Object* pObject, const intptr_t key);
+    void setObjectUnSafe(CCObject* pObject, const std::string& key);
+    void setObjectUnSafe(CCObject* pObject, const intptr_t key);
     
 public:
     /**
@@ -391,21 +399,21 @@ public:
      * 
      *  @note For internal usage, we need to declare this member variable as public since it's used in UT_HASH.
      */
-    DictElement* _elements;
+    CCDictElement* m_pElements;
 private:
     
     /** The support type of dictionary, it's confirmed when setObject is invoked. */
-    enum DictType
+    enum CCDictType
     {
-        kDictUnknown = 0,
-        kDictStr,
-        kDictInt
+        kCCDictUnknown = 0,
+        kCCDictStr,
+        kCCDictInt
     };
     
     /** 
-     *  The type of dictionary, it's assigned to kDictUnknown by default.
+     *  The type of dictionary, it's assigned to kCCDictUnknown by default.
      */
-    DictType _dictType;
+    CCDictType m_eDictType;
 };
 
 // end of data_structure group

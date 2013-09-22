@@ -38,12 +38,12 @@ typedef struct lua_State lua_State;
 
 NS_CC_BEGIN
 
-class Timer;
-class Layer;
-class MenuItem;
-class NotificationCenter;
-class CallFunc;
-class Acceleration;
+class CCTimer;
+class CCLayer;
+class CCMenuItem;
+class CCNotificationCenter;
+class CCCallFunc;
+class CCAcceleration;
 
 enum ccScriptType {
     kScriptTypeNone = 0,
@@ -51,31 +51,31 @@ enum ccScriptType {
     kScriptTypeJavascript
 };
 
-class ScriptHandlerEntry : public Object
+class CCScriptHandlerEntry : public CCObject
 {
 public:
-    static ScriptHandlerEntry* create(int nHandler);
-    ~ScriptHandlerEntry(void);
+    static CCScriptHandlerEntry* create(int nHandler);
+    ~CCScriptHandlerEntry(void);
     
     int getHandler(void) {
-        return _handler;
+        return m_nHandler;
     }
     
     int getEntryId(void) {
-        return _entryId;
+        return m_nEntryId;
     }
     
 protected:
-    ScriptHandlerEntry(int nHandler)
-    : _handler(nHandler)
+    CCScriptHandlerEntry(int nHandler)
+    : m_nHandler(nHandler)
     {
         static int newEntryId = 0;
         newEntryId++;
-        _entryId = newEntryId;
+        m_nEntryId = newEntryId;
     }
     
-    int _handler;
-    int _entryId;
+    int m_nHandler;
+    int m_nEntryId;
 };
 
 /**
@@ -83,225 +83,99 @@ protected:
  * @{
  */
 
-class SchedulerScriptHandlerEntry : public ScriptHandlerEntry
+class CCSchedulerScriptHandlerEntry : public CCScriptHandlerEntry
 {
 public:
     // nHandler return by tolua_ref_function(), called from LuaCocos2d.cpp
-    static SchedulerScriptHandlerEntry* create(int nHandler, float fInterval, bool bPaused);
-    ~SchedulerScriptHandlerEntry(void);
+    static CCSchedulerScriptHandlerEntry* create(int nHandler, float fInterval, bool bPaused);
+    ~CCSchedulerScriptHandlerEntry(void);
     
-    cocos2d::Timer* getTimer(void) {
-        return _timer;
+    cocos2d::CCTimer* getTimer(void) {
+        return m_pTimer;
     }
     
     bool isPaused(void) {
-        return _paused;
+        return m_bPaused;
     }
     
     void markedForDeletion(void) {
-        _markedForDeletion = true;
+        m_bMarkedForDeletion = true;
     }
     
     bool isMarkedForDeletion(void) {
-        return _markedForDeletion;
+        return m_bMarkedForDeletion;
     }
     
 private:
-    SchedulerScriptHandlerEntry(int nHandler)
-    : ScriptHandlerEntry(nHandler)
-    , _timer(NULL)
-    , _paused(false)
-    , _markedForDeletion(false)
+    CCSchedulerScriptHandlerEntry(int nHandler)
+    : CCScriptHandlerEntry(nHandler)
+    , m_pTimer(NULL)
+    , m_bPaused(false)
+    , m_bMarkedForDeletion(false)
     {
     }
     bool init(float fInterval, bool bPaused);
     
-    cocos2d::Timer*   _timer;
-    bool                _paused;
-    bool                _markedForDeletion;
+    cocos2d::CCTimer*   m_pTimer;
+    bool                m_bPaused;
+    bool                m_bMarkedForDeletion;
 };
 
 
 
-class TouchScriptHandlerEntry : public ScriptHandlerEntry
+class CCTouchScriptHandlerEntry : public CCScriptHandlerEntry
 {
 public:
-    static TouchScriptHandlerEntry* create(int nHandler, bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
-    ~TouchScriptHandlerEntry(void);
+    static CCTouchScriptHandlerEntry* create(int nHandler, bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
+    ~CCTouchScriptHandlerEntry(void);
     
     bool isMultiTouches(void) {
-        return _isMultiTouches;
+        return m_bIsMultiTouches;
     }
     
     int getPriority(void) {
-        return _priority;
+        return m_nPriority;
     }
     
     bool getSwallowsTouches(void) {
-        return _swallowsTouches;
+        return m_bSwallowsTouches;
     }
     
 private:
-    TouchScriptHandlerEntry(int nHandler)
-    : ScriptHandlerEntry(nHandler)
-    , _isMultiTouches(false)
-    , _priority(0)
-    , _swallowsTouches(false)
+    CCTouchScriptHandlerEntry(int nHandler)
+    : CCScriptHandlerEntry(nHandler)
+    , m_bIsMultiTouches(false)
+    , m_nPriority(0)
+    , m_bSwallowsTouches(false)
     {
     }
     bool init(bool bIsMultiTouches, int nPriority, bool bSwallowsTouches);
     
-    bool    _isMultiTouches;
-    int     _priority;
-    bool    _swallowsTouches;
+    bool    m_bIsMultiTouches;
+    int     m_nPriority;
+    bool    m_bSwallowsTouches;
 };
 
-enum ScriptEventType
-{
-    kNodeEvent = 0,
-    kMenuClickedEvent,
-    kNotificationEvent,
-    kCallFuncEvent,
-    kScheduleEvent,
-    kTouchEvent,
-    kTouchesEvent,
-    kKeypadEvent,
-    kAccelerometerEvent,
-    kControlEvent,
-    kCommonEvent,
-};
 
-struct BasicScriptData
-{
-    // nativeobject:to get handler for lua or to get jsobject for js
-    void* nativeObject;
-    // value: a pointer to a object that already defined
-    void* value;
-    
-    // Constructor
-    BasicScriptData(void* inObject,void* inValue = NULL)
-    : nativeObject(inObject),value(inValue)
-    {
-    }
-};
-
-struct SchedulerScriptData
-{
-    // lua use
-    int handler;
-    float elapse;
-    // js use
-    void* node;
-    
-    // Constructor
-    SchedulerScriptData(int inHandler,float inElapse,void* inNode = NULL)
-    : handler(inHandler),
-      elapse(inElapse),
-      node(inNode)
-    {
-    }
-};
-
-struct TouchesScriptData
-{
-    int actionType;
-    void* nativeObject;
-    Set* touches;
-    
-    // Constructor
-    TouchesScriptData(int inActionType, void* inNativeObject, Set* inTouches)
-    : actionType(inActionType),
-      nativeObject(inNativeObject),
-      touches(inTouches)
-    {
-    }
-};
-
-struct TouchScriptData
-{
-    int actionType;
-    void* nativeObject;
-    Touch* touch;
-    
-    // Constructor
-    TouchScriptData(int inActionType, void* inNativeObject, Touch* inTouch)
-    : actionType(inActionType),
-      nativeObject(inNativeObject),
-      touch(inTouch)
-    {
-    }
-};
-
-struct KeypadScriptData
-{
-    int actionType;
-    void* nativeObject;
-    
-    // Constructor
-    KeypadScriptData(int inActionType,void* inNativeObject)
-    : actionType(inActionType),nativeObject(inNativeObject)
-    {
-    }
-};
-
-struct CommonScriptData
-{
-    // Now this struct is only used in LuaBinding.
-    int handler;
-    char eventName[64];
-    Object* eventSource;
-    char eventSourceClassName[64];
-    
-    // Constructor
-    CommonScriptData(int inHandler,const char* inName,Object* inSource = NULL,const char* inClassName = NULL)
-    : handler(inHandler),
-      eventSource(inSource)
-    {
-        strncpy(eventName, inName, 64);
-        
-        if (NULL == inClassName)
-        {
-            memset(eventSourceClassName, 0, 64*sizeof(char));
-        }
-        else
-        {
-            strncpy(eventSourceClassName, inClassName, 64);
-        }
-    }
-};
-
-struct ScriptEvent
-{
-    ScriptEventType type;
-    void* data;
-    
-    // Constructor
-    ScriptEvent(ScriptEventType inType,void* inData)
-    : type(inType),
-      data(inData)
-    {
-    }
-};
-
-// Don't make ScriptEngineProtocol inherits from Object since setScriptEngine is invoked only once in AppDelegate.cpp,
+// Don't make CCScriptEngineProtocol inherits from CCObject since setScriptEngine is invoked only once in AppDelegate.cpp,
 // It will affect the lifecycle of ScriptCore instance, the autorelease pool will be destroyed before destructing ScriptCore.
 // So a crash will appear on Win32 if you click the close button.
-class CC_DLL ScriptEngineProtocol
+class CC_DLL CCScriptEngineProtocol
 {
 public:
-    virtual ~ScriptEngineProtocol() {};
+    virtual ~CCScriptEngineProtocol() {};
     
     /** Get script type */
     virtual ccScriptType getScriptType() { return kScriptTypeNone; };
 
     /** Remove script object. */
-    virtual void removeScriptObjectByObject(Object* pObj) = 0;
+    virtual void removeScriptObjectByCCObject(CCObject* pObj) = 0;
     
-    /** Remove script function handler, only LuaEngine class need to implement this function. */
+    /** Remove script function handler, only CCLuaEngine class need to implement this function. */
     virtual void removeScriptHandler(int nHandler) {};
     
-    /** Reallocate script function handler, only LuaEngine class need to implement this function. */
-    virtual int reallocateScriptHandler(int nHandler) { return 0;}
+    /** Reallocate script function handler, only CCLuaEngine class need to implement this function. */
+    virtual int reallocateScriptHandler(int nHandler) { return -1;}
     
     /**
      @brief Execute script code contained in the given string.
@@ -325,9 +199,36 @@ public:
      */
     virtual int executeGlobalFunction(const char* functionName) = 0;
     
-    //when trigger a script event ,call this func,add params needed into ScriptEvent object.nativeObject is object triggering the event, can be NULL in lua
-    virtual int sendEvent(ScriptEvent* evt) = 0;
+    /**
+     @brief Execute a node event function
+     @param pNode which node produce this event
+     @param nAction kCCNodeOnEnter,kCCNodeOnExit,kCCMenuItemActivated,kCCNodeOnEnterTransitionDidFinish,kCCNodeOnExitTransitionDidStart
+     @return The integer value returned from the script function.
+     */
+    virtual int executeNodeEvent(CCNode* pNode, int nAction) = 0;
     
+    virtual int executeMenuItemEvent(CCMenuItem* pMenuItem) = 0;
+    /** Execute a notification event function */
+    virtual int executeNotificationEvent(CCNotificationCenter* pNotificationCenter, const char* pszName) = 0;
+    
+    /** execute a callfun event */
+    virtual int executeCallFuncActionEvent(CCCallFunc* pAction, CCObject* pTarget = NULL) = 0;
+    /** execute a schedule function */
+    virtual int executeSchedule(int nHandler, float dt, CCNode* pNode = NULL) = 0;
+    
+    /** functions for executing touch event */
+    virtual int executeLayerTouchesEvent(CCLayer* pLayer, int eventType, CCSet *pTouches) = 0;
+    virtual int executeLayerTouchEvent(CCLayer* pLayer, int eventType, CCTouch *pTouch) = 0;
+
+    /** functions for keypad event */
+    virtual int executeLayerKeypadEvent(CCLayer* pLayer, int eventType) = 0;
+
+    /** execute a accelerometer event */
+    virtual int executeAccelerometerEvent(CCLayer* pLayer, CCAcceleration* pAccelerationValue) = 0;
+
+    /** function for common event */
+    virtual int executeEvent(int nHandler, const char* pEventName, CCObject* pEventSource = NULL, const char* pEventSourceClassName = NULL) = 0;
+
     /** called by CCAssert to allow scripting engine to handle failed assertions
      * @return true if the assert was handled by the script engine, false otherwise.
      */
@@ -335,34 +236,31 @@ public:
 };
 
 /**
- ScriptEngineManager is a singleton which holds an object instance of ScriptEngineProtocl
+ CCScriptEngineManager is a singleton which holds an object instance of CCScriptEngineProtocl
  It helps cocos2d-x and the user code to find back LuaEngine object
  @since v0.99.5-x-0.8.5
  */
-class CC_DLL ScriptEngineManager
+class CC_DLL CCScriptEngineManager
 {
 public:
-    ~ScriptEngineManager(void);
+    ~CCScriptEngineManager(void);
     
-    ScriptEngineProtocol* getScriptEngine(void) {
-        return _scriptEngine;
+    CCScriptEngineProtocol* getScriptEngine(void) {
+        return m_pScriptEngine;
     }
-    void setScriptEngine(ScriptEngineProtocol *pScriptEngine);
+    void setScriptEngine(CCScriptEngineProtocol *pScriptEngine);
     void removeScriptEngine(void);
     
-    static ScriptEngineManager* getInstance();
-    static void destroyInstance();
-    
-    CC_DEPRECATED_ATTRIBUTE static ScriptEngineManager* sharedManager() { return ScriptEngineManager::getInstance(); };
-    CC_DEPRECATED_ATTRIBUTE static void purgeSharedManager() { ScriptEngineManager::destroyInstance(); };
+    static CCScriptEngineManager* sharedManager(void);
+    static void purgeSharedManager(void);
     
 private:
-    ScriptEngineManager(void)
-    : _scriptEngine(NULL)
+    CCScriptEngineManager(void)
+    : m_pScriptEngine(NULL)
     {
     }
     
-    ScriptEngineProtocol *_scriptEngine;
+    CCScriptEngineProtocol *m_pScriptEngine;
 };
 
 // end of script_support group

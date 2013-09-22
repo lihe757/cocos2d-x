@@ -23,94 +23,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCStdC.h"
 #include "CCAccelerometer.h"
-
-using namespace Tizen::Uix::Sensor;
+#include <stdio.h>
 
 NS_CC_BEGIN
 
-Accelerometer::Accelerometer()
-    : _function(nullptr)
-    , __sensorMgr(nullptr)
+CCAccelerometer::CCAccelerometer() : m_pAccelDelegate(NULL)
 {
 }
 
-Accelerometer::~Accelerometer()
+CCAccelerometer::~CCAccelerometer()
 {
 
 }
 
-void Accelerometer::setDelegate(std::function<void(Acceleration*)> function)
+void CCAccelerometer::setDelegate(CCAccelerometerDelegate* pDelegate)
 {
-    _function = function;
+    m_pAccelDelegate = pDelegate;
 
-    if (_function)
+    if (pDelegate)
     {
-        startSensor();
     }
     else
     {
-        stopSensor();
     }
 }
 
-void Accelerometer::setAccelerometerInterval(float interval)
+void CCAccelerometer::setAccelerometerInterval(float interval)
 {
-    if (__sensorMgr)
-    {
-        __sensorMgr->SetInterval(SENSOR_TYPE_ACCELERATION, interval * 1000);
-    }
 }
 
-void Accelerometer::startSensor()
+
+void CCAccelerometer::update(float x, float y, float z, long sensorTimeStamp)
 {
-    long interval = 0L;
-
-    if (__sensorMgr)
+    if (m_pAccelDelegate)
     {
-        __sensorMgr->RemoveSensorListener(*this);
-        delete __sensorMgr;
-        __sensorMgr = null;
-    }
-
-    __sensorMgr = new SensorManager();
-    __sensorMgr->Construct();
-    __sensorMgr->GetMinInterval(SENSOR_TYPE_ACCELERATION, interval);
-
-    if (interval < 50)
-    {
-        interval = 50;
-    }
-    __sensorMgr->AddSensorListener(*this, SENSOR_TYPE_ACCELERATION, interval, true);
-
-}
-
-void Accelerometer::stopSensor()
-{
-    if (__sensorMgr)
-    {
-        __sensorMgr->RemoveSensorListener(*this);
-        delete __sensorMgr;
-        __sensorMgr = null;
     }
 }
-
-void Accelerometer::OnDataReceived(SensorType sensorType, SensorData& sensorData , result r)
-{
-    if (_function)
-    {
-        AccelerationSensorData& data = static_cast<AccelerationSensorData&>(sensorData);
-        AppLog("AccelerationSensorData    x = %5.4f , y = %5.4f,  z = %5.4f ", data.x,data.y,data.z);
-
-        _accelerationValue.x = -data.x;
-        _accelerationValue.y = -data.y;
-        _accelerationValue.z = -data.z;
-        _accelerationValue.timestamp = data.timestamp;
-
-        _function(&_accelerationValue);
-    }
-}
-
 NS_CC_END
 

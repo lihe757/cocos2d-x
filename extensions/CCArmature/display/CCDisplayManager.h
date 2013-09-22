@@ -29,28 +29,28 @@ THE SOFTWARE.
 #include "../display/CCDecorativeDisplay.h"
 #include "../datas/CCDatas.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-class Bone;
+class CCBone;
 
-//! DisplayManager manages Bone's display
-class  DisplayManager : public Object
+//! CCDisplayManager manages CCBone's display
+class  CCDisplayManager : public CCObject
 {
 public:
-    static DisplayManager *create(Bone *bone);
+    static CCDisplayManager *create(CCBone *bone);
 
 public:
-    DisplayManager();
-    ~DisplayManager();
+    CCDisplayManager();
+    ~CCDisplayManager();
 
-    bool init(Bone *bone);
+    bool init(CCBone *bone);
 
     /**
-     * Use BoneData to init the display list.
+     * Use CCBoneData to init the display list.
      * If display is a sprite, and it have texture info in the TexutreData, then use TexutreData to init the display's anchor point
-     * If the display is a Armature, then create a new Armature
+     * If the display is a CCArmature, then create a new CCArmature
      */
-    void initDisplayList(BoneData *boneData);
+    void initDisplayList(CCBoneData *boneData);
 
     /**
      * Add display and use  _DisplayData init the display.
@@ -58,16 +58,16 @@ public:
      * If index is current display index, then also change display to _index
      *
      *	@param 	displayData it include the display information, like DisplayType.
-     *					If you want to create a sprite display, then create a SpriteDisplayData param
+     *					If you want to create a sprite display, then create a CCSpriteDisplayData param
      *
      *	@param 	index the index of the display you want to replace or add to
      *					-1 : append display from back
      */
-    void addDisplay(DisplayData *displayData, int index);
+    void addDisplay(CCDisplayData *displayData, int index);
 
     void removeDisplay(int index);
 
-    Array *getDecorativeDisplayList();
+    CCArray *getDecorativeDisplayList();
 
     /**
      * Change display by index. You can just use this method to change display in the display list.
@@ -81,13 +81,13 @@ public:
     void changeDisplayByIndex(int index, bool force);
 
 
-    Node *getDisplayRenderNode();
+    CCNode *getDisplayRenderNode();
 
     int getCurrentDisplayIndex();
 
-    void setCurrentDecorativeDisplay(DecorativeDisplay *decoDisplay);
-    DecorativeDisplay *getCurrentDecorativeDisplay();
-    DecorativeDisplay *getDecorativeDisplayByIndex( int index);
+    void setCurrentDecorativeDisplay(CCDecorativeDisplay *decoDisplay);
+    CCDecorativeDisplay *getCurrentDecorativeDisplay();
+    CCDecorativeDisplay *getDecorativeDisplayByIndex( int index);
 
     /**
      * Sets whether the display is visible
@@ -104,16 +104,16 @@ public:
      */
     virtual bool isVisible();
 
-    Size getContentSize();
-    Rect getBoundingBox();
+    CCSize getContentSize();
+    CCRect getBoundingBox();
 
-    Point getAnchorPoint();
-    Point getAnchorPointInPoints();
+    CCPoint getAnchorPoint();
+    CCPoint getAnchorPointInPoints();
 
     /**
      * Check if the position is inside the bone.
      */
-    virtual bool containPoint(Point &_point);
+    virtual bool containPoint(CCPoint &_point);
 
     /**
      * Check if the position is inside the bone.
@@ -121,22 +121,22 @@ public:
     virtual bool containPoint(float x, float y);
 
 protected:
-	Array *_decoDisplayList;
+	CCArray *m_pDecoDisplayList;
 	//! Display render node.
-	Node *_displayRenderNode;
+	CCNode *m_pDisplayRenderNode;
     //! Include current display information, like contour sprite, etc.
-    DecorativeDisplay *_currentDecoDisplay;
+    CCDecorativeDisplay *m_pCurrentDecoDisplay;
     //! Current display index
-    int _displayIndex;
+    int m_iDisplayIndex;
 
-    CC_SYNTHESIZE_PASS_BY_REF(bool, _forceChangeDisplay, ForceChangeDisplay)
+    CC_SYNTHESIZE_PASS_BY_REF(bool, m_bForceChangeDisplay, ForceChangeDisplay)
 
     //! Whether of not the bone is visible. Default is true
-    bool _visible;
+    bool m_bVisible;
 
-    Bone *_bone;
+    CCBone *m_pBone;
 };
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif /*__CCDISPLAYMANAGER_H__*/

@@ -26,14 +26,14 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-Thread::~Thread()
+CCThread::~CCThread()
 {
-    [(id)_autoreasePool release];
+    [(id)m_pAutoreasePool release];
 }
 
-void Thread::createAutoreleasePool()
+void CCThread::createAutoreleasePool()
 {
-    _autoreasePool = [[NSAutoreleasePool alloc] init];
+    m_pAutoreasePool = [[NSAutoreleasePool alloc] init];
 }
 
 NS_CC_END

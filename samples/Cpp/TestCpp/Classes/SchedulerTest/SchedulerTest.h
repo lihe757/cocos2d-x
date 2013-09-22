@@ -4,11 +4,10 @@
 #include "cocos2d.h"
 #include "cocos-ext.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 USING_NS_CC_EXT;
 
-class SchedulerTestLayer : public BaseTest
+class SchedulerTestLayer : public CCLayer
 {
 public:
     virtual void onEnter();
@@ -16,16 +15,16 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 
-    void backCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void restartCallback(Object* sender);
+    void backCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void restartCallback(CCObject* pSender);
 };
 
-// class SchedulerTestLayer : Layer
+// class SchedulerTestLayer : CCLayer
 // {
 // }
-// -(String*) title;
-// -(String*) subtitle;
+// -(CCString*) title;
+// -(CCString*) subtitle;
 // 
 // -(void) backCallback:(id) sender;
 // -(void) nextCallback:(id) sender;
@@ -73,7 +72,7 @@ public:
     void pause(float dt);
     void resume(float dt);
 private:
-    Set* _pausedTargets;
+    CCSet* m_pPausedTargets;
 };
 
 class SchedulerPauseResumeAllUser : public SchedulerTestLayer
@@ -91,7 +90,7 @@ public:
     void pause(float dt);
     void resume(float dt);
 private:
-    Set* _pausedTargets;
+    CCSet* m_pPausedTargets;
 };
 
 class SchedulerUnscheduleAll : public SchedulerTestLayer
@@ -122,7 +121,7 @@ public:
     void tick4(float dt);
     void unscheduleAll(float dt);
 private:
-    bool _actionManagerActive;
+    bool m_bActionManagerActive;
 };
 
 class SchedulerUnscheduleAllUserLevel : public SchedulerTestLayer
@@ -187,15 +186,15 @@ public:
     void stopUpdate(float dt);
 };
 
-class TestNode : public Node
+class TestNode : public CCNode
 {
 public:
     ~TestNode();
 
-    void initWithString(String* pStr, int priority);
+    void initWithString(CCString* pStr, int priority);
     virtual void update(float dt);
 private:
-    String* _pstring;
+    CCString* m_pstring;
 };
 
 class RescheduleSelector : public SchedulerTestLayer
@@ -207,8 +206,8 @@ public:
 
     void schedUpdate(float dt);
 private:
-    float _interval;
-    int   _ticks;
+    float m_fInterval;
+    int   m_nTicks;
 };
 
 class SchedulerDelayAndRepeat : public SchedulerTestLayer
@@ -227,9 +226,9 @@ public:
     void onExit();
     virtual std::string title();
     virtual std::string subtitle();
-    ControlSlider* sliderCtl();
-    void sliderAction(Object* sender, Control::EventType controlEvent);
-    ControlSlider* _sliderCtl;
+    CCControlSlider* sliderCtl();
+    void sliderAction(CCObject* pSender, CCControlEvent controlEvent);
+    CCControlSlider* m_pSliderCtl;
 };
 
 
@@ -240,15 +239,15 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
     void onEnter();
-    ControlSlider* sliderCtl();
-    void sliderAction(Object* sender, Control::EventType controlEvent);
-    Scheduler *sched1;
-    Scheduler *sched2;
-    ActionManager *actionManager1;
-    ActionManager *actionManager2;
+    CCControlSlider* sliderCtl();
+    void sliderAction(CCObject* sender, CCControlEvent controlEvent);
+    CCScheduler *sched1;
+    CCScheduler *sched2;
+    CCActionManager *actionManager1;
+    CCActionManager *actionManager2;
 
-    ControlSlider    *sliderCtl1;
-    ControlSlider    *sliderCtl2;
+    CCControlSlider    *sliderCtl1;
+    CCControlSlider    *sliderCtl2;
 };
 
 class SchedulerIssue2268 : public SchedulerTestLayer
@@ -260,7 +259,7 @@ class SchedulerIssue2268 : public SchedulerTestLayer
 		void onEnter();
 		void update(float dt);
 	private:
-		Node *testNode;
+		CCNode *testNode;
 };
 
 class SchedulerTestScene : public TestScene

@@ -37,11 +37,11 @@ NS_CC_BEGIN
  */
 
 //! @brief  Helper class to handle file operations
-class CC_DLL FileUtilsNaCl : public FileUtils
+class CC_DLL CCFileUtilsNaCl : public CCFileUtils
 {
 private:
-    friend class FileUtils;
-    FileUtilsNaCl() {}
+    friend class CCFileUtils;
+    CCFileUtilsNaCl() {}
 public:
     /* override funtions */
     bool init() { return true; }

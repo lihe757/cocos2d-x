@@ -1,36 +1,38 @@
 #include "CCNode+CCBRelativePositioning.h"
 #include "CCBReader.h"
 
+using namespace cocos2d;
+
 NS_CC_EXT_BEGIN
 
-Point getAbsolutePosition(const Point &pt, CCBReader::PositionType type, const Size &containerSize, const char *propName)
+CCPoint getAbsolutePosition(const CCPoint &pt, int nType, const CCSize &containerSize, const char *pPropName)
 {
-    Point absPt = Point(0,0);
-    if (type == CCBReader::PositionType::RELATIVE_BOTTOM_LEFT)
+    CCPoint absPt = ccp(0,0);
+    if (nType == kCCBPositionTypeRelativeBottomLeft)
     {
         absPt = pt;
     }
-    else if (type == CCBReader::PositionType::RELATIVE_TOP_LEFT)
+    else if (nType == kCCBPositionTypeRelativeTopLeft)
     {
         absPt.x = pt.x;
         absPt.y = containerSize.height - pt.y;
     }
-    else if (type == CCBReader::PositionType::RELATIVE_TOP_RIGHT)
+    else if (nType == kCCBPositionTypeRelativeTopRight)
     {
         absPt.x = containerSize.width - pt.x;
         absPt.y = containerSize.height - pt.y;
     }
-    else if (type == CCBReader::PositionType::RELATIVE_BOTTOM_RIGHT)
+    else if (nType == kCCBPositionTypeRelativeBottomRight)
     {
         absPt.x = containerSize.width - pt.x;
         absPt.y = pt.y;
     }
-    else if (type == CCBReader::PositionType::PERCENT)
+    else if (nType == kCCBPositionTypePercent)
     {
         absPt.x = (int)(containerSize.width * pt.x / 100.0f);
         absPt.y = (int)(containerSize.height * pt.y / 100.0f);
     }
-    else if (type == CCBReader::PositionType::MULTIPLY_RESOLUTION)
+    else if (nType == kCCBPositionTypeMultiplyResolution)
     {
         float resolutionScale = CCBReader::getResolutionScale();
         
@@ -41,20 +43,20 @@ Point getAbsolutePosition(const Point &pt, CCBReader::PositionType type, const S
     return absPt;
 }
 
-void setRelativeScale(Node *pNode, float scaleX, float scaleY, CCBReader::ScaleType type, const char* propName)
+void setRelativeScale(CCNode *pNode, float fScaleX, float fScaleY, int nType, const char* pPropName)
 {
-    CCASSERT(pNode, "pNode should not be null");
+    CCAssert(pNode, "pNode should not be null");
     
-    if (type == CCBReader::ScaleType::MULTIPLY_RESOLUTION)
+    if (nType == kCCBScaleTypeMultiplyResolution)
     {
         float resolutionScale = CCBReader::getResolutionScale();
         
-        scaleX *= resolutionScale;
-        scaleY *= resolutionScale;
+        fScaleX *= resolutionScale;
+        fScaleY *= resolutionScale;
     }
     
-    pNode->setScaleX(scaleX);
-    pNode->setScaleY(scaleY);
+    pNode->setScaleX(fScaleX);
+    pNode->setScaleY(fScaleY);
 }
 
 NS_CC_EXT_END

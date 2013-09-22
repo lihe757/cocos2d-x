@@ -40,11 +40,11 @@ class CocosPepperInstance;
 
 NS_CC_BEGIN
 
-class EGLView : public EGLViewProtocol
+class CCEGLView : public CCEGLViewProtocol
 {
 public:
-    EGLView();
-    virtual ~EGLView();
+    CCEGLView();
+    virtual ~CCEGLView();
 
     /**
      * iPixelWidth, height: the window's size
@@ -70,11 +70,7 @@ public:
     /**
      @brief get the shared main open gl window
      */
-    static EGLView* getInstance();
-    
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static EGLView* sharedOpenGLView();
-
+    static CCEGLView* sharedOpenGLView();
     static CocosPepperInstance* g_instance;
 private:
     void HandleMouseEvent(const pp::MouseInputEvent* event);
@@ -82,10 +78,10 @@ private:
     void destroyGL();
     bool bIsInit;
     bool bIsMouseDown;
-    float _frameZoomFactor;
-    OpenGLContext* _context;
-    std::queue<pp::InputEvent> _event_queue;
-    pthread_mutex_t _mutex;
+    float m_fFrameZoomFactor;
+    OpenGLContext* m_context;
+    std::queue<pp::InputEvent> m_event_queue;
+    pthread_mutex_t m_mutex;
 };
 
 NS_CC_END

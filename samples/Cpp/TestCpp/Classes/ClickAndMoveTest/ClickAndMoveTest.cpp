@@ -8,44 +8,45 @@ enum
 
 void ClickAndMoveTestScene::runThisTest()
 {
-    Layer* layer = new MainLayer();
-    layer->autorelease();
+    CCLayer* pLayer = new MainLayer();
+    pLayer->autorelease();
 
-    addChild(layer);
-    Director::getInstance()->replaceScene(this);
+    addChild(pLayer);
+    CCDirector::sharedDirector()->replaceScene(this);
 }
 
 MainLayer::MainLayer()
 {
     setTouchEnabled(true);
     
-    Sprite* sprite = Sprite::create(s_pathGrossini);
+    CCSprite* sprite = CCSprite::create(s_pPathGrossini);
     
-    Layer* layer = LayerColor::create(Color4B(255,255,0,255));
+    CCLayer* layer = CCLayerColor::create(ccc4(255,255,0,255));
     addChild(layer, -1);
         
     addChild(sprite, 0, kTagSprite);
-    sprite->setPosition( Point(20,150) );
+    sprite->setPosition( ccp(20,150) );
     
-    sprite->runAction( JumpTo::create(4, Point(300,48), 100, 4) );
+    sprite->runAction( CCJumpTo::create(4, ccp(300,48), 100, 4) );
     
-    layer->runAction( RepeatForever::create(
-                                Sequence::create(
-                                        FadeIn::create(1),
-                                        FadeOut::create(1),
+    layer->runAction( CCRepeatForever::create(
+                                CCSequence::create(
+                                        CCFadeIn::create(1),
+                                        CCFadeOut::create(1),
                                         NULL)
                       )); 
 }
 
-void MainLayer::ccTouchesEnded(Set  *touches, Event  *event)
+void MainLayer::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
 {
-    Touch* touch = static_cast<Touch*>( touches->anyObject() );
+    CCSetIterator it = pTouches->begin();
+    CCTouch* touch = (CCTouch*)(*it);
     
-    Point location = touch->getLocation();
+    CCPoint location = touch->getLocation();
 
-    Node* s = getChildByTag(kTagSprite);
+    CCNode* s = getChildByTag(kTagSprite);
     s->stopAllActions();
-    s->runAction( MoveTo::create(1, Point(location.x, location.y) ) );
+    s->runAction( CCMoveTo::create(1, ccp(location.x, location.y) ) );
     float o = location.x - s->getPosition().x;
     float a = location.y - s->getPosition().y;
     float at = (float) CC_RADIANS_TO_DEGREES( atanf( o/a) );
@@ -58,5 +59,5 @@ void MainLayer::ccTouchesEnded(Set  *touches, Event  *event)
             at = 180 - fabs(at);    
     }
     
-    s->runAction( RotateTo::create(1, at) );
+    s->runAction( CCRotateTo::create(1, at) );
 }

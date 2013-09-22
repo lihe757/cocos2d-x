@@ -47,32 +47,33 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class ControlColourPicker: public Control
+class CCControlColourPicker: public CCControl
 {
 public:
-    static ControlColourPicker* create();
+    CCControlColourPicker();
+    virtual ~CCControlColourPicker();
+    virtual void setColor(const ccColor3B& colorValue);
+    virtual void setEnabled(bool bEnabled);
+protected:
+    HSV m_hsv;
+    CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
+    CC_SYNTHESIZE_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background)
+    
+public:
 
-    ControlColourPicker();
-    virtual ~ControlColourPicker();
+    static CCControlColourPicker* create();
 
     virtual bool init();
+    //virtual ~CCControlColourPicker();
+    void hueSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);
+    void colourSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);
 
-    virtual void setColor(const Color3B& colorValue);
-    virtual void setEnabled(bool bEnabled);
-
-    //virtual ~ControlColourPicker();
-    void hueSliderValueChanged(Object * sender, Control::EventType controlEvent);
-    void colourSliderValueChanged(Object * sender, Control::EventType controlEvent);
-
-protected:
+protected:    
     void updateControlPicker();
     void updateHueAndControlPicker();
-    virtual bool ccTouchBegan(Touch* touch, Event* pEvent);
-
-    HSV _hsv;
-    CC_SYNTHESIZE_RETAIN(ControlSaturationBrightnessPicker*, _colourPicker, colourPicker)
-    CC_SYNTHESIZE_RETAIN(ControlHuePicker*, _huePicker, HuePicker)
-    CC_SYNTHESIZE_RETAIN(Sprite*, _background, Background)
+    virtual bool ccTouchBegan(CCTouch* touch, CCEvent* pEvent);
+    
 };
 
 // end of GUI group

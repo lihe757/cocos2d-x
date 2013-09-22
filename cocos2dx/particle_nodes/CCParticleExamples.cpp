@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "CCParticleExamples.h"
 #include "CCDirector.h"
 #include "textures/CCTextureCache.h"
+#include "support/CCPointExtension.h"
 #include "firePngData.h"
 #include "platform/CCImage.h"
 
@@ -34,33 +35,33 @@ NS_CC_BEGIN
 // ParticleFire
 //
 
-static Texture2D* getDefaultTexture()
+static CCTexture2D* getDefaultTexture()
 {
-    Texture2D* texture = NULL;
-    Image* pImage = NULL;
+    CCTexture2D* pTexture = NULL;
+    CCImage* pImage = NULL;
     do 
     {
         bool bRet = false;
         const char* key = "__firePngData";
-        texture = TextureCache::getInstance()->textureForKey(key);
-        CC_BREAK_IF(texture != NULL);
+        pTexture = CCTextureCache::sharedTextureCache()->textureForKey(key);
+        CC_BREAK_IF(pTexture != NULL);
 
-        pImage = new Image();
+        pImage = new CCImage();
         CC_BREAK_IF(NULL == pImage);
-        bRet = pImage->initWithImageData((void*)__firePngData, sizeof(__firePngData));
+        bRet = pImage->initWithImageData((void*)__firePngData, sizeof(__firePngData), CCImage::kFmtPng);
         CC_BREAK_IF(!bRet);
 
-        texture = TextureCache::getInstance()->addUIImage(pImage, key);
+        pTexture = CCTextureCache::sharedTextureCache()->addUIImage(pImage, key);
     } while (0);
 
     CC_SAFE_RELEASE(pImage);
 
-    return texture;
+    return pTexture;
 }
 
-ParticleFire* ParticleFire::create()
+CCParticleFire* CCParticleFire::create()
 {
-    ParticleFire* pRet = new ParticleFire();
+    CCParticleFire* pRet = new CCParticleFire();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -72,9 +73,9 @@ ParticleFire* ParticleFire::create()
     return pRet;
 }
 
-ParticleFire* ParticleFire::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleFire* CCParticleFire::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleFire* pRet = new ParticleFire();
+    CCParticleFire* pRet = new CCParticleFire();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -86,18 +87,18 @@ ParticleFire* ParticleFire::createWithTotalParticles(unsigned int numberOfPartic
     return pRet;
 }
 
-bool ParticleFire::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleFire::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        this->_emitterMode = Mode::GRAVITY;
+        this->m_nEmitterMode = kCCParticleModeGravity;
 
         // Gravity Mode: gravity
-        this->modeA.gravity = Point(0,0);
+        this->modeA.gravity = ccp(0,0);
 
         // Gravity Mode: radial acceleration
         this->modeA.radialAccel = 0;
@@ -108,49 +109,49 @@ bool ParticleFire::initWithTotalParticles(unsigned int numberOfParticles)
         this->modeA.speedVar = 20;        
 
         // starting angle
-        _angle = 90;
-        _angleVar = 10;
+        m_fAngle = 90;
+        m_fAngleVar = 10;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, 60));
-        this->_posVar = Point(40, 20);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, 60));
+        this->m_tPosVar = ccp(40, 20);
 
         // life of particles
-        _life = 3;
-        _lifeVar = 0.25f;
+        m_fLife = 3;
+        m_fLifeVar = 0.25f;
 
 
         // size, in pixels
-        _startSize = 54.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 54.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per frame
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.76f;
-        _startColor.g = 0.25f;
-        _startColor.b = 0.12f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.0f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.76f;
+        m_tStartColor.g = 0.25f;
+        m_tStartColor.b = 0.12f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.0f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
         
         // additive
@@ -163,9 +164,9 @@ bool ParticleFire::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleFireworks
 //
 
-ParticleFireworks* ParticleFireworks::create()
+CCParticleFireworks* CCParticleFireworks::create()
 {
-    ParticleFireworks* pRet = new ParticleFireworks();
+    CCParticleFireworks* pRet = new CCParticleFireworks();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -177,9 +178,9 @@ ParticleFireworks* ParticleFireworks::create()
     return pRet;
 }
 
-ParticleFireworks* ParticleFireworks::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleFireworks* CCParticleFireworks::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleFireworks* pRet = new ParticleFireworks();
+    CCParticleFireworks* pRet = new CCParticleFireworks();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -191,18 +192,18 @@ ParticleFireworks* ParticleFireworks::createWithTotalParticles(unsigned int numb
     return pRet;
 }
 
-bool ParticleFireworks::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleFireworks::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration= DURATION_INFINITY;
+        m_fDuration= kCCParticleDurationInfinity;
 
         // Gravity Mode
-        this->_emitterMode = Mode::GRAVITY;
+        this->m_nEmitterMode = kCCParticleModeGravity;
 
         // Gravity Mode: gravity
-        this->modeA.gravity = Point(0,-90);
+        this->modeA.gravity = ccp(0,-90);
 
         // Gravity Mode:  radial
         this->modeA.radialAccel = 0;
@@ -213,47 +214,47 @@ bool ParticleFireworks::initWithTotalParticles(unsigned int numberOfParticles)
         this->modeA.speedVar = 50;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
 
         // angle
-        this->_angle= 90;
-        this->_angleVar = 20;
+        this->m_fAngle= 90;
+        this->m_fAngleVar = 20;
 
         // life of particles
-        this->_life = 3.5f;
-        this->_lifeVar = 1;
+        this->m_fLife = 3.5f;
+        this->m_fLifeVar = 1;
 
         // emits per frame
-        this->_emissionRate = _totalParticles/_life;
+        this->m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.5f;
-        _startColor.g = 0.5f;
-        _startColor.b = 0.5f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.5f;
-        _startColorVar.g = 0.5f;
-        _startColorVar.b = 0.5f;
-        _startColorVar.a = 0.1f;
-        _endColor.r = 0.1f;
-        _endColor.g = 0.1f;
-        _endColor.b = 0.1f;
-        _endColor.a = 0.2f;
-        _endColorVar.r = 0.1f;
-        _endColorVar.g = 0.1f;
-        _endColorVar.b = 0.1f;
-        _endColorVar.a = 0.2f;
+        m_tStartColor.r = 0.5f;
+        m_tStartColor.g = 0.5f;
+        m_tStartColor.b = 0.5f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.5f;
+        m_tStartColorVar.g = 0.5f;
+        m_tStartColorVar.b = 0.5f;
+        m_tStartColorVar.a = 0.1f;
+        m_tEndColor.r = 0.1f;
+        m_tEndColor.g = 0.1f;
+        m_tEndColor.b = 0.1f;
+        m_tEndColor.a = 0.2f;
+        m_tEndColorVar.r = 0.1f;
+        m_tEndColorVar.g = 0.1f;
+        m_tEndColorVar.b = 0.1f;
+        m_tEndColorVar.a = 0.2f;
 
         // size, in pixels
-        _startSize = 8.0f;
-        _startSizeVar = 2.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 8.0f;
+        m_fStartSizeVar = 2.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
         // additive
         this->setBlendAdditive(false);
@@ -264,9 +265,9 @@ bool ParticleFireworks::initWithTotalParticles(unsigned int numberOfParticles)
 //
 // ParticleSun
 //
-ParticleSun* ParticleSun::create()
+CCParticleSun* CCParticleSun::create()
 {
-    ParticleSun* pRet = new ParticleSun();
+    CCParticleSun* pRet = new CCParticleSun();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -278,9 +279,9 @@ ParticleSun* ParticleSun::create()
     return pRet;
 }
 
-ParticleSun* ParticleSun::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleSun* CCParticleSun::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleSun* pRet = new ParticleSun();
+    CCParticleSun* pRet = new CCParticleSun();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -292,21 +293,21 @@ ParticleSun* ParticleSun::createWithTotalParticles(unsigned int numberOfParticle
     return pRet;
 }
 
-bool ParticleSun::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleSun::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // additive
         this->setBlendAdditive(true);
 
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity mode: radial acceleration
         setRadialAccel(0);
@@ -318,48 +319,48 @@ bool ParticleSun::initWithTotalParticles(unsigned int numberOfParticles)
 
 
         // angle
-        _angle = 90;
-        _angleVar = 360;
+        m_fAngle = 90;
+        m_fAngleVar = 360;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 1;
-        _lifeVar = 0.5f;
+        m_fLife = 1;
+        m_fLifeVar = 0.5f;
 
         // size, in pixels
-        _startSize = 30.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 30.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per seconds
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.76f;
-        _startColor.g = 0.25f;
-        _startColor.b = 0.12f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.0f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.76f;
+        m_tStartColor.g = 0.25f;
+        m_tStartColor.b = 0.12f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.0f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         return true;
@@ -371,9 +372,9 @@ bool ParticleSun::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleGalaxy
 //
 
-ParticleGalaxy* ParticleGalaxy::create()
+CCParticleGalaxy* CCParticleGalaxy::create()
 {
-    ParticleGalaxy* pRet = new ParticleGalaxy();
+    CCParticleGalaxy* pRet = new CCParticleGalaxy();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -385,9 +386,9 @@ ParticleGalaxy* ParticleGalaxy::create()
     return pRet;
 }
 
-ParticleGalaxy* ParticleGalaxy::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleGalaxy* CCParticleGalaxy::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleGalaxy* pRet = new ParticleGalaxy();
+    CCParticleGalaxy* pRet = new CCParticleGalaxy();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -399,18 +400,18 @@ ParticleGalaxy* ParticleGalaxy::createWithTotalParticles(unsigned int numberOfPa
     return pRet;
 }
 
-bool ParticleGalaxy::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleGalaxy::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity Mode: speed of particles
         setSpeed(60);
@@ -425,48 +426,48 @@ bool ParticleGalaxy::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(0);
 
         // angle
-        _angle = 90;
-        _angleVar = 360;
+        m_fAngle = 90;
+        m_fAngleVar = 360;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 4;
-        _lifeVar = 1;
+        m_fLife = 4;
+        m_fLifeVar = 1;
 
         // size, in pixels
-        _startSize = 37.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 37.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.12f;
-        _startColor.g = 0.25f;
-        _startColor.b = 0.76f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.0f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.12f;
+        m_tStartColor.g = 0.25f;
+        m_tStartColor.b = 0.76f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.0f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -480,9 +481,9 @@ bool ParticleGalaxy::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleFlower
 //
 
-ParticleFlower* ParticleFlower::create()
+CCParticleFlower* CCParticleFlower::create()
 {
-    ParticleFlower* pRet = new ParticleFlower();
+    CCParticleFlower* pRet = new CCParticleFlower();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -494,9 +495,9 @@ ParticleFlower* ParticleFlower::create()
     return pRet;
 }
 
-ParticleFlower* ParticleFlower::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleFlower* CCParticleFlower::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleFlower* pRet = new ParticleFlower();
+    CCParticleFlower* pRet = new CCParticleFlower();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -508,18 +509,18 @@ ParticleFlower* ParticleFlower::createWithTotalParticles(unsigned int numberOfPa
     return pRet;
 }
 
-bool ParticleFlower::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleFlower::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity Mode: speed of particles
         setSpeed(80);
@@ -534,48 +535,48 @@ bool ParticleFlower::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(0);
 
         // angle
-        _angle = 90;
-        _angleVar = 360;
+        m_fAngle = 90;
+        m_fAngleVar = 360;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 4;
-        _lifeVar = 1;
+        m_fLife = 4;
+        m_fLifeVar = 1;
 
         // size, in pixels
-        _startSize = 30.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 30.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.50f;
-        _startColor.g = 0.50f;
-        _startColor.b = 0.50f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.5f;
-        _startColorVar.g = 0.5f;
-        _startColorVar.b = 0.5f;
-        _startColorVar.a = 0.5f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.50f;
+        m_tStartColor.g = 0.50f;
+        m_tStartColor.b = 0.50f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.5f;
+        m_tStartColorVar.g = 0.5f;
+        m_tStartColorVar.b = 0.5f;
+        m_tStartColorVar.a = 0.5f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -588,9 +589,9 @@ bool ParticleFlower::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleMeteor
 //
 
-ParticleMeteor * ParticleMeteor::create()
+CCParticleMeteor * CCParticleMeteor::create()
 {
-    ParticleMeteor *pRet = new ParticleMeteor();
+    CCParticleMeteor *pRet = new CCParticleMeteor();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -602,9 +603,9 @@ ParticleMeteor * ParticleMeteor::create()
     return pRet;
 }
 
-ParticleMeteor* ParticleMeteor::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleMeteor* CCParticleMeteor::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleMeteor* pRet = new ParticleMeteor();
+    CCParticleMeteor* pRet = new CCParticleMeteor();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -616,18 +617,18 @@ ParticleMeteor* ParticleMeteor::createWithTotalParticles(unsigned int numberOfPa
     return pRet;
 }
 
-bool ParticleMeteor::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleMeteor::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(-200,200));
+        setGravity(ccp(-200,200));
 
         // Gravity Mode: speed of particles
         setSpeed(15);
@@ -642,48 +643,48 @@ bool ParticleMeteor::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(0);
 
         // angle
-        _angle = 90;
-        _angleVar = 360;
+        m_fAngle = 90;
+        m_fAngleVar = 360;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 2;
-        _lifeVar = 1;
+        m_fLife = 2;
+        m_fLifeVar = 1;
 
         // size, in pixels
-        _startSize = 60.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 60.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.2f;
-        _startColor.g = 0.4f;
-        _startColor.b = 0.7f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.2f;
-        _startColorVar.a = 0.1f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.2f;
+        m_tStartColor.g = 0.4f;
+        m_tStartColor.b = 0.7f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.2f;
+        m_tStartColorVar.a = 0.1f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -697,9 +698,9 @@ bool ParticleMeteor::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleSpiral
 //
 
-ParticleSpiral* ParticleSpiral::create()
+CCParticleSpiral* CCParticleSpiral::create()
 {
-    ParticleSpiral* pRet = new ParticleSpiral();
+    CCParticleSpiral* pRet = new CCParticleSpiral();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -711,9 +712,9 @@ ParticleSpiral* ParticleSpiral::create()
     return pRet;
 }
 
-ParticleSpiral* ParticleSpiral::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleSpiral* CCParticleSpiral::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleSpiral* pRet = new ParticleSpiral();
+    CCParticleSpiral* pRet = new CCParticleSpiral();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -725,18 +726,18 @@ ParticleSpiral* ParticleSpiral::createWithTotalParticles(unsigned int numberOfPa
     return pRet;
 }
 
-bool ParticleSpiral::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleSpiral::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity Mode: speed of particles
         setSpeed(150);
@@ -751,48 +752,48 @@ bool ParticleSpiral::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(0);
 
         // angle
-        _angle = 90;
-        _angleVar = 0;
+        m_fAngle = 90;
+        m_fAngleVar = 0;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 12;
-        _lifeVar = 0;
+        m_fLife = 12;
+        m_fLifeVar = 0;
 
         // size, in pixels
-        _startSize = 20.0f;
-        _startSizeVar = 0.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 20.0f;
+        m_fStartSizeVar = 0.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.5f;
-        _startColor.g = 0.5f;
-        _startColor.b = 0.5f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.5f;
-        _startColorVar.g = 0.5f;
-        _startColorVar.b = 0.5f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.5f;
-        _endColor.g = 0.5f;
-        _endColor.b = 0.5f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.5f;
-        _endColorVar.g = 0.5f;
-        _endColorVar.b = 0.5f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.5f;
+        m_tStartColor.g = 0.5f;
+        m_tStartColor.b = 0.5f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.5f;
+        m_tStartColorVar.g = 0.5f;
+        m_tStartColorVar.b = 0.5f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.5f;
+        m_tEndColor.g = 0.5f;
+        m_tEndColor.b = 0.5f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.5f;
+        m_tEndColorVar.g = 0.5f;
+        m_tEndColorVar.b = 0.5f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -806,9 +807,9 @@ bool ParticleSpiral::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleExplosion
 //
 
-ParticleExplosion* ParticleExplosion::create()
+CCParticleExplosion* CCParticleExplosion::create()
 {
-    ParticleExplosion* pRet = new ParticleExplosion();
+    CCParticleExplosion* pRet = new CCParticleExplosion();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -820,9 +821,9 @@ ParticleExplosion* ParticleExplosion::create()
     return pRet;
 }
 
-ParticleExplosion* ParticleExplosion::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleExplosion* CCParticleExplosion::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleExplosion* pRet = new ParticleExplosion();
+    CCParticleExplosion* pRet = new CCParticleExplosion();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -834,17 +835,17 @@ ParticleExplosion* ParticleExplosion::createWithTotalParticles(unsigned int numb
     return pRet;
 }
 
-bool ParticleExplosion::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleExplosion::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
     {
         // duration
-        _duration = 0.1f;
+        m_fDuration = 0.1f;
 
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity Mode: speed of particles
         setSpeed(70);
@@ -859,48 +860,48 @@ bool ParticleExplosion::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(0);
 
         // angle
-        _angle = 90;
-        _angleVar = 360;
+        m_fAngle = 90;
+        m_fAngleVar = 360;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height/2));
-        setPosVar(Point::ZERO);
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height/2));
+        setPosVar(CCPointZero);
 
         // life of particles
-        _life = 5.0f;
-        _lifeVar = 2;
+        m_fLife = 5.0f;
+        m_fLifeVar = 2;
 
         // size, in pixels
-        _startSize = 15.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 15.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = _totalParticles/_duration;
+        m_fEmissionRate = m_uTotalParticles/m_fDuration;
 
         // color of particles
-        _startColor.r = 0.7f;
-        _startColor.g = 0.1f;
-        _startColor.b = 0.2f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.5f;
-        _startColorVar.g = 0.5f;
-        _startColorVar.b = 0.5f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.5f;
-        _endColor.g = 0.5f;
-        _endColor.b = 0.5f;
-        _endColor.a = 0.0f;
-        _endColorVar.r = 0.5f;
-        _endColorVar.g = 0.5f;
-        _endColorVar.b = 0.5f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.7f;
+        m_tStartColor.g = 0.1f;
+        m_tStartColor.b = 0.2f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.5f;
+        m_tStartColorVar.g = 0.5f;
+        m_tStartColorVar.b = 0.5f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.5f;
+        m_tEndColor.g = 0.5f;
+        m_tEndColor.b = 0.5f;
+        m_tEndColor.a = 0.0f;
+        m_tEndColorVar.r = 0.5f;
+        m_tEndColorVar.g = 0.5f;
+        m_tEndColorVar.b = 0.5f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -914,9 +915,9 @@ bool ParticleExplosion::initWithTotalParticles(unsigned int numberOfParticles)
 // ParticleSmoke
 //
 
-ParticleSmoke* ParticleSmoke::create()
+CCParticleSmoke* CCParticleSmoke::create()
 {
-    ParticleSmoke* pRet = new ParticleSmoke();
+    CCParticleSmoke* pRet = new CCParticleSmoke();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -928,9 +929,9 @@ ParticleSmoke* ParticleSmoke::create()
     return pRet;
 }
 
-ParticleSmoke* ParticleSmoke::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleSmoke* CCParticleSmoke::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleSmoke* pRet = new ParticleSmoke();
+    CCParticleSmoke* pRet = new CCParticleSmoke();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -942,18 +943,18 @@ ParticleSmoke* ParticleSmoke::createWithTotalParticles(unsigned int numberOfPart
     return pRet;
 }
 
-bool ParticleSmoke::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleSmoke::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // Emitter mode: Gravity Mode
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,0));
+        setGravity(ccp(0,0));
 
         // Gravity Mode: radial acceleration
         setRadialAccel(0);
@@ -964,48 +965,48 @@ bool ParticleSmoke::initWithTotalParticles(unsigned int numberOfParticles)
         setSpeedVar(10);
 
         // angle
-        _angle = 90;
-        _angleVar = 5;
+        m_fAngle = 90;
+        m_fAngleVar = 5;
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, 0));
-        setPosVar(Point(20, 0));
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, 0));
+        setPosVar(ccp(20, 0));
 
         // life of particles
-        _life = 4;
-        _lifeVar = 1;
+        m_fLife = 4;
+        m_fLifeVar = 1;
 
         // size, in pixels
-        _startSize = 60.0f;
-        _startSizeVar = 10.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 60.0f;
+        m_fStartSizeVar = 10.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per frame
-        _emissionRate = _totalParticles/_life;
+        m_fEmissionRate = m_uTotalParticles/m_fLife;
 
         // color of particles
-        _startColor.r = 0.8f;
-        _startColor.g = 0.8f;
-        _startColor.b = 0.8f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.02f;
-        _startColorVar.g = 0.02f;
-        _startColorVar.b = 0.02f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.0f;
-        _endColor.g = 0.0f;
-        _endColor.b = 0.0f;
-        _endColor.a = 1.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.8f;
+        m_tStartColor.g = 0.8f;
+        m_tStartColor.b = 0.8f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.02f;
+        m_tStartColorVar.g = 0.02f;
+        m_tStartColorVar.b = 0.02f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.0f;
+        m_tEndColor.g = 0.0f;
+        m_tEndColor.b = 0.0f;
+        m_tEndColor.a = 1.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -1016,12 +1017,12 @@ bool ParticleSmoke::initWithTotalParticles(unsigned int numberOfParticles)
 }
 
 //
-// ParticleSnow
+// CCParticleSnow
 //
 
-ParticleSnow* ParticleSnow::create()
+CCParticleSnow* CCParticleSnow::create()
 {
-    ParticleSnow* pRet = new ParticleSnow();
+    CCParticleSnow* pRet = new CCParticleSnow();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -1033,9 +1034,9 @@ ParticleSnow* ParticleSnow::create()
     return pRet;
 }
 
-ParticleSnow* ParticleSnow::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleSnow* CCParticleSnow::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleSnow* pRet = new ParticleSnow();
+    CCParticleSnow* pRet = new CCParticleSnow();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -1047,18 +1048,18 @@ ParticleSnow* ParticleSnow::createWithTotalParticles(unsigned int numberOfPartic
     return pRet;
 }
 
-bool ParticleSnow::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleSnow::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) ) 
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
         // set gravity mode.
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(0,-1));
+        setGravity(ccp(0,-1));
 
         // Gravity Mode: speed of particles
         setSpeed(5);
@@ -1073,48 +1074,48 @@ bool ParticleSnow::initWithTotalParticles(unsigned int numberOfParticles)
         setTangentialAccelVar(1);
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height + 10));
-        setPosVar(Point(winSize.width/2, 0));
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height + 10));
+        setPosVar(ccp(winSize.width/2, 0));
 
         // angle
-        _angle = -90;
-        _angleVar = 5;
+        m_fAngle = -90;
+        m_fAngleVar = 5;
 
         // life of particles
-        _life = 45;
-        _lifeVar = 15;
+        m_fLife = 45;
+        m_fLifeVar = 15;
 
         // size, in pixels
-        _startSize = 10.0f;
-        _startSizeVar = 5.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 10.0f;
+        m_fStartSizeVar = 5.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = 10;
+        m_fEmissionRate = 10;
 
         // color of particles
-        _startColor.r = 1.0f;
-        _startColor.g = 1.0f;
-        _startColor.b = 1.0f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.0f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 1.0f;
-        _endColor.g = 1.0f;
-        _endColor.b = 1.0f;
-        _endColor.a = 0.0f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 1.0f;
+        m_tStartColor.g = 1.0f;
+        m_tStartColor.b = 1.0f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.0f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 1.0f;
+        m_tEndColor.g = 1.0f;
+        m_tEndColor.b = 1.0f;
+        m_tEndColor.a = 0.0f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive
@@ -1124,12 +1125,12 @@ bool ParticleSnow::initWithTotalParticles(unsigned int numberOfParticles)
     return false;
 }
 //
-// ParticleRain
+// CCParticleRain
 //
 
-ParticleRain* ParticleRain::create()
+CCParticleRain* CCParticleRain::create()
 {
-    ParticleRain* pRet = new ParticleRain();
+    CCParticleRain* pRet = new CCParticleRain();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -1141,9 +1142,9 @@ ParticleRain* ParticleRain::create()
     return pRet;
 }
 
-ParticleRain* ParticleRain::createWithTotalParticles(unsigned int numberOfParticles)
+CCParticleRain* CCParticleRain::createWithTotalParticles(unsigned int numberOfParticles)
 {
-    ParticleRain* pRet = new ParticleRain();
+    CCParticleRain* pRet = new CCParticleRain();
     if (pRet && pRet->initWithTotalParticles(numberOfParticles))
     {
         pRet->autorelease();
@@ -1155,17 +1156,17 @@ ParticleRain* ParticleRain::createWithTotalParticles(unsigned int numberOfPartic
     return pRet;
 }
 
-bool ParticleRain::initWithTotalParticles(unsigned int numberOfParticles)
+bool CCParticleRain::initWithTotalParticles(unsigned int numberOfParticles)
 {
-    if( ParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
+    if( CCParticleSystemQuad::initWithTotalParticles(numberOfParticles) )
     {
         // duration
-        _duration = DURATION_INFINITY;
+        m_fDuration = kCCParticleDurationInfinity;
 
-        setEmitterMode(Mode::GRAVITY);
+        setEmitterMode(kCCParticleModeGravity);
 
         // Gravity Mode: gravity
-        setGravity(Point(10,-10));
+        setGravity(ccp(10,-10));
 
         // Gravity Mode: radial
         setRadialAccel(0);
@@ -1180,49 +1181,49 @@ bool ParticleRain::initWithTotalParticles(unsigned int numberOfParticles)
         setSpeedVar(30);
 
         // angle
-        _angle = -90;
-        _angleVar = 5;
+        m_fAngle = -90;
+        m_fAngleVar = 5;
 
 
         // emitter position
-        Size winSize = Director::getInstance()->getWinSize();
-        this->setPosition(Point(winSize.width/2, winSize.height));
-        setPosVar(Point(winSize.width/2, 0));
+        CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+        this->setPosition(ccp(winSize.width/2, winSize.height));
+        setPosVar(ccp(winSize.width/2, 0));
 
         // life of particles
-        _life = 4.5f;
-        _lifeVar = 0;
+        m_fLife = 4.5f;
+        m_fLifeVar = 0;
 
         // size, in pixels
-        _startSize = 4.0f;
-        _startSizeVar = 2.0f;
-        _endSize = START_SIZE_EQUAL_TO_END_SIZE;
+        m_fStartSize = 4.0f;
+        m_fStartSizeVar = 2.0f;
+        m_fEndSize = kCCParticleStartSizeEqualToEndSize;
 
         // emits per second
-        _emissionRate = 20;
+        m_fEmissionRate = 20;
 
         // color of particles
-        _startColor.r = 0.7f;
-        _startColor.g = 0.8f;
-        _startColor.b = 1.0f;
-        _startColor.a = 1.0f;
-        _startColorVar.r = 0.0f;
-        _startColorVar.g = 0.0f;
-        _startColorVar.b = 0.0f;
-        _startColorVar.a = 0.0f;
-        _endColor.r = 0.7f;
-        _endColor.g = 0.8f;
-        _endColor.b = 1.0f;
-        _endColor.a = 0.5f;
-        _endColorVar.r = 0.0f;
-        _endColorVar.g = 0.0f;
-        _endColorVar.b = 0.0f;
-        _endColorVar.a = 0.0f;
+        m_tStartColor.r = 0.7f;
+        m_tStartColor.g = 0.8f;
+        m_tStartColor.b = 1.0f;
+        m_tStartColor.a = 1.0f;
+        m_tStartColorVar.r = 0.0f;
+        m_tStartColorVar.g = 0.0f;
+        m_tStartColorVar.b = 0.0f;
+        m_tStartColorVar.a = 0.0f;
+        m_tEndColor.r = 0.7f;
+        m_tEndColor.g = 0.8f;
+        m_tEndColor.b = 1.0f;
+        m_tEndColor.a = 0.5f;
+        m_tEndColorVar.r = 0.0f;
+        m_tEndColorVar.g = 0.0f;
+        m_tEndColorVar.b = 0.0f;
+        m_tEndColorVar.a = 0.0f;
 
-        Texture2D* texture = getDefaultTexture();
-        if (texture != NULL)
+        CCTexture2D* pTexture = getDefaultTexture();
+        if (pTexture != NULL)
         {
-            setTexture(texture);
+            setTexture(pTexture);
         }
 
         // additive

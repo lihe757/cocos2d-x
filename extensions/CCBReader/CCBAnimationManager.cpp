@@ -17,183 +17,182 @@ NS_CC_EXT_BEGIN
 // Implementation of CCBAinmationManager
 
 CCBAnimationManager::CCBAnimationManager()
-: _jsControlled(false)
-, _owner(NULL)
-, _sequences(NULL)
-, _nodeSequences(NULL)
-, _baseValues(NULL)
-, _autoPlaySequenceId(0)
-, _rootNode(NULL)
-, _rootContainerSize(Size::ZERO)
-, _delegate(NULL)
-, _runningSequence(NULL)
-
+: mSequences(NULL)
+, mNodeSequences(NULL)
+, mBaseValues(NULL)
+, mAutoPlaySequenceId(0)
+, mRootNode(NULL)
+, mRootContainerSize(CCSizeZero)
+, mDelegate(NULL)
+, mRunningSequence(NULL)
+, jsControlled(false)
+, mOwner(NULL)
 {
     init();
 }
 
 bool CCBAnimationManager::init()
 {
-    _sequences = new Array();
-    _nodeSequences = new Dictionary();
-    _baseValues = new Dictionary();
+    mSequences = new CCArray();
+    mNodeSequences = new CCDictionary();
+    mBaseValues = new CCDictionary();
     
-    _documentOutletNames = new Array();
-    _documentOutletNodes = new Array();
-    _documentCallbackNames = new Array();
-    _documentCallbackNodes = new Array();
-    _keyframeCallbacks = new Array();
-    _keyframeCallFuncs = new Dictionary();
+    mDocumentOutletNames = new CCArray();
+    mDocumentOutletNodes = new CCArray();
+    mDocumentCallbackNames = new CCArray();
+    mDocumentCallbackNodes = new CCArray();
+    mKeyframeCallbacks = new CCArray();
+    mKeyframeCallFuncs = new CCDictionary();
 
-    _target = NULL;
-    _animationCompleteCallbackFunc = NULL;
+    mTarget = NULL;
+    mAnimationCompleteCallbackFunc = NULL;
     
     return true;
 }
 
 CCBAnimationManager::~CCBAnimationManager()
 {
-//     DictElement *pElement = NULL;
-//     CCDICT_FOREACH(_nodeSequences, pElement)
+//     CCDictElement *pElement = NULL;
+//     CCDICT_FOREACH(mNodeSequences, pElement)
 //     {
-//         Node *node = (Node*)pElement->getIntKey();
+//         CCNode *node = (CCNode*)pElement->getIntKey();
 //         node->release();
 //     }
 //     
-//     CCDICT_FOREACH(_baseValues, pElement)
+//     CCDICT_FOREACH(mBaseValues, pElement)
 //     {
-//         Node *node = (Node*)pElement->getIntKey();
+//         CCNode *node = (CCNode*)pElement->getIntKey();
 //         node->release();
 //     }
     
-    _nodeSequences->release();
-    _baseValues->release();
-    _sequences->release();
+    mNodeSequences->release();
+    mBaseValues->release();
+    mSequences->release();
     setRootNode(NULL);
     setDelegate(NULL);
 
-    CC_SAFE_RELEASE(_documentOutletNames);
-    CC_SAFE_RELEASE(_documentOutletNodes);
-    CC_SAFE_RELEASE(_documentCallbackNames);
-    CC_SAFE_RELEASE(_documentCallbackNodes);
+    CC_SAFE_RELEASE(mDocumentOutletNames);
+    CC_SAFE_RELEASE(mDocumentOutletNodes);
+    CC_SAFE_RELEASE(mDocumentCallbackNames);
+    CC_SAFE_RELEASE(mDocumentCallbackNodes);
     
-    CC_SAFE_RELEASE(_keyframeCallFuncs);
-    CC_SAFE_RELEASE(_keyframeCallbacks);
-    CC_SAFE_RELEASE(_target);
+    CC_SAFE_RELEASE(mKeyframeCallFuncs);
+    CC_SAFE_RELEASE(mKeyframeCallbacks);
+    CC_SAFE_RELEASE(mTarget);
 }
 
-Array* CCBAnimationManager::getSequences()
+CCArray* CCBAnimationManager::getSequences()
 {
-    return _sequences;
+    return mSequences;
 }
 
-void CCBAnimationManager::setSequences(Array* seq)
+void CCBAnimationManager::setSequences(CCArray* seq)
 {
-    _sequences = seq;
+    mSequences = seq;
 }
 
 int CCBAnimationManager::getAutoPlaySequenceId()
 {
-    return _autoPlaySequenceId;
+    return mAutoPlaySequenceId;
 }
 
 void CCBAnimationManager::setAutoPlaySequenceId(int autoPlaySequenceId)
 {
-    _autoPlaySequenceId = autoPlaySequenceId;
+    mAutoPlaySequenceId = autoPlaySequenceId;
 }
 
-Node* CCBAnimationManager::getRootNode()
+CCNode* CCBAnimationManager::getRootNode()
 {
-    return _rootNode;
+    return mRootNode;
 }
 
-void CCBAnimationManager::setRootNode(Node *pRootNode)
+void CCBAnimationManager::setRootNode(CCNode *pRootNode)
 {
-    _rootNode = pRootNode;
+    mRootNode = pRootNode;
 }
 
 void CCBAnimationManager::setDocumentControllerName(const std::string &name) {
-    _documentControllerName = name;
+    mDocumentControllerName = name;
 }
 
 
 std::string CCBAnimationManager::getDocumentControllerName() {
-    return _documentControllerName;
+    return mDocumentControllerName;
 }
 
-void CCBAnimationManager::addDocumentCallbackNode(Node *node) {
-    _documentCallbackNodes->addObject(node);
+void CCBAnimationManager::addDocumentCallbackNode(CCNode *node) {
+    mDocumentCallbackNodes->addObject(node);
 }
 
 void CCBAnimationManager::addDocumentCallbackName(std::string name) {
-    String *tmpName = String::create(name);
-    _documentCallbackNames->addObject(tmpName);
+    CCString *tmpName = CCString::create(name);
+    mDocumentCallbackNames->addObject(tmpName);
 }
 
-Array* CCBAnimationManager::getDocumentCallbackNames() {
-    return _documentCallbackNames;
+CCArray* CCBAnimationManager::getDocumentCallbackNames() {
+    return mDocumentCallbackNames;
 }
 
-Array* CCBAnimationManager::getDocumentCallbackNodes() {
-    return _documentCallbackNodes;
+CCArray* CCBAnimationManager::getDocumentCallbackNodes() {
+    return mDocumentCallbackNodes;
 }
 
-void CCBAnimationManager::addDocumentOutletNode(Node *node) {
-    _documentOutletNodes->addObject(node);
+void CCBAnimationManager::addDocumentOutletNode(CCNode *node) {
+    mDocumentOutletNodes->addObject(node);
 }
 
 void CCBAnimationManager::addDocumentOutletName(std::string name) {
-    _documentOutletNames->addObject(String::create(name));
+    mDocumentOutletNames->addObject(CCString::create(name));
 }
 
-Array* CCBAnimationManager::getDocumentOutletNames() {
-    return _documentOutletNames;
+CCArray* CCBAnimationManager::getDocumentOutletNames() {
+    return mDocumentOutletNames;
 }
 
-Array* CCBAnimationManager::getDocumentOutletNodes() {
-    return _documentOutletNodes;
+CCArray* CCBAnimationManager::getDocumentOutletNodes() {
+    return mDocumentOutletNodes;
 }
 
 std::string CCBAnimationManager::getLastCompletedSequenceName() {
-    return _lastCompletedSequenceName;
+    return lastCompletedSequenceName;
 }
 
-Array* CCBAnimationManager::getKeyframeCallbacks() {
-    return _keyframeCallbacks;
+CCArray* CCBAnimationManager::getKeyframeCallbacks() {
+    return mKeyframeCallbacks;
 }
 
-const Size& CCBAnimationManager::getRootContainerSize()
+const CCSize& CCBAnimationManager::getRootContainerSize()
 {
-    return _rootContainerSize;
+    return mRootContainerSize;
 }
 
-void CCBAnimationManager::setRootContainerSize(const Size &rootContainerSize)
+void CCBAnimationManager::setRootContainerSize(const CCSize &rootContainerSize)
 {
-    _rootContainerSize.setSize(rootContainerSize.width, rootContainerSize.height);
+    mRootContainerSize.setSize(rootContainerSize.width, rootContainerSize.height);
 }
 
 CCBAnimationManagerDelegate* CCBAnimationManager::getDelegate()
 {
-    return _delegate;
+    return mDelegate;
 }
 
 void CCBAnimationManager::setDelegate(CCBAnimationManagerDelegate *pDelegate)
 {
-    CC_SAFE_RELEASE(dynamic_cast<Object*>(_delegate));
-    _delegate = pDelegate;
-    CC_SAFE_RETAIN(dynamic_cast<Object*>(_delegate));
+    CC_SAFE_RELEASE(dynamic_cast<CCObject*>(mDelegate));
+    mDelegate = pDelegate;
+    CC_SAFE_RETAIN(dynamic_cast<CCObject*>(mDelegate));
 }
 
 const char* CCBAnimationManager::getRunningSequenceName()
 {
-    if (_runningSequence)
+    if (mRunningSequence)
     {
-        return _runningSequence->getName();
+        return mRunningSequence->getName();
     }
     return NULL;
 }
 
-const Size& CCBAnimationManager::getContainerSize(Node *pNode)
+const CCSize& CCBAnimationManager::getContainerSize(CCNode *pNode)
 {
     if (pNode)
     {
@@ -201,45 +200,45 @@ const Size& CCBAnimationManager::getContainerSize(Node *pNode)
     }
     else 
     {
-        return _rootContainerSize;
+        return mRootContainerSize;
     }
 }
 
 // refer to CCBReader::readNodeGraph() for data structure of pSeq
-void CCBAnimationManager::addNode(Node *pNode, Dictionary *pSeq)
+void CCBAnimationManager::addNode(CCNode *pNode, CCDictionary *pSeq)
 {
     // pNode->retain();
     
-    _nodeSequences->setObject(pSeq, (intptr_t)pNode);
+    mNodeSequences->setObject(pSeq, (intptr_t)pNode);
 }
 
-void CCBAnimationManager::setBaseValue(Object *pValue, Node *pNode, const char *propName)
+void CCBAnimationManager::setBaseValue(CCObject *pValue, CCNode *pNode, const char *pPropName)
 {
-    Dictionary *props = (Dictionary*)_baseValues->objectForKey((intptr_t)pNode);
+    CCDictionary *props = (CCDictionary*)mBaseValues->objectForKey((intptr_t)pNode);
     if (! props)
     {
-        props = Dictionary::create();
-        _baseValues->setObject(props, (intptr_t)pNode);
+        props = CCDictionary::create();
+        mBaseValues->setObject(props, (intptr_t)pNode);
         // pNode->retain();
     }
     
-    props->setObject(pValue, propName);
+    props->setObject(pValue, pPropName);
 }
 
-Object* CCBAnimationManager::getBaseValue(Node *pNode, const char* propName)
+CCObject* CCBAnimationManager::getBaseValue(CCNode *pNode, const char* pPropName)
 {
-    Dictionary *props = (Dictionary*)_baseValues->objectForKey((intptr_t)pNode);
+    CCDictionary *props = (CCDictionary*)mBaseValues->objectForKey((intptr_t)pNode);
     
-    return props->objectForKey(propName);
+    return props->objectForKey(pPropName);
 }
 
 int CCBAnimationManager::getSequenceId(const char* pSequenceName)
 {
-    Object *pElement = NULL;
+    CCObject *pElement = NULL;
     string seqName(pSequenceName);
-    CCARRAY_FOREACH(_sequences, pElement)
+    CCARRAY_FOREACH(mSequences, pElement)
     {
-        CCBSequence *seq = static_cast<CCBSequence*>(pElement);
+        CCBSequence *seq = (CCBSequence*)pElement;
         if (seqName.compare(seq->getName()) == 0)
         {
             return seq->getSequenceId();
@@ -250,10 +249,10 @@ int CCBAnimationManager::getSequenceId(const char* pSequenceName)
 
 CCBSequence* CCBAnimationManager::getSequence(int nSequenceId)
 {
-    Object *pElement = NULL;
-    CCARRAY_FOREACH(_sequences, pElement)
+    CCObject *pElement = NULL;
+    CCARRAY_FOREACH(mSequences, pElement)
     {
-        CCBSequence *seq = static_cast<CCBSequence*>(pElement);
+        CCBSequence *seq = (CCBSequence*)pElement;
         if (seq->getSequenceId() == nSequenceId)
         {
             return seq;
@@ -263,23 +262,23 @@ CCBSequence* CCBAnimationManager::getSequence(int nSequenceId)
 }
 
 
-void CCBAnimationManager::moveAnimationsFromNode(Node* fromNode, Node* toNode) {
+void CCBAnimationManager::moveAnimationsFromNode(CCNode* fromNode, CCNode* toNode) {
 
     // Move base values
-    Object* baseValue = _baseValues->objectForKey((intptr_t)fromNode);
+    CCObject* baseValue = mBaseValues->objectForKey((intptr_t)fromNode);
     if(baseValue) {
-        _baseValues->setObject(baseValue, (intptr_t)toNode);
-        _baseValues->removeObjectForKey((intptr_t)fromNode);
+        mBaseValues->setObject(baseValue, (intptr_t)toNode);
+        mBaseValues->removeObjectForKey((intptr_t)fromNode);
 
 //         fromNode->release();
 //         toNode->retain();
     }
     
     // Move seqs
-    Object *seqs = _nodeSequences->objectForKey((intptr_t)fromNode);
+    CCObject *seqs = mNodeSequences->objectForKey((intptr_t)fromNode);
     if(seqs) {
-        _nodeSequences->setObject(seqs, (intptr_t)toNode);
-        _nodeSequences->removeObjectForKey((intptr_t)fromNode);
+        mNodeSequences->setObject(seqs, (intptr_t)toNode);
+        mNodeSequences->removeObjectForKey((intptr_t)fromNode);
 
 //         fromNode->release();
 //         toNode->retain();
@@ -287,109 +286,109 @@ void CCBAnimationManager::moveAnimationsFromNode(Node* fromNode, Node* toNode) {
 }
 
 // Refer to CCBReader::readKeyframe() for the real type of value
-ActionInterval* CCBAnimationManager::getAction(CCBKeyframe *pKeyframe0, CCBKeyframe *pKeyframe1, const char *propName, Node *pNode)
+CCActionInterval* CCBAnimationManager::getAction(CCBKeyframe *pKeyframe0, CCBKeyframe *pKeyframe1, const char *pPropName, CCNode *pNode)
 {
     float duration = pKeyframe1->getTime() - (pKeyframe0 ? pKeyframe0->getTime() : 0);
     
-    if (strcmp(propName, "rotationX") == 0)
+    if (strcmp(pPropName, "rotationX") == 0)
     {
         CCBValue *value = (CCBValue*)pKeyframe1->getValue();
         return CCBRotateXTo::create(duration, value->getFloatValue());
     }
-    else if(strcmp(propName, "rotationY") == 0)
+    else if(strcmp(pPropName, "rotationY") == 0)
     {
         CCBValue *value = (CCBValue*)pKeyframe1->getValue();
         return CCBRotateYTo::create(duration, value->getFloatValue());
     }
-    else if (strcmp(propName, "rotation") == 0)
+    else if (strcmp(pPropName, "rotation") == 0)
     {
         CCBValue *value = (CCBValue*)pKeyframe1->getValue();
         return CCBRotateTo::create(duration, value->getFloatValue());
     } 
-    else if (strcmp(propName, "opacity") == 0)
+    else if (strcmp(pPropName, "opacity") == 0)
     {
         CCBValue *value = (CCBValue*)pKeyframe1->getValue();
-        return FadeTo::create(duration, value->getByteValue());
+        return CCFadeTo::create(duration, value->getByteValue());
     }
-    else if (strcmp(propName, "color") == 0)
+    else if (strcmp(pPropName, "color") == 0)
     {
-        Color3BWapper* color = (Color3BWapper*)pKeyframe1->getValue();
-        Color3B c = color->getColor();
+        ccColor3BWapper* color = (ccColor3BWapper*)pKeyframe1->getValue();
+        ccColor3B c = color->getColor();
         
-        return TintTo::create(duration, c.r, c.g, c.b);
+        return CCTintTo::create(duration, c.r, c.g, c.b);
     }
-    else if (strcmp(propName, "visible") == 0)
+    else if (strcmp(pPropName, "visible") == 0)
     {
         CCBValue *value = (CCBValue*)pKeyframe1->getValue();
         if (value->getBoolValue())
         {
-            return Sequence::createWithTwoActions(DelayTime::create(duration), Show::create());
+            return CCSequence::createWithTwoActions(CCDelayTime::create(duration), CCShow::create());
         }
         else 
         {
-            return Sequence::createWithTwoActions(DelayTime::create(duration), Hide::create());
+            return CCSequence::createWithTwoActions(CCDelayTime::create(duration), CCHide::create());
         }
     }
-    else if (strcmp(propName, "displayFrame") == 0)
+    else if (strcmp(pPropName, "displayFrame") == 0)
     {
-        return Sequence::createWithTwoActions(DelayTime::create(duration),
-                                                CCBSetSpriteFrame::create((SpriteFrame *)pKeyframe1->getValue()));
+        return CCSequence::createWithTwoActions(CCDelayTime::create(duration),
+                                                CCBSetSpriteFrame::create((CCSpriteFrame *)pKeyframe1->getValue()));
     }
-    else if (strcmp(propName, "position") == 0)
+    else if (strcmp(pPropName, "position") == 0)
     {
         // Get position type
-        Array *array = static_cast<Array*>(getBaseValue(pNode, propName));
-        CCBReader::PositionType type = (CCBReader::PositionType)((CCBValue*)array->objectAtIndex(2))->getIntValue();
+        CCArray *array = (CCArray*)getBaseValue(pNode, pPropName);
+        int type = ((CCBValue*)array->objectAtIndex(2))->getIntValue();
         
         // Get relative position
-        Array *value = static_cast<Array*>(pKeyframe1->getValue());
+        CCArray *value = (CCArray*)pKeyframe1->getValue();
         float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
         float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
         
-        Size containerSize = getContainerSize(pNode->getParent());
+        CCSize containerSize = getContainerSize(pNode->getParent());
         
-        Point absPos = getAbsolutePosition(Point(x,y), type, containerSize, propName);
+        CCPoint absPos = getAbsolutePosition(ccp(x,y), type, containerSize, pPropName);
         
-        return MoveTo::create(duration, absPos);
+        return CCMoveTo::create(duration, absPos);
     }
-    else if (strcmp(propName, "scale") == 0)
+    else if (strcmp(pPropName, "scale") == 0)
     {
         // Get position type
-        Array *array = (Array*)getBaseValue(pNode, propName);
-        CCBReader::ScaleType type = (CCBReader::ScaleType)((CCBValue*)array->objectAtIndex(2))->getIntValue();
+        CCArray *array = (CCArray*)getBaseValue(pNode, pPropName);
+        int type = ((CCBValue*)array->objectAtIndex(2))->getIntValue();
         
         // Get relative scale
-        Array *value = (Array*)pKeyframe1->getValue();
+        CCArray *value = (CCArray*)pKeyframe1->getValue();
         float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
         float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
         
-        if (type == CCBReader::ScaleType::MULTIPLY_RESOLUTION)
+        if (type == kCCBScaleTypeMultiplyResolution)
         {
             float resolutionScale = CCBReader::getResolutionScale();
             x *= resolutionScale;
             y *= resolutionScale;
         }
         
-        return ScaleTo::create(duration, x, y);
+        return CCScaleTo::create(duration, x, y);
     }
-    else if(strcmp(propName, "skew") == 0) 
+    else if(strcmp(pPropName, "skew") == 0) 
     {
         // Get relative skew
-        Array *value = (Array*)pKeyframe1->getValue();
+        CCArray *value = (CCArray*)pKeyframe1->getValue();
         float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
         float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
         
-        return SkewTo::create(duration, x, y);
+        return CCSkewTo::create(duration, x, y);
     }
     else 
     {
-        log("CCBReader: Failed to create animation for property: %s", propName);
+        CCLog("CCBReader: Failed to create animation for property: %s", pPropName);
     }
     
     return NULL;
 }
 
-void CCBAnimationManager::setAnimatedProperty(const char *propName, Node *pNode, Object *pValue, float fTweenDuration)
+void CCBAnimationManager::setAnimatedProperty(const char *pPropName, CCNode *pNode, CCObject *pValue, float fTweenDuration)
 {
     if (fTweenDuration > 0)
     {
@@ -398,46 +397,46 @@ void CCBAnimationManager::setAnimatedProperty(const char *propName, Node *pNode,
         kf1->autorelease();
         kf1->setValue(pValue);
         kf1->setTime(fTweenDuration);
-        kf1->setEasingType(CCBKeyframe::EasingType::LINEAR);
+        kf1->setEasingType(kCCBKeyframeEasingLinear);
         
         // Animate
-        ActionInterval *tweenAction = getAction(NULL, kf1, propName, pNode);
+        CCActionInterval *tweenAction = getAction(NULL, kf1, pPropName, pNode);
         pNode->runAction(tweenAction);
     }
     else 
     {
         // Just set the value
         
-        if (strcmp(propName, "position") == 0)
+        if (strcmp(pPropName, "position") == 0)
         {
             // Get position type
-            Array *array = (Array*)getBaseValue(pNode, propName);
-            CCBReader::PositionType type = (CCBReader::PositionType)((CCBValue*)array->objectAtIndex(2))->getIntValue();
+            CCArray *array = (CCArray*)getBaseValue(pNode, pPropName);
+            int type = ((CCBValue*)array->objectAtIndex(2))->getIntValue();
             
             // Get relative position
-            Array *value = (Array*)pValue;
+            CCArray *value = (CCArray*)pValue;
             float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
             float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
             
-            pNode->setPosition(getAbsolutePosition(Point(x,y), type, getContainerSize(pNode->getParent()), propName));
+            pNode->setPosition(getAbsolutePosition(ccp(x,y), type, getContainerSize(pNode->getParent()), pPropName));
         }
-        else if (strcmp(propName, "scale") == 0)
+        else if (strcmp(pPropName, "scale") == 0)
         {
             // Get scale type
-            Array *array = (Array*)getBaseValue(pNode, propName);
-            CCBReader::ScaleType type = (CCBReader::ScaleType)((CCBValue*)array->objectAtIndex(2))->getIntValue();
+            CCArray *array = (CCArray*)getBaseValue(pNode, pPropName);
+            int type = ((CCBValue*)array->objectAtIndex(2))->getIntValue();
             
             // Get relative scale
-            Array *value = (Array*)pValue;
+            CCArray *value = (CCArray*)pValue;
             float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
             float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
             
-            setRelativeScale(pNode, x, y, type, propName);
+            setRelativeScale(pNode, x, y, type, pPropName);
         }
-        else if(strcmp(propName, "skew") == 0)
+        else if(strcmp(pPropName, "skew") == 0)
         {
             // Get relative scale
-            Array *value = (Array*)pValue;
+            CCArray *value = (CCArray*)pValue;
             float x = ((CCBValue*)value->objectAtIndex(0))->getFloatValue();
             float y = ((CCBValue*)value->objectAtIndex(1))->getFloatValue();
 
@@ -449,56 +448,56 @@ void CCBAnimationManager::setAnimatedProperty(const char *propName, Node *pNode,
             // [node setValue:value forKey:name];
 
             // TODO only handle rotation, opacity, displayFrame, color
-            if (strcmp(propName, "rotation") == 0)
+            if (strcmp(pPropName, "rotation") == 0)
             {
                 float rotate = ((CCBValue*)pValue)->getFloatValue();
                 pNode->setRotation(rotate);
-            } else if(strcmp(propName, "rotationX") == 0)
+            } else if(strcmp(pPropName, "rotationX") == 0)
             {
                 float rotate = ((CCBValue*)pValue)->getFloatValue();
                 pNode->setRotationX(rotate);
-            }else if(strcmp(propName, "rotationY") == 0)
+            }else if(strcmp(pPropName, "rotationY") == 0)
             {
                 float rotate = ((CCBValue*)pValue)->getFloatValue();
                 pNode->setRotationY(rotate);
             }
-            else if (strcmp(propName, "opacity") == 0)
+            else if (strcmp(pPropName, "opacity") == 0)
             {
                 int opacity = ((CCBValue*)pValue)->getByteValue();
-                (dynamic_cast<RGBAProtocol*>(pNode))->setOpacity(opacity);
+                (dynamic_cast<CCRGBAProtocol*>(pNode))->setOpacity(opacity);
             }
-            else if (strcmp(propName, "displayFrame") == 0)
+            else if (strcmp(pPropName, "displayFrame") == 0)
             {
-                ((Sprite*)pNode)->setDisplayFrame((SpriteFrame*)pValue);
+                ((CCSprite*)pNode)->setDisplayFrame((CCSpriteFrame*)pValue);
             }
-            else if (strcmp(propName, "color") == 0)
+            else if (strcmp(pPropName, "color") == 0)
             {
-                Color3BWapper *color = (Color3BWapper*)pValue;
-                (dynamic_cast<RGBAProtocol*>(pNode))->setColor(color->getColor());
+                ccColor3BWapper *color = (ccColor3BWapper*)pValue;
+                (dynamic_cast<CCRGBAProtocol*>(pNode))->setColor(color->getColor());
             }
-            else if (strcmp(propName, "visible") == 0)
+            else if (strcmp(pPropName, "visible") == 0)
             {
                 bool visible = ((CCBValue*)pValue)->getBoolValue();
                 pNode->setVisible(visible);
             }
             else
             {
-                log("unsupported property name is %s", propName);
-                CCASSERT(false, "unsupported property now");
+                CCLog("unsupported property name is %s", pPropName);
+                CCAssert(false, "unsupported property now");
             }
         }
     }
 }
 
-void CCBAnimationManager::setFirstFrame(Node *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration)
+void CCBAnimationManager::setFirstFrame(CCNode *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration)
 {
-    Array *keyframes = pSeqProp->getKeyframes();
+    CCArray *keyframes = pSeqProp->getKeyframes();
     
     if (keyframes->count() == 0)
     {
         // Use base value (no animation)
-        Object *baseValue = getBaseValue(pNode, pSeqProp->getName());
-        CCASSERT(baseValue, "No baseValue found for property");
+        CCObject *baseValue = getBaseValue(pNode, pSeqProp->getName());
+        CCAssert(baseValue, "No baseValue found for property");
         setAnimatedProperty(pSeqProp->getName(), pNode, baseValue, fTweenDuration);
     }
     else 
@@ -509,156 +508,82 @@ void CCBAnimationManager::setFirstFrame(Node *pNode, CCBSequenceProperty *pSeqPr
     }
 }
 
-ActionInterval* CCBAnimationManager::getEaseAction(ActionInterval *pAction, CCBKeyframe::EasingType easingType, float fEasingOpt)
+CCActionInterval* CCBAnimationManager::getEaseAction(CCActionInterval *pAction, int nEasingType, float fEasingOpt)
 {
-    if (dynamic_cast<Sequence*>(pAction))
+    if (dynamic_cast<CCSequence*>(pAction))
     {
         return pAction;
     }
     
-    if (easingType == CCBKeyframe::EasingType::LINEAR)
+    if (nEasingType == kCCBKeyframeEasingLinear)
     {
         return pAction;
     }
-    else if (easingType == CCBKeyframe::EasingType::INSTANT)
+    else if (nEasingType == kCCBKeyframeEasingInstant)
     {
         return CCBEaseInstant::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::CUBIC_IN)
+    else if (nEasingType == kCCBKeyframeEasingCubicIn)
     {
-        return EaseIn::create(pAction, fEasingOpt);
+        return CCEaseIn::create(pAction, fEasingOpt);
     }
-    else if (easingType == CCBKeyframe::EasingType::CUBIC_OUT)
+    else if (nEasingType == kCCBKeyframeEasingCubicOut)
     {
-        return EaseOut::create(pAction, fEasingOpt);
+        return CCEaseOut::create(pAction, fEasingOpt);
     }
-    else if (easingType == CCBKeyframe::EasingType::CUBIC_INOUT)
+    else if (nEasingType == kCCBKeyframeEasingCubicInOut)
     {
-        return EaseInOut::create(pAction, fEasingOpt);
+        return CCEaseInOut::create(pAction, fEasingOpt);
     }
-    else if (easingType == CCBKeyframe::EasingType::BACK_IN)
+    else if (nEasingType == kCCBKeyframeEasingBackIn)
     {
-        return EaseBackIn::create(pAction);
+        return CCEaseBackIn::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::BACK_OUT)
+    else if (nEasingType == kCCBKeyframeEasingBackOut)
     {
-        return EaseBackOut::create(pAction);
+        return CCEaseBackOut::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::BACK_INOUT)
+    else if (nEasingType == kCCBKeyframeEasingBackInOut)
     {
-        return EaseBackInOut::create(pAction);
+        return CCEaseBackInOut::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::BOUNCE_IN)
+    else if (nEasingType == kCCBKeyframeEasingBounceIn)
     {
-        return EaseBounceIn::create(pAction);
+        return CCEaseBounceIn::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::BOUNCE_OUT)
+    else if (nEasingType == kCCBKeyframeEasingBounceOut)
     {
-        return EaseBounceOut::create(pAction);
+        return CCEaseBounceOut::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::BOUNCE_INOUT)
+    else if (nEasingType == kCCBKeyframeEasingBounceInOut)
     {
-        return EaseBounceInOut::create(pAction);
+        return CCEaseBounceInOut::create(pAction);
     }
-    else if (easingType == CCBKeyframe::EasingType::ELASTIC_IN)
+    else if (nEasingType == kCCBKeyframeEasingElasticIn)
     {
-        return EaseElasticIn::create(pAction, fEasingOpt);
+        return CCEaseElasticIn::create(pAction, fEasingOpt);
     }
-    else if (easingType == CCBKeyframe::EasingType::ELASTIC_OUT)
+    else if (nEasingType == kCCBKeyframeEasingElasticOut)
     {
-        return EaseElasticOut::create(pAction, fEasingOpt);
+        return CCEaseElasticOut::create(pAction, fEasingOpt);
     }
-    else if (easingType == CCBKeyframe::EasingType::ELASTIC_INOUT)
+    else if (nEasingType == kCCBKeyframeEasingElasticInOut)
     {
-        return EaseElasticInOut::create(pAction, fEasingOpt);
+        return CCEaseElasticInOut::create(pAction, fEasingOpt);
     }
     else
     {
-        log("CCBReader: Unkown easing type %d", easingType);
+        CCLog("CCBReader: Unkown easing type %d", nEasingType);
         return pAction;
     }
 }
 
-Object* CCBAnimationManager::actionForCallbackChannel(CCBSequenceProperty* channel) {
+CCObject* CCBAnimationManager::actionForCallbackChannel(CCBSequenceProperty* channel) {
   
     float lastKeyframeTime = 0;
     
-    Array *actions = Array::create();
-    Array *keyframes = channel->getKeyframes();
-    int numKeyframes = keyframes->count();
-
-    for (int i = 0; i < numKeyframes; ++i)
-    {
-
-        CCBKeyframe *keyframe = (CCBKeyframe*)keyframes->objectAtIndex(i);
-        float timeSinceLastKeyframe = keyframe->getTime() - lastKeyframeTime;
-        lastKeyframeTime = keyframe->getTime();
-        if(timeSinceLastKeyframe > 0) {
-            actions->addObject(DelayTime::create(timeSinceLastKeyframe));
-        }
-	
-        Array* keyVal = static_cast<Array *>(keyframe->getValue());
-        std::string selectorName = static_cast<String *>(keyVal->objectAtIndex(0))->getCString();
-        CCBReader::TargetType selectorTarget = (CCBReader::TargetType)atoi(static_cast<String *>(keyVal->objectAtIndex(1))->getCString());
-	
-        if(_jsControlled) {
-            String* callbackName = String::createWithFormat("%d:%s", selectorTarget, selectorName.c_str());
-            CallFunc *callback = ((CallFunc*)(_keyframeCallFuncs->objectForKey(callbackName->getCString())))->clone();
-
-            if(callback != NULL) {
-                actions->addObject(callback);
-            }
-        }
-        else
-        {
-            Object* target = NULL;
-            
-            if(selectorTarget == CCBReader::TargetType::DOCUMENT_ROOT)
-                target = _rootNode;
-            else if (selectorTarget == CCBReader::TargetType::OWNER)
-                target = _owner;
-            
-            if(target != NULL)
-            {
-                if(selectorName.length() > 0)
-                {
-                    SEL_CallFuncN selCallFunc = 0;
-                    
-                    CCBSelectorResolver* targetAsCCBSelectorResolver = dynamic_cast<CCBSelectorResolver *>(target);
-
-                    if(targetAsCCBSelectorResolver != NULL)
-                    {
-                        selCallFunc = targetAsCCBSelectorResolver->onResolveCCBCCCallFuncSelector(target, selectorName.c_str    ());
-                    }
-                    
-                    if(selCallFunc == 0)
-                    {
-                        CCLOG("Skipping selector '%s' since no CCBSelectorResolver is present.", selectorName.c_str());
-                    }
-                    else
-                    {
-                        CallFuncN *callback = CallFuncN::create(target, selCallFunc);
-                        actions->addObject(callback);
-                    }
-                }
-                else
-                {
-                    CCLOG("Unexpected empty selector.");
-                }
-            }
-        }
-    }
-    if(actions->count() < 1) return NULL;
-    
-    return (Object *) Sequence::create(actions);
-}
-
-Object* CCBAnimationManager::actionForSoundChannel(CCBSequenceProperty* channel) {
-    
-    float lastKeyframeTime = 0;
-    
-    Array *actions = Array::create();
-    Array *keyframes = channel->getKeyframes();
+    CCArray *actions = CCArray::create();
+    CCArray *keyframes = channel->getKeyframes();
     int numKeyframes = keyframes->count();
 
     for (int i = 0; i < numKeyframes; ++i) {
@@ -667,23 +592,81 @@ Object* CCBAnimationManager::actionForSoundChannel(CCBSequenceProperty* channel)
         float timeSinceLastKeyframe = keyframe->getTime() - lastKeyframeTime;
         lastKeyframeTime = keyframe->getTime();
         if(timeSinceLastKeyframe > 0) {
-            actions->addObject(DelayTime::create(timeSinceLastKeyframe));
+            actions->addObject(CCDelayTime::create(timeSinceLastKeyframe));
+        }
+	
+        CCArray* keyVal = (CCArray *)keyframe->getValue();
+        std::string selectorName = ((CCString *)keyVal->objectAtIndex(0))->getCString();
+        int selectorTarget = atoi(((CCString *)keyVal->objectAtIndex(1))->getCString());
+	
+        if(jsControlled) {
+            CCString* callbackName = CCString::createWithFormat("%d:%s", selectorTarget, selectorName.c_str());
+            CCCallFunc *callback = (CCCallFunc*)(mKeyframeCallFuncs->objectForKey(callbackName->getCString()))->copy()->autorelease();
+
+            if(callback != NULL) {
+                actions->addObject(callback);
+            }
+        } else {
+            CCObject* target = NULL;
+            if(selectorTarget == kCCBTargetTypeDocumentRoot) target = mRootNode;
+            else if (selectorTarget == kCCBTargetTypeOwner) target = mOwner;
+            if(target != NULL) {
+                if(selectorName.length() > 0) {
+                    SEL_CallFuncN selCallFunc = 0;
+                    
+                    CCBSelectorResolver* targetAsCCBSelectorResolver = dynamic_cast<CCBSelectorResolver *>(target);
+
+                    if(targetAsCCBSelectorResolver != NULL) {
+                        selCallFunc = targetAsCCBSelectorResolver->onResolveCCBCCCallFuncSelector(target, selectorName.c_str    ());
+                    }
+                    if(selCallFunc == 0) {
+                        CCLOG("Skipping selector '%s' since no CCBSelectorResolver is present.", selectorName.c_str());
+                    } else {
+                        CCCallFuncN *callback = CCCallFuncN::create(target, selCallFunc);
+                        actions->addObject(callback);
+                    }
+                } else {
+                    CCLOG("Unexpected empty selector.");
+                }
+            }
+        }
+    }
+    if(actions->count() < 1) return NULL;
+    
+    return (CCObject *) CCSequence::create(actions);
+}
+
+CCObject* CCBAnimationManager::actionForSoundChannel(CCBSequenceProperty* channel) {
+    
+    float lastKeyframeTime = 0;
+    
+    CCArray *actions = CCArray::create();
+    CCArray *keyframes = channel->getKeyframes();
+    int numKeyframes = keyframes->count();
+
+    for (int i = 0; i < numKeyframes; ++i) {
+
+        CCBKeyframe *keyframe = (CCBKeyframe*)keyframes->objectAtIndex(i);
+        float timeSinceLastKeyframe = keyframe->getTime() - lastKeyframeTime;
+        lastKeyframeTime = keyframe->getTime();
+        if(timeSinceLastKeyframe > 0) {
+            actions->addObject(CCDelayTime::create(timeSinceLastKeyframe));
         }
 	
         stringstream ss (stringstream::in | stringstream::out);
-        Array* keyVal = (Array*)keyframe->getValue();
-        std::string soundFile = ((String *)keyVal->objectAtIndex(0))->getCString();
+        CCArray* keyVal = (CCArray*)keyframe->getValue();
+        std::string soundFile = ((CCString *)keyVal->objectAtIndex(0))->getCString();
     
         float pitch, pan, gain;
-        ss << ((String *)keyVal->objectAtIndex(1))->getCString();
+        ss << ((CCString *)keyVal->objectAtIndex(1))->getCString();
         ss >> pitch;
         ss.flush();
     
-        ss << ((String *)keyVal->objectAtIndex(2))->getCString();
+        ss << ((CCString *)keyVal->objectAtIndex(2))->getCString();
         ss >> pan;
         ss.flush();
         
-        ss << ((String *)keyVal->objectAtIndex(3))->getCString();
+        ss << ((CCString *)keyVal->objectAtIndex(3))->getCString();
         ss >> gain;
         ss.flush();
         
@@ -692,27 +675,27 @@ Object* CCBAnimationManager::actionForSoundChannel(CCBSequenceProperty* channel)
 
     if(actions->count() < 1) return NULL;
     
-    return (Object *) Sequence::create(actions);    
+    return (CCObject *) CCSequence::create(actions);    
 }
 
 
 
-void CCBAnimationManager::runAction(Node *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration)
+void CCBAnimationManager::runAction(CCNode *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration)
 {
-    Array *keyframes = pSeqProp->getKeyframes();
+    CCArray *keyframes = pSeqProp->getKeyframes();
     int numKeyframes = keyframes->count();
     
     if (numKeyframes > 1)
     {
         // Make an animation!
-        Array *actions = Array::create();
+        CCArray *actions = CCArray::create();
         
         CCBKeyframe *keyframeFirst = (CCBKeyframe*)keyframes->objectAtIndex(0);
         float timeFirst = keyframeFirst->getTime() + fTweenDuration;
         
         if (timeFirst > 0)
         {
-            actions->addObject(DelayTime::create(timeFirst));
+            actions->addObject(CCDelayTime::create(timeFirst));
         }
         
         for (int i = 0; i < numKeyframes - 1; ++i)
@@ -720,7 +703,7 @@ void CCBAnimationManager::runAction(Node *pNode, CCBSequenceProperty *pSeqProp, 
             CCBKeyframe *kf0 = (CCBKeyframe*)keyframes->objectAtIndex(i);
             CCBKeyframe *kf1 = (CCBKeyframe*)keyframes->objectAtIndex(i+1);
             
-            ActionInterval *action = getAction(kf0, kf1, pSeqProp->getName(), pNode);
+            CCActionInterval *action = getAction(kf0, kf1, pSeqProp->getName(), pNode);
             if (action)
             {
                 // Apply easing
@@ -730,7 +713,7 @@ void CCBAnimationManager::runAction(Node *pNode, CCBSequenceProperty *pSeqProp, 
             }
         }
         
-        FiniteTimeAction *seq = Sequence::create(actions);
+        CCFiniteTimeAction *seq = CCSequence::create(actions);
         pNode->runAction(seq);
     }
 }
@@ -752,30 +735,30 @@ void CCBAnimationManager::runAnimations(int nSeqId, float fTweenDuraiton)
 
 void CCBAnimationManager::runAnimationsForSequenceIdTweenDuration(int nSeqId, float fTweenDuration)
 {
-    CCASSERT(nSeqId != -1, "Sequence id couldn't be found");
+    CCAssert(nSeqId != -1, "Sequence id couldn't be found");
     
-    _rootNode->stopAllActions();
+    mRootNode->stopAllActions();
     
-    DictElement* pElement = NULL;
-    CCDICT_FOREACH(_nodeSequences, pElement)
+    CCDictElement* pElement = NULL;
+    CCDICT_FOREACH(mNodeSequences, pElement)
     {
-        Node *node = reinterpret_cast<Node*>(pElement->getIntKey());
+        CCNode *node = (CCNode*)pElement->getIntKey();
         node->stopAllActions();
         
         // Refer to CCBReader::readKeyframe() for the real type of value
-        Dictionary *seqs = (Dictionary*)pElement->getObject();
-        Dictionary *seqNodeProps = (Dictionary*)seqs->objectForKey(nSeqId);
+        CCDictionary *seqs = (CCDictionary*)pElement->getObject();
+        CCDictionary *seqNodeProps = (CCDictionary*)seqs->objectForKey(nSeqId);
         
         set<string> seqNodePropNames;
         
         if (seqNodeProps)
         {
             // Reset nodes that have sequence node properties, and run actions on them
-            DictElement* pElement1 = NULL;
+            CCDictElement* pElement1 = NULL;
             CCDICT_FOREACH(seqNodeProps, pElement1)
             {
                 const char *propName = pElement1->getStrKey();
-                CCBSequenceProperty *seqProp = static_cast<CCBSequenceProperty*>(seqNodeProps->objectForKey(propName));
+                CCBSequenceProperty *seqProp = (CCBSequenceProperty*)seqNodeProps->objectForKey(propName);
                 seqNodePropNames.insert(propName);
                 
                 setFirstFrame(node, seqProp, fTweenDuration);
@@ -784,15 +767,15 @@ void CCBAnimationManager::runAnimationsForSequenceIdTweenDuration(int nSeqId, fl
         }
         
         // Reset the nodes that may have been changed by other timelines
-        Dictionary *nodeBaseValues = (Dictionary*)_baseValues->objectForKey(pElement->getIntKey());
+        CCDictionary *nodeBaseValues = (CCDictionary*)mBaseValues->objectForKey(pElement->getIntKey());
         if (nodeBaseValues)
         {
-            DictElement* pElement2 = NULL;
+            CCDictElement* pElement2 = NULL;
             CCDICT_FOREACH(nodeBaseValues, pElement2)
             {
                 if (seqNodePropNames.find(pElement2->getStrKey()) == seqNodePropNames.end())
                 {
-                    Object *value = pElement2->getObject();
+                    CCObject *value = pElement2->getObject();
                     
                     if (value)
                     {
@@ -805,27 +788,27 @@ void CCBAnimationManager::runAnimationsForSequenceIdTweenDuration(int nSeqId, fl
     
     // Make callback at end of sequence
     CCBSequence *seq = getSequence(nSeqId);
-    Action *completeAction = Sequence::createWithTwoActions(DelayTime::create(seq->getDuration() + fTweenDuration),
-                                                                CallFunc::create( CC_CALLBACK_0(CCBAnimationManager::sequenceCompleted,this)));
-    _rootNode->runAction(completeAction);
+    CCAction *completeAction = CCSequence::createWithTwoActions(CCDelayTime::create(seq->getDuration() + fTweenDuration),
+                                                                CCCallFunc::create(this, callfunc_selector(CCBAnimationManager::sequenceCompleted)));
+    mRootNode->runAction(completeAction);
     
     // Set the running scene
 
     if(seq->getCallbackChannel() != NULL) {
-        Action* action = (Action *)actionForCallbackChannel(seq->getCallbackChannel());
+        CCAction* action = (CCAction *)actionForCallbackChannel(seq->getCallbackChannel());
         if(action != NULL) {
-            _rootNode->runAction(action);
+            mRootNode->runAction(action);
         }
     } 
 
     if(seq->getSoundChannel() != NULL) {
-        Action* action = (Action *)actionForSoundChannel(seq->getSoundChannel());
+        CCAction* action = (CCAction *)actionForSoundChannel(seq->getSoundChannel());
         if(action != NULL) {
-            _rootNode->runAction(action);
+            mRootNode->runAction(action);
         }
     }
 
-    _runningSequence = getSequence(nSeqId);
+    mRunningSequence = getSequence(nSeqId);
 }
 
 void CCBAnimationManager::runAnimationsForSequenceNamedTweenDuration(const char *pName, float fTweenDuration)
@@ -844,44 +827,44 @@ void CCBAnimationManager::debug()
     
 }
 
-void CCBAnimationManager::setAnimationCompletedCallback(Object *target, SEL_CallFunc callbackFunc) {
+void CCBAnimationManager::setAnimationCompletedCallback(CCObject *target, SEL_CallFunc callbackFunc) {
     if (target)
     {
         target->retain();
     }
     
-    if (_target)
+    if (mTarget)
     {
-        _target->release();
+        mTarget->release();
     }
     
-    _target = target;
-    _animationCompleteCallbackFunc = callbackFunc;
+    mTarget = target;
+    mAnimationCompleteCallbackFunc = callbackFunc;
 }
 
-void CCBAnimationManager::setCallFunc(CallFunc* callFunc, const std::string &callbackNamed) {
-    _keyframeCallFuncs->setObject((Object*)callFunc, callbackNamed);
+void CCBAnimationManager::setCallFunc(CCCallFunc* callFunc, const std::string &callbackNamed) {
+    mKeyframeCallFuncs->setObject((CCObject*)callFunc, callbackNamed);
 }
 
 void CCBAnimationManager::sequenceCompleted()
 {
-    const char *runningSequenceName = _runningSequence->getName();
-    int nextSeqId = _runningSequence->getChainedSequenceId();
-    _runningSequence = NULL;
+    const char *runningSequenceName = mRunningSequence->getName();
+    int nextSeqId = mRunningSequence->getChainedSequenceId();
+    mRunningSequence = NULL;
     
-    if(_lastCompletedSequenceName != runningSequenceName) {
-        _lastCompletedSequenceName = runningSequenceName;
+    if(lastCompletedSequenceName != runningSequenceName) {
+        lastCompletedSequenceName = runningSequenceName;
     }
     
-    if (_delegate)
+    if (mDelegate)
     {
         // There may be another runAnimation() call in this delegate method
-        // which will assign _runningSequence
-        _delegate->completedAnimationSequenceNamed(runningSequenceName);
+        // which will assign mRunningSequence
+        mDelegate->completedAnimationSequenceNamed(runningSequenceName);
     }
     
-    if (_target && _animationCompleteCallbackFunc) {
-        (_target->*_animationCompleteCallbackFunc)();
+    if (mTarget && mAnimationCompleteCallbackFunc) {
+        (mTarget->*mAnimationCompleteCallbackFunc)();
     }
     
     if (nextSeqId != -1)
@@ -896,7 +879,7 @@ void CCBAnimationManager::sequenceCompleted()
  CCBSetSpriteFrame
  ************************************************************/
 
-CCBSetSpriteFrame* CCBSetSpriteFrame::create(SpriteFrame *pSpriteFrame)
+CCBSetSpriteFrame* CCBSetSpriteFrame::create(CCSpriteFrame *pSpriteFrame)
 {
     CCBSetSpriteFrame *ret = new CCBSetSpriteFrame();
     if (ret)
@@ -914,37 +897,40 @@ CCBSetSpriteFrame* CCBSetSpriteFrame::create(SpriteFrame *pSpriteFrame)
     return ret;
 }
 
-bool CCBSetSpriteFrame::initWithSpriteFrame(SpriteFrame *pSpriteFrame)
+bool CCBSetSpriteFrame::initWithSpriteFrame(CCSpriteFrame *pSpriteFrame)
 {
-    _spriteFrame = pSpriteFrame;
-    CC_SAFE_RETAIN(_spriteFrame);
+    mSpriteFrame = pSpriteFrame;
+    CC_SAFE_RETAIN(mSpriteFrame);
     
     return true;
 }
 
 CCBSetSpriteFrame::~CCBSetSpriteFrame()
 {
-    CC_SAFE_RELEASE_NULL(_spriteFrame);
+    CC_SAFE_RELEASE_NULL(mSpriteFrame);
 }
 
-CCBSetSpriteFrame* CCBSetSpriteFrame::clone() const
+CCObject* CCBSetSpriteFrame::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new CCBSetSpriteFrame();
-    a->initWithSpriteFrame(_spriteFrame);
-	a->autorelease();
-	return a;
-}
-
-CCBSetSpriteFrame* CCBSetSpriteFrame::reverse() const
-{
-	// returns a copy of itself
-	return this->clone();
+    CCZone *pNewZone = NULL;
+    CCBSetSpriteFrame *pRet = NULL;
+    
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCBSetSpriteFrame*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCBSetSpriteFrame();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    
+    pRet->initWithSpriteFrame(mSpriteFrame);
+    CCActionInstant::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 void CCBSetSpriteFrame::update(float time)
 {
-    ((Sprite*)_target)->setDisplayFrame(_spriteFrame);
+    ((CCSprite*)m_pTarget)->setDisplayFrame(mSpriteFrame);
 }
 
 
@@ -971,31 +957,35 @@ CCBSoundEffect::~CCBSoundEffect()
 }
 
 bool CCBSoundEffect::initWithSoundFile(const std::string &filename, float pitch, float pan, float gain) {
-    _soundFile = filename;
-    _pitch = pitch;
-    _pan = pan;
-    _gain = gain;
+    mSoundFile = filename;
+    mPitch = pitch;
+    mPan = pan;
+    mGain = gain;
     return true;
 }
 
-CCBSoundEffect* CCBSoundEffect::clone() const
+CCObject* CCBSoundEffect::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new CCBSoundEffect();
-    a->initWithSoundFile(_soundFile, _pitch, _pan, _gain);
-	a->autorelease();
-	return a;
+    CCZone *pNewZone = NULL;
+    CCBSoundEffect *pRet = NULL;
+    
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCBSoundEffect*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCBSoundEffect();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    
+    pRet->initWithSoundFile(mSoundFile, mPitch, mPan, mGain);
+    CCActionInstant::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-CCBSoundEffect* CCBSoundEffect::reverse() const
-{
-	// returns a copy of itself
-	return this->clone();
-}
 
 void CCBSoundEffect::update(float time)
 {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(_soundFile.c_str());
+    CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect(mSoundFile.c_str());
 }
 
 
@@ -1023,9 +1013,9 @@ CCBRotateTo* CCBRotateTo::create(float fDuration, float fAngle)
 
 bool CCBRotateTo::initWithDuration(float fDuration, float fAngle)
 {
-    if (ActionInterval::initWithDuration(fDuration))
+    if (CCActionInterval::initWithDuration(fDuration))
     {
-        _dstAngle = fAngle;
+        mDstAngle = fAngle;
         
         return true;
     }
@@ -1035,31 +1025,34 @@ bool CCBRotateTo::initWithDuration(float fDuration, float fAngle)
     }
 }
 
-CCBRotateTo* CCBRotateTo::clone() const
+CCObject* CCBRotateTo::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor	
-	auto a = new CCBRotateTo();
-    a->initWithDuration(_duration, _dstAngle);
-	a->autorelease();
-	return a;
+    CCZone *pNewZone = NULL;
+    CCBRotateTo *pRet = NULL;
+    
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCBRotateTo*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCBRotateTo();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    
+    pRet->initWithDuration(m_fDuration, mDstAngle);
+    CCActionInterval::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-CCBRotateTo* CCBRotateTo::reverse() const
+void CCBRotateTo::startWithTarget(CCNode *pNode)
 {
-	CCASSERT(false, "reverse() is not supported in CCBRotateTo");
-	return nullptr;
-}
-
-void CCBRotateTo::startWithTarget(Node *pNode)
-{
-    ActionInterval::startWithTarget(pNode);
-    _startAngle = _target->getRotation();
-    _diffAngle = _dstAngle - _startAngle;
+    CCActionInterval::startWithTarget(pNode);
+    mStartAngle = m_pTarget->getRotation();
+    mDiffAngle = mDstAngle - mStartAngle;
 }
 
 void CCBRotateTo::update(float time)
 {
-    _target->setRotation(_startAngle + (_diffAngle * time))
+    m_pTarget->setRotation(mStartAngle + (mDiffAngle * time))
     ;
 }
 
@@ -1091,9 +1084,9 @@ CCBRotateXTo* CCBRotateXTo::create(float fDuration, float fAngle)
 
 bool CCBRotateXTo::initWithDuration(float fDuration, float fAngle)
 {
-    if (ActionInterval::initWithDuration(fDuration))
+    if (CCActionInterval::initWithDuration(fDuration))
     {
-        _dstAngle = fAngle;
+        mDstAngle = fAngle;
         
         return true;
     }
@@ -1104,35 +1097,38 @@ bool CCBRotateXTo::initWithDuration(float fDuration, float fAngle)
 }
 
 
-void CCBRotateXTo::startWithTarget(Node *pNode)
+void CCBRotateXTo::startWithTarget(CCNode *pNode)
 {
     //CCActionInterval::startWithTarget(pNode);
-    _originalTarget = pNode;
-    _target = pNode;
-    _elapsed = 0.0f;
-    _firstTick = true;
-    _startAngle = _target->getRotationX();
-    _diffAngle = _dstAngle - _startAngle;
+    m_pOriginalTarget = pNode;
+    m_pTarget = pNode;
+    m_elapsed = 0.0f;
+    m_bFirstTick = true;
+    mStartAngle = m_pTarget->getRotationX();
+    mDiffAngle = mDstAngle - mStartAngle;
 }
 
-CCBRotateXTo* CCBRotateXTo::clone() const
+CCObject* CCBRotateXTo::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new CCBRotateXTo();
-    a->initWithDuration(_duration, _dstAngle);
-	a->autorelease();
-	return a;
-}
-
-CCBRotateXTo* CCBRotateXTo::reverse() const
-{
-	CCASSERT(false, "reverse() is not supported in CCBRotateXTo");
-	return nullptr;
+    CCZone *pNewZone = NULL;
+    CCBRotateXTo *pRet = NULL;
+    
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCBRotateXTo*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCBRotateXTo();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    
+    pRet->initWithDuration(m_fDuration, mDstAngle);
+    CCActionInterval::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 void CCBRotateXTo::update(float time)
 {
-    _target->setRotationX(_startAngle + (_diffAngle * time))
+    m_pTarget->setRotationX(mStartAngle + (mDiffAngle * time))
     ;
 }
 
@@ -1164,9 +1160,9 @@ CCBRotateYTo* CCBRotateYTo::create(float fDuration, float fAngle)
 
 bool CCBRotateYTo::initWithDuration(float fDuration, float fAngle)
 {
-    if (ActionInterval::initWithDuration(fDuration))
+    if (CCActionInterval::initWithDuration(fDuration))
     {
-        _dstAngle = fAngle;
+        mDstAngle = fAngle;
         
         return true;
     }
@@ -1176,36 +1172,40 @@ bool CCBRotateYTo::initWithDuration(float fDuration, float fAngle)
     }
 }
 
-CCBRotateYTo* CCBRotateYTo::clone() const
-{
-	// no copy constructor
-	auto a = new CCBRotateYTo();
-    a->initWithDuration(_duration, _dstAngle);
-	a->autorelease();
-	return a;
-}
 
-CCBRotateYTo* CCBRotateYTo::reverse() const
+void CCBRotateYTo::startWithTarget(CCNode *pNode)
 {
-	CCASSERT(false, "reverse() is not supported in CCBRotateXTo");
-	return nullptr;
+ //   CCActionInterval::startWithTarget(pNode);
+    m_pOriginalTarget = pNode;
+    m_pTarget = pNode;
+    m_elapsed = 0.0f;
+    m_bFirstTick = true;
+    mStartAngle = m_pTarget->getRotationY();
+    mDiffAngle = mDstAngle - mStartAngle;
 }
 
 
-void CCBRotateYTo::startWithTarget(Node *pNode)
+CCObject* CCBRotateYTo::copyWithZone(CCZone *pZone)
 {
- //   ActionInterval::startWithTarget(pNode);
-    _originalTarget = pNode;
-    _target = pNode;
-    _elapsed = 0.0f;
-    _firstTick = true;
-    _startAngle = _target->getRotationY();
-    _diffAngle = _dstAngle - _startAngle;
+    CCZone *pNewZone = NULL;
+    CCBRotateYTo *pRet = NULL;
+    
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCBRotateYTo*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCBRotateYTo();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+    
+    pRet->initWithDuration(m_fDuration, mDstAngle);
+    CCActionInterval::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 void CCBRotateYTo::update(float time)
 {
-    _target->setRotationY(_startAngle + (_diffAngle * time))
+    m_pTarget->setRotationY(mStartAngle + (mDiffAngle * time))
     ;
 }
 
@@ -1214,7 +1214,7 @@ void CCBRotateYTo::update(float time)
 /************************************************************
  CCBEaseInstant
  ************************************************************/
-CCBEaseInstant* CCBEaseInstant::create(ActionInterval *pAction)
+CCBEaseInstant* CCBEaseInstant::create(CCActionInterval *pAction)
 {
     CCBEaseInstant *pRet = new CCBEaseInstant();
     if (pRet && pRet->initWithAction(pAction))
@@ -1229,29 +1229,15 @@ CCBEaseInstant* CCBEaseInstant::create(ActionInterval *pAction)
     return pRet;
 }
 
-CCBEaseInstant* CCBEaseInstant::clone() const
-{
-	// no copy constructor	
-	auto a = new CCBEaseInstant();
-    a->initWithAction(_inner);
-	a->autorelease();
-	return a;
-}
-
-CCBEaseInstant* CCBEaseInstant::reverse() const
-{
-	return CCBEaseInstant::create(_inner->reverse());
-}
-
 void CCBEaseInstant::update(float dt)
 {
     if (dt < 0)
     {
-        _inner->update(0);
+        m_pInner->update(0);
     }
     else
     {
-        _inner->update(1);
+        m_pInner->update(1);
     }
 }
 

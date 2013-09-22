@@ -36,33 +36,33 @@ NS_CC_BEGIN
 
 typedef struct
 {
-    Rect  begin;              // the soft keyboard rectangle when animation begins
-    Rect  end;                // the soft keyboard rectangle when animation ends
+    CCRect  begin;              // the soft keyboard rectangle when animation begins
+    CCRect  end;                // the soft keyboard rectangle when animation ends
     float     duration;           // the soft keyboard animation duration
-} IMEKeyboardNotificationInfo;
+} CCIMEKeyboardNotificationInfo;
 
 /**
 @brief    Input method editor delegate.
 */
-class CC_DLL IMEDelegate
+class CC_DLL CCIMEDelegate
 {
 public:
-    virtual ~IMEDelegate();
+    virtual ~CCIMEDelegate();
 
     virtual bool attachWithIME();
     virtual bool detachWithIME();
 
 protected:
-    friend class IMEDispatcher;
+    friend class CCIMEDispatcher;
 
     /**
     @brief    Decide if the delegate instance is ready to receive an IME message.
 
-    Called by IMEDispatcher.
+    Called by CCIMEDispatcher.
     */
     virtual bool canAttachWithIME() { return false; }
     /**
-    @brief    When the delegate detaches from the IME, this method is called by IMEDispatcher.
+    @brief    When the delegate detaches from the IME, this method is called by CCIMEDispatcher.
     */
     virtual void didAttachWithIME() {}
 
@@ -72,35 +72,35 @@ protected:
     virtual bool canDetachWithIME() { return false; }
 
     /**
-    @brief    When the delegate detaches from the IME, this method is called by IMEDispatcher.
+    @brief    When the delegate detaches from the IME, this method is called by CCIMEDispatcher.
     */
     virtual void didDetachWithIME() {}
 
     /**
-    @brief    Called by IMEDispatcher when text input received from the IME.
+    @brief    Called by CCIMEDispatcher when text input received from the IME.
     */
     virtual void insertText(const char * text, int len) {CC_UNUSED_PARAM(text);CC_UNUSED_PARAM(len);}
 
     /**
-    @brief    Called by IMEDispatcher after the user clicks the backward key.
+    @brief    Called by CCIMEDispatcher after the user clicks the backward key.
     */
     virtual void deleteBackward() {}
 
     /**
-    @brief    Called by IMEDispatcher for text stored in delegate.
+    @brief    Called by CCIMEDispatcher for text stored in delegate.
     */
     virtual const char * getContentText() { return 0; }
 
     //////////////////////////////////////////////////////////////////////////
     // keyboard show/hide notification
     //////////////////////////////////////////////////////////////////////////
-    virtual void keyboardWillShow(IMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
-    virtual void keyboardDidShow(IMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
-    virtual void keyboardWillHide(IMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
-    virtual void keyboardDidHide(IMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
+    virtual void keyboardWillShow(CCIMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
+    virtual void keyboardDidShow(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
+    virtual void keyboardWillHide(CCIMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
+    virtual void keyboardDidHide(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
 
 protected:
-    IMEDelegate();
+    CCIMEDelegate();
 };
 
 // end of input group

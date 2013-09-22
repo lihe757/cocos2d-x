@@ -250,20 +250,20 @@ extern "C"
         methodInfo.env->DeleteLocalRef(methodInfo.classID);
     }
     
-    unsigned int playEffectJNI(const char* path, bool bLoop, float pitch, float pan, float gain)
+    unsigned int playEffectJNI(const char* path, bool bLoop)
     {
         // int playEffect(String)
         
         JniMethodInfo methodInfo;
         int ret = 0;
         
-        if (! getStaticMethodInfo(methodInfo, "playEffect", "(Ljava/lang/String;ZFFF)I"))
+        if (! getStaticMethodInfo(methodInfo, "playEffect", "(Ljava/lang/String;Z)I"))
         {
             return ret;
         }
         
         jstring stringArg = methodInfo.env->NewStringUTF(path);
-        ret = methodInfo.env->CallStaticIntMethod(methodInfo.classID, methodInfo.methodID, stringArg, bLoop, pitch, pan, gain);
+        ret = methodInfo.env->CallStaticIntMethod(methodInfo.classID, methodInfo.methodID, stringArg, bLoop);
         methodInfo.env->DeleteLocalRef(stringArg);
         methodInfo.env->DeleteLocalRef(methodInfo.classID);
         

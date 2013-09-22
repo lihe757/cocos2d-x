@@ -35,33 +35,35 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
+typedef enum _ccConfigurationType {
+    ConfigurationError,
+    ConfigurationString,
+    ConfigurationInt,
+    ConfigurationDouble,
+    ConfigurationBoolean
+} ccConfigurationType;
+
+
 /**
  * @addtogroup global
  * @{
  */
 /**
- @brief Configuration contains some openGL variables
+ @brief CCConfiguration contains some openGL variables
  @since v0.99.0
  */
-class CC_DLL Configuration : public Object
+class CC_DLL CCConfiguration : public CCObject
 {
 public:
-    
-    /** returns a shared instance of Configuration */
-    static Configuration *getInstance();
+    /** returns a shared instance of CCConfiguration */
+    static CCConfiguration *sharedConfiguration(void);
 
-    /** purge the shared instance of Configuration */
-    static void destroyInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Configuration *sharedConfiguration(void);
-
-    /** @deprecated Use destroyInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static void purgeConfiguration(void);
+    /** purge the shared instance of CCConfiguration */
+    static void purgeConfiguration(void);
 
 public:
 
-	virtual ~Configuration(void);
+	virtual ~CCConfiguration(void);
 
     /** OpenGL Max texture size. */
 	int getMaxTextureSize(void) const;
@@ -83,10 +85,7 @@ public:
 
     /** Whether or not PVR Texture Compressed is supported */
 	bool supportsPVRTC(void) const;
-    
-     /** Whether or not ETC Texture Compressed is supported */
-    bool supportsETC(void) const;
-    
+
     /** Whether or not BGRA8888 textures are supported.
      @since v0.99.2
      */
@@ -120,10 +119,10 @@ public:
 	double getNumber( const char *key, double default_value=0.0 ) const;
 
 	/** returns the value of a given key as a double */
-	Object * getObject( const char *key ) const;
+	CCObject * getObject( const char *key ) const;
 
 	/** sets a new key/value pair  in the configuration dictionary */
-	void setObject( const char *key, Object *value );
+	void setObject( const char *key, CCObject *value );
 
 	/** dumps the current configuration on the console */
 	void dumpInfo(void) const;
@@ -135,24 +134,23 @@ public:
 	void loadConfigFile( const char *filename );
 
 private:
-    Configuration(void);
-    static Configuration *s_gSharedConfiguration;
+    CCConfiguration(void);
+    static CCConfiguration *s_gSharedConfiguration;
 	static std::string		s_sConfigfile;
     
 protected:
-    GLint           _maxTextureSize;
-    GLint           _maxModelviewStackDepth;
-    bool            _supportsPVRTC;
-    bool            _supportsETC;
-    bool            _supportsNPOT;
-    bool            _supportsBGRA8888;
-    bool            _supportsDiscardFramebuffer;
-    bool            _supportsShareableVAO;
-    GLint           _maxSamplesAllowed;
-    GLint           _maxTextureUnits;
-    char *          _glExtensions;
+    GLint           m_nMaxTextureSize;
+    GLint           m_nMaxModelviewStackDepth;
+    bool            m_bSupportsPVRTC;
+    bool            m_bSupportsNPOT;
+    bool            m_bSupportsBGRA8888;
+    bool            m_bSupportsDiscardFramebuffer;
+    bool            m_bSupportsShareableVAO;
+    GLint           m_nMaxSamplesAllowed;
+    GLint           m_nMaxTextureUnits;
+    char *          m_pGlExtensions;
 	
-	Dictionary	*_valueDict;
+	CCDictionary	*m_pValueDict;
 };
 
 // end of global group

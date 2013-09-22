@@ -31,11 +31,11 @@ THE SOFTWARE.
 #include "../utils/CCTweenFunction.h"
 
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-Tween *Tween::create(Bone *bone)
+CCTween *CCTween::create(CCBone *bone)
 {
-    Tween *pTween = new Tween();
+    CCTween *pTween = new CCTween();
     if (pTween && pTween->init(bone))
     {
         pTween->autorelease();
@@ -48,43 +48,43 @@ Tween *Tween::create(Bone *bone)
 
 
 
-Tween::Tween()
-    : _movementBoneData(NULL)
-    , _tweenData(NULL)
-	, _from(NULL)
-	, _to(NULL)
-	, _between(NULL)
-	, _currentKeyFrame(NULL)
-    , _bone(NULL)
+CCTween::CCTween()
+    : m_pMovementBoneData(NULL)
+    , m_pTweenData(NULL)
+	, m_pFrom(NULL)
+	, m_pTo(NULL)
+	, m_pBetween(NULL)
+	, m_pCurrentKeyFrame(NULL)
+    , m_pBone(NULL)
     
-    , _frameTweenEasing(Linear)
-    , _fromIndex(0)
-    , _toIndex(0)
-    , _animation(NULL)
+    , m_eFrameTweenEasing(Linear)
+    , m_iFromIndex(0)
+    , m_iToIndex(0)
+    , m_pAnimation(NULL)
 {
 
 }
 
 
-Tween::~Tween(void)
+CCTween::~CCTween(void)
 {
-    CC_SAFE_DELETE( _from );
-    CC_SAFE_DELETE( _between );
+    CC_SAFE_DELETE( m_pFrom );
+    CC_SAFE_DELETE( m_pBetween );
 }
 
 
-bool Tween::init(Bone *bone)
+bool CCTween::init(CCBone *bone)
 {
     bool bRet = false;
     do
     {
-        _from = new FrameData();
-        _between = new FrameData();
+        m_pFrom = new CCFrameData();
+        m_pBetween = new CCFrameData();
 
-        _bone = bone;
-        _tweenData = _bone->getTweenData();
+        m_pBone = bone;
+        m_pTweenData = m_pBone->getTweenData();
 
-        _animation = _bone->getArmature() != NULL ? _bone->getArmature()->getAnimation() : NULL;
+        m_pAnimation = m_pBone->getArmature() != NULL ? m_pBone->getArmature()->getAnimation() : NULL;
 
         bRet = true;
     }
@@ -94,200 +94,200 @@ bool Tween::init(Bone *bone)
 }
 
 
-void Tween::play(MovementBoneData *movementBoneData, int durationTo, int durationTween,  int loop, int tweenEasing)
+void CCTween::play(CCMovementBoneData *_movementBoneData, int _durationTo, int _durationTween,  int _loop, int _tweenEasing)
 {
-    ProcessBase::play(NULL, durationTo, durationTween, loop, tweenEasing);
+    CCProcessBase::play(NULL, _durationTo, _durationTween, _loop, _tweenEasing);
 
-    _loopType = (AnimationType)loop;
+    m_eLoopType = (AnimationType)_loop;
 
-    _currentKeyFrame = NULL;
-    _isTweenKeyFrame = false;
+    m_pCurrentKeyFrame = NULL;
+    m_bIsTweenKeyFrame = false;
 
-    _totalDuration = 0;
+    m_iTotalDuration = 0;
     betweenDuration = 0;
-    _toIndex = 0;
+    m_iToIndex = 0;
 
-    setMovementBoneData(movementBoneData);
+    setMovementBoneData(_movementBoneData);
 
 
-    if (_movementBoneData->frameList.count() == 1)
+    if (m_pMovementBoneData->frameList.count() == 1)
     {
-        _loopType = SINGLE_FRAME;
-        FrameData *_nextKeyFrame = _movementBoneData->getFrameData(0);
-        if(durationTo == 0)
+        m_eLoopType = SINGLE_FRAME;
+        CCFrameData *_nextKeyFrame = m_pMovementBoneData->getFrameData(0);
+        if(_durationTo == 0)
         {
             setBetween(_nextKeyFrame, _nextKeyFrame);
         }
         else
         {
-            _tweenData->displayIndex = _nextKeyFrame->displayIndex;
-            setBetween(_tweenData, _nextKeyFrame);
+            m_pTweenData->displayIndex = _nextKeyFrame->displayIndex;
+            setBetween(m_pTweenData, _nextKeyFrame);
         }
-        _isTweenKeyFrame = true;
-        _frameTweenEasing = Linear;
-        _rawDuration = _movementBoneData->duration;
-        _fromIndex = _toIndex = 0;
+        m_bIsTweenKeyFrame = true;
+        m_eFrameTweenEasing = Linear;
+        m_iRawDuration = m_pMovementBoneData->duration;
+        m_iFromIndex = m_iToIndex = 0;
     }
-    else if (_movementBoneData->frameList.count() > 1)
+    else if (m_pMovementBoneData->frameList.count() > 1)
     {
-        if (loop)
+        if (_loop)
         {
-            _loopType = ANIMATION_TO_LOOP_BACK;
-            _rawDuration = _movementBoneData->duration;
+            m_eLoopType = ANIMATION_TO_LOOP_BACK;
+            m_iRawDuration = m_pMovementBoneData->duration;
         }
         else
         {
-            _loopType = ANIMATION_NO_LOOP;
-            _rawDuration = _movementBoneData->duration - 1;
+            m_eLoopType = ANIMATION_NO_LOOP;
+            m_iRawDuration = m_pMovementBoneData->duration - 1;
         }
 
-        _durationTween = durationTween * _movementBoneData->scale;
+        m_iDurationTween = _durationTween * m_pMovementBoneData->scale;
 
-        if (loop && _movementBoneData->delay != 0)
+        if (_loop && m_pMovementBoneData->delay != 0)
         {
-            setBetween(_tweenData, tweenNodeTo(updateFrameData(1 - _movementBoneData->delay), _between));
+            setBetween(m_pTweenData, tweenNodeTo(updateFrameData(1 - m_pMovementBoneData->delay), m_pBetween));
 
         }
         else
         {
-            FrameData *_nextKeyFrame = _movementBoneData->getFrameData(0);
-            setBetween(_tweenData, _nextKeyFrame);
-            _isTweenKeyFrame = true;
+            CCFrameData *_nextKeyFrame = m_pMovementBoneData->getFrameData(0);
+            setBetween(m_pTweenData, _nextKeyFrame);
+            m_bIsTweenKeyFrame = true;
         }
     }
 }
 
-void Tween::updateHandler()
+void CCTween::updateHandler()
 {
 
 
-    if (_currentPercent >= 1)
+    if (m_fCurrentPercent >= 1)
     {
-        switch(_loopType)
+        switch(m_eLoopType)
         {
         case SINGLE_FRAME:
         {
-            _currentPercent = 1;
-            _isComplete = true;
+            m_fCurrentPercent = 1;
+            m_bIsComplete = true;
         }
         break;
         case ANIMATION_NO_LOOP:
         {
-            _loopType = ANIMATION_MAX;
+            m_eLoopType = ANIMATION_MAX;
 
 
-            if (_durationTween <= 0)
+            if (m_iDurationTween <= 0)
             {
-                _currentPercent = 1;
+                m_fCurrentPercent = 1;
             }
             else
             {
-                _currentPercent = (_currentPercent - 1) * _nextFrameIndex / _durationTween;
+                m_fCurrentPercent = (m_fCurrentPercent - 1) * m_iNextFrameIndex / m_iDurationTween;
             }
 
-            if (_currentPercent >= 1)
+            if (m_fCurrentPercent >= 1)
             {
-                _currentPercent = 1;
-                _isComplete = true;
+                m_fCurrentPercent = 1;
+                m_bIsComplete = true;
                 break;
             }
             else
             {
-                _nextFrameIndex = _durationTween;
-                _currentFrame = _currentPercent * _nextFrameIndex;
-                _totalDuration = 0;
+                m_iNextFrameIndex = m_iDurationTween;
+                m_fCurrentFrame = m_fCurrentPercent * m_iNextFrameIndex;
+                m_iTotalDuration = 0;
                 betweenDuration = 0;
-                _toIndex = 0;
+                m_iToIndex = 0;
                 break;
             }
         }
         break;
         case ANIMATION_TO_LOOP_BACK:
         {
-            _loopType = ANIMATION_LOOP_BACK;
+            m_eLoopType = ANIMATION_LOOP_BACK;
 
-            _nextFrameIndex = _durationTween > 0 ? _durationTween : 1;
+            m_iNextFrameIndex = m_iDurationTween > 0 ? m_iDurationTween : 1;
 
-            if (_movementBoneData->delay != 0)
+            if (m_pMovementBoneData->delay != 0)
             {
                 //
-                _currentFrame = (1 - _movementBoneData->delay) * (float)_nextFrameIndex;
-                _currentPercent = _currentFrame / _nextFrameIndex;
+                m_fCurrentFrame = (1 - m_pMovementBoneData->delay) * (float)m_iNextFrameIndex;
+                m_fCurrentPercent = m_fCurrentFrame / m_iNextFrameIndex;
 
 
             }
             else
             {
-                _currentPercent = 0;
-                _currentFrame = 0;
+                m_fCurrentPercent = 0;
+                m_fCurrentFrame = 0;
             }
 
-            _totalDuration = 0;
+            m_iTotalDuration = 0;
             betweenDuration = 0;
-            _toIndex = 0;
+            m_iToIndex = 0;
         }
         break;
         case ANIMATION_MAX:
         {
-            _currentPercent = 1;
-            _isComplete = true;
+            m_fCurrentPercent = 1;
+            m_bIsComplete = true;
         }
         break;
         default:
         {
-            _currentPercent = fmodf(_currentPercent, 1);
-            _currentFrame = fmodf(_currentFrame, _nextFrameIndex);
+            m_fCurrentPercent = fmodf(m_fCurrentPercent, 1);
+            m_fCurrentFrame = fmodf(m_fCurrentFrame, m_iNextFrameIndex);
 
-            _totalDuration = 0;
+            m_iTotalDuration = 0;
             betweenDuration = 0;
-            _toIndex = 0;
+            m_iToIndex = 0;
         }
         break;
         }
     }
 
 
-    if (_currentPercent < 1 && _loopType <= ANIMATION_TO_LOOP_BACK)
+    if (m_fCurrentPercent < 1 && m_eLoopType <= ANIMATION_TO_LOOP_BACK)
     {
-        _currentPercent = sin(_currentPercent * CC_HALF_PI);
+        m_fCurrentPercent = sin(m_fCurrentPercent * CC_HALF_PI);
     }
 
-    float percent  = _currentPercent;
+    float percent  = m_fCurrentPercent;
 
-    if (_loopType > ANIMATION_TO_LOOP_BACK)
+    if (m_eLoopType > ANIMATION_TO_LOOP_BACK)
     {
         percent = updateFrameData(percent, true);
     }
 
-    if(_frameTweenEasing != TWEEN_EASING_MAX)
+    if(m_eFrameTweenEasing != TWEEN_EASING_MAX)
     {
         tweenNodeTo(percent);
     }
-    else if(_currentKeyFrame)
+    else if(m_pCurrentKeyFrame)
     {
         tweenNodeTo(0);
     }
 }
 
-void Tween::setBetween(FrameData *from, FrameData *to)
+void CCTween::setBetween(CCFrameData *from, CCFrameData *to)
 {
     do
     {
         if(to->displayIndex < 0 && from->displayIndex > 0)
         {
-            _from->copy(from);
-            _between->subtract(to, to);
+            m_pFrom->copy(from);
+            m_pBetween->subtract(to, to);
             break;
         }
         else if(from->displayIndex < 0 && to->displayIndex > 0)
         {
-            _from->copy(to);
-            _between->subtract(to, to);
+            m_pFrom->copy(to);
+            m_pBetween->subtract(to, to);
             break;
         }
 
-        _from->copy(from);
-        _between->subtract(from, to);
+        m_pFrom->copy(from);
+        m_pBetween->subtract(from, to);
     }
     while (0);
 
@@ -295,145 +295,144 @@ void Tween::setBetween(FrameData *from, FrameData *to)
 }
 
 
-void Tween::arriveKeyFrame(FrameData *keyFrameData)
+void CCTween::arriveKeyFrame(CCFrameData *keyFrameData)
 {
     if(keyFrameData)
     {
         int displayIndex = keyFrameData->displayIndex;
 
-        if (!_bone->getDisplayManager()->getForceChangeDisplay())
+        if (!m_pBone->getDisplayManager()->getForceChangeDisplay())
         {
-            _bone->getDisplayManager()->changeDisplayByIndex(displayIndex, false);
+            m_pBone->getDisplayManager()->changeDisplayByIndex(displayIndex, false);
         }
 
 
-        _bone->setZOrder(keyFrameData->zOrder);
+        m_pBone->setZOrder(keyFrameData->zOrder);
 
-        Armature *childAramture = _bone->getChildArmature();
+        CCArmature *childAramture = m_pBone->getChildArmature();
 
         if(childAramture)
         {
-            if(keyFrameData->_movement.length() != 0)
+            if(keyFrameData->m_strMovement.length() != 0)
             {
-                childAramture->getAnimation()->play(keyFrameData->_movement.c_str());
+                childAramture->getAnimation()->play(keyFrameData->m_strMovement.c_str());
             }
         }
 
-        if(keyFrameData->_event.length() != 0)
+        if(keyFrameData->m_strEvent.length() != 0)
         {
-            _animation->FrameEventSignal.emit(_bone, keyFrameData->_event.c_str());
+            m_pAnimation->FrameEventSignal.emit(m_pBone, keyFrameData->m_strEvent.c_str());
         }
-        // 		if(keyFrameData->_sound.length() != 0)
+        // 		if(keyFrameData->m_strSound.length() != 0)
         // 		{
-        // 			//soundManager.dispatchEventWith(Event.SOUND_FRAME, _currentKeyFrame->sound);
+        // 			//soundManager.dispatchEventWith(Event.SOUND_FRAME, m_pCurrentKeyFrame->sound);
         // 		}
     }
 }
 
 
-FrameData *Tween::tweenNodeTo(float percent, FrameData *node)
+CCFrameData *CCTween::tweenNodeTo(float percent, CCFrameData *node)
 {
+    node = node == NULL ? m_pTweenData : node;
 
-    node = node == NULL ? _tweenData : node;
+    node->x = m_pFrom->x + percent * m_pBetween->x;
+    node->y = m_pFrom->y + percent * m_pBetween->y;
+    node->scaleX = m_pFrom->scaleX + percent * m_pBetween->scaleX;
+    node->scaleY = m_pFrom->scaleY + percent * m_pBetween->scaleY;
+    node->skewX = m_pFrom->skewX + percent * m_pBetween->skewX;
+    node->skewY = m_pFrom->skewY + percent * m_pBetween->skewY;
 
-    node->x = _from->x + percent * _between->x;
-    node->y = _from->y + percent * _between->y;
-    node->scaleX = _from->scaleX + percent * _between->scaleX;
-    node->scaleY = _from->scaleY + percent * _between->scaleY;
-    node->skewX = _from->skewX + percent * _between->skewX;
-    node->skewY = _from->skewY + percent * _between->skewY;
+    m_pBone->setTransformDirty(true);
 
-    _bone->setTransformDirty(true);
-
-    if(_between->isUseColorInfo)
+    if(m_pBetween->isUseColorInfo)
     {
-        node->a = _from->a + percent * _between->a;
-        node->r = _from->r + percent * _between->r;
-        node->g = _from->g + percent * _between->g;
-        node->b = _from->b + percent * _between->b;
-        _bone->updateColor();
+        node->a = m_pFrom->a + percent * m_pBetween->a;
+        node->r = m_pFrom->r + percent * m_pBetween->r;
+        node->g = m_pFrom->g + percent * m_pBetween->g;
+        node->b = m_pFrom->b + percent * m_pBetween->b;
+        m_pBone->updateColor();
     }
 
-    //    Point p1 = Point(_from->x, _from->y);
-    //    Point p2 = Point(100, 0);
-    //    Point p3 = Point(200, 400);
-    //    Point p4 = Point(_from->x + _between->x, _from->y + _between->y);
+    //    CCPoint p1 = ccp(m_pFrom->x, m_pFrom->y);
+    //    CCPoint p2 = ccp(100, 0);
+    //    CCPoint p3 = ccp(200, 400);
+    //    CCPoint p4 = ccp(m_pFrom->x + m_pBetween->x, m_pFrom->y + m_pBetween->y);
     //
-    //    Point p = bezierTo(percent, p1, p2, p3, p4);
+    //    CCPoint p = bezierTo(percent, p1, p2, p3, p4);
     //    node->x = p.x;
     //    node->y = p.y;
 
     return node;
 }
 
-float Tween::updateFrameData(float currentPrecent, bool activeFrame)
+float CCTween::updateFrameData(float currentPrecent, bool activeFrame)
 {
 
-    float playedTime = (float)_rawDuration * currentPrecent;
+    float playedTime = (float)m_iRawDuration * currentPrecent;
 
 
-    FrameData *from;
-    FrameData *to;
+    CCFrameData *from;
+    CCFrameData *to;
     bool isListEnd;
 
     //! If play to current frame's front or back, then find current frame again
-    if (playedTime >= _totalDuration || playedTime < _totalDuration - betweenDuration)
+    if (playedTime >= m_iTotalDuration || playedTime < m_iTotalDuration - betweenDuration)
     {
         /*
-         *  Get frame length, if _toIndex >= _length, then set _toIndex to 0, start anew.
-         *  _toIndex is next index will play
+         *  Get frame length, if m_iToIndex >= _length, then set m_iToIndex to 0, start anew.
+         *  m_iToIndex is next index will play
          */
-        int length = _movementBoneData->frameList.count();
+        int length = m_pMovementBoneData->frameList.count();
         do
         {
-            betweenDuration = _movementBoneData->getFrameData(_toIndex)->duration;
-            _totalDuration += betweenDuration;
-            _fromIndex = _toIndex;
+            betweenDuration = m_pMovementBoneData->getFrameData(m_iToIndex)->duration;
+            m_iTotalDuration += betweenDuration;
+            m_iFromIndex = m_iToIndex;
 
-            if (++_toIndex >= length)
+            if (++m_iToIndex >= length)
             {
-                _toIndex = 0;
+                m_iToIndex = 0;
             }
         }
-        while (playedTime >= _totalDuration);
+        while (playedTime >= m_iTotalDuration);
 
 
-        isListEnd = _loopType == ANIMATION_MAX && _toIndex == 0;
+        isListEnd = m_eLoopType == ANIMATION_MAX && m_iToIndex == 0;
 
         if(isListEnd)
         {
-            to = from = _movementBoneData->getFrameData(_fromIndex);
+            to = from = m_pMovementBoneData->getFrameData(m_iFromIndex);
         }
         else
         {
-            from = _movementBoneData->getFrameData(_fromIndex);
-            to = _movementBoneData->getFrameData(_toIndex);
+            from = m_pMovementBoneData->getFrameData(m_iFromIndex);
+            to = m_pMovementBoneData->getFrameData(m_iToIndex);
         }
 
-        _frameTweenEasing = from->tweenEasing;
+        m_eFrameTweenEasing = from->tweenEasing;
 
         setBetween(from, to);
 
     }
-    currentPrecent = 1 - (_totalDuration - playedTime) / (float)betweenDuration;
+    currentPrecent = 1 - (m_iTotalDuration - playedTime) / (float)betweenDuration;
 
 
     /*
      *  If frame tween easing equal to TWEEN_EASING_MAX, then it will not do tween.
      */
 
-    TweenType tweenType;
+    CCTweenType tweenType;
 
-    if ( _frameTweenEasing != TWEEN_EASING_MAX)
+    if ( m_eFrameTweenEasing != TWEEN_EASING_MAX)
     {
-        tweenType = (_tweenEasing == TWEEN_EASING_MAX) ? _frameTweenEasing : _tweenEasing;
+        tweenType = (m_eTweenEasing == TWEEN_EASING_MAX) ? m_eFrameTweenEasing : m_eTweenEasing;
         if (tweenType != TWEEN_EASING_MAX)
         {
-            currentPrecent = TweenFunction::tweenTo(0, 1, currentPrecent, 1, tweenType);
+            currentPrecent = CCTweenFunction::tweenTo(0, 1, currentPrecent, 1, tweenType);
         }
     }
 
     return currentPrecent;
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

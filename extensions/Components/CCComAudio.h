@@ -30,11 +30,11 @@ THE SOFTWARE.
 
 NS_CC_EXT_BEGIN
 
-class ComAudio : public cocos2d::Component
+class CCComAudio : public cocos2d::CCComponent
 {
 protected:
-    ComAudio(void);
-    virtual ~ComAudio(void);
+    CCComAudio(void);
+    virtual ~CCComAudio(void);
     
 public:
    virtual bool init();
@@ -43,7 +43,7 @@ public:
    virtual bool isEnabled() const;
    virtual void setEnabled(bool b);
 
-   static ComAudio* create(void);
+   static CCComAudio* create(void);
    
 public:
    void end();

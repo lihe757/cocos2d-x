@@ -69,7 +69,7 @@ THE SOFTWARE.
 #include "cocoa/CCBool.h"
 #include "cocoa/CCString.h"
 #include "cocoa/CCNS.h"
-#include "cocoa/CCData.h"
+#include "cocoa/CCZone.h"
 
 // draw nodes
 #include "draw_nodes/CCDrawingPrimitives.h"
@@ -85,7 +85,6 @@ THE SOFTWARE.
 #include "ccConfig.h"
 #include "ccMacros.h"
 #include "ccTypes.h"
-
 
 // kazmath
 #include "kazmath/include/kazmath/kazmath.h"
@@ -130,6 +129,7 @@ THE SOFTWARE.
 #include "platform/CCImage.h"
 #include "platform/CCSAXParser.h"
 #include "platform/CCThread.h"
+#include "platform/platform.h"
 #include "platform/CCPlatformConfig.h"
 #include "platform/CCPlatformMacros.h"
 
@@ -215,14 +215,6 @@ THE SOFTWARE.
     #include "platform/tizen/CCStdC.h"
 #endif // CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_QT5)
-    #include "platform/qt5/CCAccelerometer.h"
-    #include "platform/qt5/CCApplication.h"
-    #include "platform/qt5/CCEGLView.h"
-    #include "platform/qt5/CCGL.h"
-    #include "platform/qt5/CCStdC.h"
-#endif // CC_TARGET_PLATFORM == CC_PLATFORM_QT5
-
 // script_support
 #include "script_support/CCScriptSupport.h"
 
@@ -243,6 +235,7 @@ THE SOFTWARE.
 // support
 #include "support/ccUTF8.h"
 #include "support/CCNotificationCenter.h"
+#include "support/CCPointExtension.h"
 #include "support/CCProfiling.h"
 #include "support/user_default/CCUserDefault.h"
 #include "support/CCVertex.h"
@@ -257,6 +250,7 @@ THE SOFTWARE.
 #include "textures/CCTexture2D.h"
 #include "textures/CCTextureAtlas.h"
 #include "textures/CCTextureCache.h"
+#include "textures/CCTexturePVR.h"
 
 // tilemap_parallax_nodes
 #include "tilemap_parallax_nodes/CCParallaxNode.h"
@@ -281,9 +275,6 @@ THE SOFTWARE.
 // component
 #include "support/component/CCComponent.h"
 #include "support/component/CCComponentContainer.h"
-
-// Deprecated include
-#include "CCDeprecated.h"
 
 NS_CC_BEGIN
 

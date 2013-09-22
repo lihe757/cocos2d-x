@@ -31,34 +31,34 @@ NodeChildrenMenuLayer::NodeChildrenMenuLayer(bool bControlMenuVisible, int nMaxC
 void NodeChildrenMenuLayer::showCurrentTest()
 {
     int nNodes = ((NodeChildrenMainScene*)getParent())->getQuantityOfNodes();
-    NodeChildrenMainScene* scene = NULL;
+    NodeChildrenMainScene* pScene = NULL;
 
-    switch (_curCase)
+    switch (m_nCurCase)
     {
 //     case 0:
-//         scene = new IterateSpriteSheetFastEnum();
+//         pScene = new IterateSpriteSheetFastEnum();
 //         break;
     case 0:
-        scene = new IterateSpriteSheetCArray();
+        pScene = new IterateSpriteSheetCArray();
         break;
     case 1:
-        scene = new AddSpriteSheet();
+        pScene = new AddSpriteSheet();
         break;
     case 2:
-        scene = new RemoveSpriteSheet();
+        pScene = new RemoveSpriteSheet();
         break;
     case 3:
-        scene = new ReorderSpriteSheet();
+        pScene = new ReorderSpriteSheet();
         break;
     }
-    s_nCurCase = _curCase;
+    s_nCurCase = m_nCurCase;
 
-    if (scene)
+    if (pScene)
     {
-        scene->initWithQuantityOfNodes(nNodes);
+        pScene->initWithQuantityOfNodes(nNodes);
 
-        Director::getInstance()->replaceScene(scene);
-        scene->release();
+        CCDirector::sharedDirector()->replaceScene(pScene);
+        pScene->release();
     }
 }
 
@@ -70,60 +70,66 @@ void NodeChildrenMenuLayer::showCurrentTest()
 void NodeChildrenMainScene::initWithQuantityOfNodes(unsigned int nNodes)
 {
     //srand(time());
-    Size s = Director::getInstance()->getWinSize();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
     // Title
-    LabelTTF *label = LabelTTF::create(title().c_str(), "Arial", 40);
+    CCLabelTTF *label = CCLabelTTF::create(title().c_str(), "Arial", 40);
     addChild(label, 1);
-    label->setPosition(Point(s.width/2, s.height-32));
-    label->setColor(Color3B(255,255,40));
+    label->setPosition(ccp(s.width/2, s.height-32));
+    label->setColor(ccc3(255,255,40));
 
     // Subtitle
     std::string strSubTitle = subtitle();
     if(strSubTitle.length())
     {
-        LabelTTF *l = LabelTTF::create(strSubTitle.c_str(), "Thonburi", 16);
+        CCLabelTTF *l = CCLabelTTF::create(strSubTitle.c_str(), "Thonburi", 16);
         addChild(l, 1);
-        l->setPosition(Point(s.width/2, s.height-80));
+        l->setPosition(ccp(s.width/2, s.height-80));
     }
 
     lastRenderedCount = 0;
     currentQuantityOfNodes = 0;
     quantityOfNodes = nNodes;
 
-    MenuItemFont::setFontSize(65);
-    MenuItemFont *decrease = MenuItemFont::create(" - ", [&](Object *sender) {
-		quantityOfNodes -= kNodesIncrease;
-		if( quantityOfNodes < 0 )
-			quantityOfNodes = 0;
+    CCMenuItemFont::setFontSize(65);
+    CCMenuItemFont *decrease = CCMenuItemFont::create(" - ", this, menu_selector(NodeChildrenMainScene::onDecrease));
+    decrease->setColor(ccc3(0,200,20));
+    CCMenuItemFont *increase = CCMenuItemFont::create(" + ", this, menu_selector(NodeChildrenMainScene::onIncrease));
+    increase->setColor(ccc3(0,200,20));
 
-		updateQuantityLabel();
-		updateQuantityOfNodes();
-	});
-    decrease->setColor(Color3B(0,200,20));
-    MenuItemFont *increase = MenuItemFont::create(" + ", [&](Object *sender) {
-		quantityOfNodes += kNodesIncrease;
-		if( quantityOfNodes > kMaxNodes )
-			quantityOfNodes = kMaxNodes;
-
-		updateQuantityLabel();
-		updateQuantityOfNodes();
-	});
-    increase->setColor(Color3B(0,200,20));
-
-    Menu *menu = Menu::create(decrease, increase, NULL);
+    CCMenu *menu = CCMenu::create(decrease, increase, NULL);
     menu->alignItemsHorizontally();
-    menu->setPosition(Point(s.width/2, s.height/2+15));
+    menu->setPosition(ccp(s.width/2, s.height/2+15));
     addChild(menu, 1);
 
-    LabelTTF *infoLabel = LabelTTF::create("0 nodes", "Marker Felt", 30);
-    infoLabel->setColor(Color3B(0,200,20));
-    infoLabel->setPosition(Point(s.width/2, s.height/2-15));
+    CCLabelTTF *infoLabel = CCLabelTTF::create("0 nodes", "Marker Felt", 30);
+    infoLabel->setColor(ccc3(0,200,20));
+    infoLabel->setPosition(ccp(s.width/2, s.height/2-15));
     addChild(infoLabel, 1, kTagInfoLayer);
 
-    NodeChildrenMenuLayer* menuLayer = new NodeChildrenMenuLayer(true, TEST_COUNT, s_nCurCase);
-    addChild(menuLayer);
-    menuLayer->release();
+    NodeChildrenMenuLayer* pMenu = new NodeChildrenMenuLayer(true, TEST_COUNT, s_nCurCase);
+    addChild(pMenu);
+    pMenu->release();
+
+    updateQuantityLabel();
+    updateQuantityOfNodes();
+}
+
+void NodeChildrenMainScene::onDecrease(CCObject* pSender)
+{
+    quantityOfNodes -= kNodesIncrease;
+    if( quantityOfNodes < 0 )
+        quantityOfNodes = 0;
+
+    updateQuantityLabel();
+    updateQuantityOfNodes();
+}
+
+void NodeChildrenMainScene::onIncrease(CCObject* pSender)
+{
+    quantityOfNodes += kNodesIncrease;
+    if( quantityOfNodes > kMaxNodes )
+        quantityOfNodes = kMaxNodes;
 
     updateQuantityLabel();
     updateQuantityOfNodes();
@@ -143,7 +149,7 @@ void NodeChildrenMainScene::updateQuantityLabel()
 {
     if( quantityOfNodes != lastRenderedCount )
     {
-        LabelTTF *infoLabel = (LabelTTF *) getChildByTag(kTagInfoLayer);
+        CCLabelTTF *infoLabel = (CCLabelTTF *) getChildByTag(kTagInfoLayer);
         char str[20] = {0};
         sprintf(str, "%u nodes", quantityOfNodes);
         infoLabel->setString(str);
@@ -164,16 +170,16 @@ IterateSpriteSheet::~IterateSpriteSheet()
 
 void IterateSpriteSheet::updateQuantityOfNodes()
 {
-    Size s = Director::getInstance()->getWinSize();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
     // increase nodes
     if( currentQuantityOfNodes < quantityOfNodes )
     {
         for(int i = 0; i < (quantityOfNodes-currentQuantityOfNodes); i++)
         {
-            Sprite *sprite = Sprite::createWithTexture(batchNode->getTexture(), Rect(0, 0, 32, 32));
+            CCSprite *sprite = CCSprite::createWithTexture(batchNode->getTexture(), CCRectMake(0, 0, 32, 32));
             batchNode->addChild(sprite);
-            sprite->setPosition(Point( CCRANDOM_0_1()*s.width, CCRANDOM_0_1()*s.height));
+            sprite->setPosition(ccp( CCRANDOM_0_1()*s.width, CCRANDOM_0_1()*s.height));
         }
     }
 
@@ -192,7 +198,7 @@ void IterateSpriteSheet::updateQuantityOfNodes()
 
 void IterateSpriteSheet::initWithQuantityOfNodes(unsigned int nNodes)
 {
-    batchNode = SpriteBatchNode::create("Images/spritesheet1.png");
+    batchNode = CCSpriteBatchNode::create("Images/spritesheet1.png");
     addChild(batchNode);
     
     NodeChildrenMainScene::initWithQuantityOfNodes(nNodes);
@@ -213,15 +219,15 @@ const char*  IterateSpriteSheet::profilerName()
 void IterateSpriteSheetFastEnum::update(float dt)
 {
     // iterate using fast enumeration protocol
-    Array* pChildren = batchNode->getChildren();
-    Object* pObject = NULL;
+    CCArray* pChildren = batchNode->getChildren();
+    CCObject* pObject = NULL;
 
     CC_PROFILER_START_INSTANCE(this, this->profilerName());
 
     CCARRAY_FOREACH(pChildren, pObject)
     {
-        Sprite* sprite = static_cast<Sprite*>(pObject);
-        sprite->setVisible(false);
+        CCSprite* pSprite = (CCSprite*) pObject;
+        pSprite->setVisible(false);
     }
 
     CC_PROFILER_STOP_INSTANCE(this, this->profilerName());
@@ -250,15 +256,15 @@ const char*  IterateSpriteSheetFastEnum::profilerName()
 void IterateSpriteSheetCArray::update(float dt)
 {
     // iterate using fast enumeration protocol
-    Array* pChildren = batchNode->getChildren();
-    Object* pObject = NULL;
+    CCArray* pChildren = batchNode->getChildren();
+    CCObject* pObject = NULL;
 
     CC_PROFILER_START(this->profilerName());
 
     CCARRAY_FOREACH(pChildren, pObject)
     {
-        Sprite* sprite = static_cast<Sprite*>(pObject);
-        sprite->setVisible(false);
+        CCSprite* pSprite = (CCSprite*)pObject;
+        pSprite->setVisible(false);
     }
 
     CC_PROFILER_STOP(this->profilerName());
@@ -292,7 +298,7 @@ AddRemoveSpriteSheet::~AddRemoveSpriteSheet()
 
 void AddRemoveSpriteSheet::initWithQuantityOfNodes(unsigned int nNodes)
 {
-    batchNode = SpriteBatchNode::create("Images/spritesheet1.png");
+    batchNode = CCSpriteBatchNode::create("Images/spritesheet1.png");
     addChild(batchNode);
 
     NodeChildrenMainScene::initWithQuantityOfNodes(nNodes);
@@ -302,16 +308,16 @@ void AddRemoveSpriteSheet::initWithQuantityOfNodes(unsigned int nNodes)
 
 void AddRemoveSpriteSheet::updateQuantityOfNodes()
 {
-    Size s = Director::getInstance()->getWinSize();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
     // increase nodes
     if( currentQuantityOfNodes < quantityOfNodes )
     {
         for (int i=0; i < (quantityOfNodes-currentQuantityOfNodes); i++)
         {
-            Sprite *sprite = Sprite::createWithTexture(batchNode->getTexture(), Rect(0, 0, 32, 32));
+            CCSprite *sprite = CCSprite::createWithTexture(batchNode->getTexture(), CCRectMake(0, 0, 32, 32));
             batchNode->addChild(sprite);
-            sprite->setPosition(Point( CCRANDOM_0_1()*s.width, CCRANDOM_0_1()*s.height));
+            sprite->setPosition(ccp( CCRANDOM_0_1()*s.width, CCRANDOM_0_1()*s.height));
             sprite->setVisible(false);
         }
     }
@@ -348,14 +354,14 @@ void AddSpriteSheet::update(float dt)
 
     if( totalToAdd > 0 )
     {
-        Array* sprites = Array::createWithCapacity(totalToAdd);
-        int *zs = new int[totalToAdd];
+        CCArray* sprites = CCArray::createWithCapacity(totalToAdd);
+        int         *zs      = new int[totalToAdd];
 
         // Don't include the sprite creation time and random as part of the profiling
         for(int i=0; i<totalToAdd; i++)
         {
-            Sprite* sprite = Sprite::createWithTexture(batchNode->getTexture(), Rect(0,0,32,32));
-            sprites->addObject(sprite);
+            CCSprite* pSprite = CCSprite::createWithTexture(batchNode->getTexture(), CCRectMake(0,0,32,32));
+            sprites->addObject(pSprite);
             zs[i]      = CCRANDOM_MINUS1_1() * 50;
         }
 
@@ -364,7 +370,7 @@ void AddSpriteSheet::update(float dt)
 
         for( int i=0; i < totalToAdd;i++ )
         {
-            batchNode->addChild((Node*) (sprites->objectAtIndex(i)), zs[i], kTagBase+i);
+            batchNode->addChild((CCNode*) (sprites->objectAtIndex(i)), zs[i], kTagBase+i);
         }
         
         batchNode->sortAllChildren();
@@ -410,19 +416,19 @@ void RemoveSpriteSheet::update(float dt)
 
     if( totalToAdd > 0 )
     {
-        Array* sprites = Array::createWithCapacity(totalToAdd);
+        CCArray* sprites = CCArray::createWithCapacity(totalToAdd);
 
         // Don't include the sprite creation time as part of the profiling
         for(int i=0;i<totalToAdd;i++)
         {
-            Sprite* sprite = Sprite::createWithTexture(batchNode->getTexture(), Rect(0,0,32,32));
-            sprites->addObject(sprite);
+            CCSprite* pSprite = CCSprite::createWithTexture(batchNode->getTexture(), CCRectMake(0,0,32,32));
+            sprites->addObject(pSprite);
         }
 
         // add them with random Z (very important!)
         for( int i=0; i < totalToAdd;i++ )
         {
-            batchNode->addChild((Node*) (sprites->objectAtIndex(i)), CCRANDOM_MINUS1_1() * 50, kTagBase+i);
+            batchNode->addChild((CCNode*) (sprites->objectAtIndex(i)), CCRANDOM_MINUS1_1() * 50, kTagBase+i);
         }
 
         // remove them
@@ -466,19 +472,19 @@ void ReorderSpriteSheet::update(float dt)
 
     if( totalToAdd > 0 )
     {
-        Array* sprites = Array::createWithCapacity(totalToAdd);
+        CCArray* sprites = CCArray::createWithCapacity(totalToAdd);
 
         // Don't include the sprite creation time as part of the profiling
-        for(int i=0; i<totalToAdd; i++)
+        for(int i=0;i<totalToAdd;i++)
         {
-            Sprite* sprite = Sprite::createWithTexture(batchNode->getTexture(), Rect(0,0,32,32));
-            sprites->addObject(sprite);
+            CCSprite* pSprite = CCSprite::createWithTexture(batchNode->getTexture(), CCRectMake(0,0,32,32));
+            sprites->addObject(pSprite);
         }
 
         // add them with random Z (very important!)
         for( int i=0; i < totalToAdd;i++ )
         {
-            batchNode->addChild((Node*) (sprites->objectAtIndex(i)), CCRANDOM_MINUS1_1() * 50, kTagBase+i);
+            batchNode->addChild((CCNode*) (sprites->objectAtIndex(i)), CCRANDOM_MINUS1_1() * 50, kTagBase+i);
         }
 
         batchNode->sortAllChildren();
@@ -488,8 +494,8 @@ void ReorderSpriteSheet::update(float dt)
 
         for( int i=0;i <  totalToAdd;i++)
         {
-            Node* node = (Node*) (batchNode->getChildren()->objectAtIndex(i));
-            batchNode->reorderChild(node, CCRANDOM_MINUS1_1() * 50);
+            CCNode* pNode = (CCNode*) (batchNode->getChildren()->objectAtIndex(i));
+            batchNode->reorderChild(pNode, CCRANDOM_MINUS1_1() * 50);
         }
         
         batchNode->sortAllChildren();
@@ -520,9 +526,9 @@ const char*  ReorderSpriteSheet::profilerName()
 
 void runNodeChildrenTest()
 {
-    IterateSpriteSheet* scene = new IterateSpriteSheetCArray();
-    scene->initWithQuantityOfNodes(kNodesIncrease);
+    IterateSpriteSheet* pScene = new IterateSpriteSheetCArray();
+    pScene->initWithQuantityOfNodes(kNodesIncrease);
 
-    Director::getInstance()->replaceScene(scene);
-    scene->release();
+    CCDirector::sharedDirector()->replaceScene(pScene);
+    pScene->release();
 }

@@ -27,29 +27,29 @@
 
 NS_CC_EXT_BEGIN
 
-void TableViewCell::reset()
+void CCTableViewCell::reset()
 {
-    _idx = CC_INVALID_INDEX;
+    m_uIdx = CC_INVALID_INDEX;
 }
 
-void TableViewCell::setObjectID(unsigned int uIdx)
+void CCTableViewCell::setObjectID(unsigned int uIdx)
 {
-    _idx = uIdx;
+    m_uIdx = uIdx;
 }
 
-unsigned int TableViewCell::getObjectID()
+unsigned int CCTableViewCell::getObjectID()
 {
-    return _idx;
+    return m_uIdx;
 }
 
-unsigned int TableViewCell::getIdx()
+unsigned int CCTableViewCell::getIdx()
 {
-    return _idx;
+    return m_uIdx;
 }
 
-void TableViewCell::setIdx(unsigned int uIdx)
+void CCTableViewCell::setIdx(unsigned int uIdx)
 {
-    _idx = uIdx;
+    m_uIdx = uIdx;
 }
 
 NS_CC_EXT_END

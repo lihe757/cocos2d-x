@@ -3,18 +3,17 @@
 
 #include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 #include <string>
 
-class BaseLayer : public BaseTest
+class BaseLayer : public CCLayer
 {
 public:
     BaseLayer();
     
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
     virtual std::string title();
     virtual std::string subtitle();
     virtual void onEnter();

@@ -2,9 +2,8 @@
 #define __CLIPPINGNODETEST_H__
 
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class BaseClippingNodeTest : public BaseTest
+class BaseClippingNodeTest : public CCLayer
 {
 public:
     ~BaseClippingNodeTest();
@@ -14,9 +13,9 @@ public:
 	virtual std::string subtitle();
     virtual void setup();
 
-	void backCallback(Object* sender);
-	void nextCallback(Object* sender);
-	void restartCallback(Object* sender);
+	void backCallback(CCObject* sender);
+	void nextCallback(CCObject* sender);
+	void restartCallback(CCObject* sender);
 };
 
 class BasicTest : public BaseClippingNodeTest
@@ -26,15 +25,15 @@ public:
     virtual std::string subtitle();
     virtual void setup();
 
-	virtual Action* actionRotate();
-	virtual Action* actionScale();
+	virtual CCAction* actionRotate();
+	virtual CCAction* actionScale();
 
-	virtual DrawNode* shape();
-	virtual Sprite* grossini();
+	virtual CCDrawNode* shape();
+	virtual CCSprite* grossini();
 
-	virtual Node* stencil();
-	virtual ClippingNode* clipper();
-	virtual Node* content();
+	virtual CCNode* stencil();
+	virtual CCClippingNode* clipper();
+	virtual CCNode* content();
 };
 
 class ShapeTest : public BasicTest
@@ -43,8 +42,8 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 
-    virtual Node* stencil();
-    virtual Node* content();
+    virtual CCNode* stencil();
+    virtual CCNode* content();
 };
 
 class ShapeInvertedTest : public ShapeTest
@@ -52,7 +51,7 @@ class ShapeInvertedTest : public ShapeTest
 public:
     virtual std::string title();
     virtual std::string subtitle();
-    virtual ClippingNode* clipper();
+    virtual CCClippingNode* clipper();
 };
 
 class SpriteTest : public BasicTest
@@ -61,9 +60,9 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
 
-    virtual Node* stencil();
-    virtual ClippingNode* clipper();
-    virtual Node* content();
+    virtual CCNode* stencil();
+    virtual CCClippingNode* clipper();
+    virtual CCNode* content();
 };
 
 class SpriteNoAlphaTest : public SpriteTest
@@ -71,7 +70,7 @@ class SpriteNoAlphaTest : public SpriteTest
 public:
     virtual std::string title();
     virtual std::string subtitle();
-    virtual ClippingNode* clipper();
+    virtual CCClippingNode* clipper();
 };
 
 class SpriteInvertedTest : public SpriteTest
@@ -79,7 +78,7 @@ class SpriteInvertedTest : public SpriteTest
 public:
     virtual std::string title();
     virtual std::string subtitle();
-    virtual ClippingNode* clipper();
+    virtual CCClippingNode* clipper();
 };
 
 class NestedTest : public BaseClippingNodeTest
@@ -97,12 +96,12 @@ public:
     virtual void setup();
     virtual std::string title();
     virtual std::string subtitle();
-    void pokeHoleAtPoint(Point point);
-    virtual void ccTouchesBegan(Set  *touches, Event  *event);
+    void pokeHoleAtPoint(CCPoint point);
+    virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
 private:
-	ClippingNode* _outerClipper;
-    Node* _holes;
-    Node* _holesStencil;
+	CCClippingNode* m_pOuterClipper;
+    CCNode* m_pHoles;
+    CCNode* m_pHolesStencil;
 };
 
 class ScrollViewDemo : public BaseClippingNodeTest
@@ -111,12 +110,12 @@ public:
     virtual std::string title();
     virtual std::string subtitle();
     virtual void setup();
-	virtual void ccTouchesBegan(Set  *touches, Event  *event);
-    virtual void ccTouchesMoved(Set  *touches, Event  *event);
-    virtual void ccTouchesEnded(Set  *touches, Event  *event);
+	virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
+    virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
 private:
-	bool _scrolling;
-    Point _lastPoint;
+	bool m_bScrolling;
+    CCPoint m_lastPoint;
 };
 
 //#if COCOS2D_DEBUG > 1
@@ -135,7 +134,7 @@ public:
 	virtual void setupStencilForDrawingOnPlane(GLint plane);
 
 protected:
-    Sprite* _sprite;
+    CCSprite* m_pSprite;
 };
 
 class RawStencilBufferTest2 : public RawStencilBufferTest

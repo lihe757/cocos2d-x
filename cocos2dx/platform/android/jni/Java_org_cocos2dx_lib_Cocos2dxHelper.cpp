@@ -180,7 +180,7 @@ void disableAccelerometerJNI() {
     }
 }
 
-// functions for UserDefault
+// functions for CCUserDefault
 bool getBoolForKeyJNI(const char* pKey, bool defaultValue)
 {
     JniMethodInfo t;

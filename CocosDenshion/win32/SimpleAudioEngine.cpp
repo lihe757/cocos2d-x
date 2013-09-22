@@ -43,7 +43,7 @@ SimpleAudioEngine::~SimpleAudioEngine()
 {
 }
 
-SimpleAudioEngine* SimpleAudioEngine::getInstance()
+SimpleAudioEngine* SimpleAudioEngine::sharedEngine()
 {
     static SimpleAudioEngine s_SharedEngine;
     return &s_SharedEngine;
@@ -120,8 +120,7 @@ bool SimpleAudioEngine::isBackgroundMusicPlaying()
 // effect function
 //////////////////////////////////////////////////////////////////////////
 
-unsigned int SimpleAudioEngine::playEffect(const char* pszFilePath, bool bLoop,
-                                           float pitch, float pan, float gain)
+unsigned int SimpleAudioEngine::playEffect(const char* pszFilePath, bool bLoop)
 {
     unsigned int nRet = _Hash(pszFilePath);
 
@@ -259,7 +258,7 @@ void SimpleAudioEngine::setEffectsVolume(float volume)
 
 static std::string _FullPath(const char * szPath)
 {
-    return FileUtils::getInstance()->fullPathForFilename(szPath);
+    return CCFileUtils::sharedFileUtils()->fullPathForFilename(szPath);
 }
 
 unsigned int _Hash(const char *key)

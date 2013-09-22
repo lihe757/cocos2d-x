@@ -3,29 +3,29 @@
 
 #include "ccTypes.h"
 
-enum class ResolutionPolicy
+enum ResolutionPolicy
 {
     // The entire application is visible in the specified area without trying to preserve the original aspect ratio.
     // Distortion can occur, and the application may appear stretched or compressed.
-    EXACT_FIT,
+    kResolutionExactFit,
     // The entire application fills the specified area, without distortion but possibly with some cropping,
     // while maintaining the original aspect ratio of the application.
-    NO_BORDER,
+    kResolutionNoBorder,
     // The entire application is visible in the specified area without distortion while maintaining the original
     // aspect ratio of the application. Borders can appear on two sides of the application.
-    SHOW_ALL,
+    kResolutionShowAll,
     // The application takes the height of the design resolution size and modifies the width of the internal
     // canvas so that it fits the aspect ratio of the device
     // no distortion will occur however you must make sure your application works on different
     // aspect ratios
-    FIXED_HEIGHT,
+    kResolutionFixedHeight,
     // The application takes the width of the design resolution size and modifies the height of the internal
     // canvas so that it fits the aspect ratio of the device
     // no distortion will occur however you must make sure your application works on different
     // aspect ratios
-    FIXED_WIDTH,
+    kResolutionFixedWidth,
 
-    UNKNOWN,
+    kResolutionUnKnown,
 };
 
 NS_CC_BEGIN
@@ -33,18 +33,18 @@ NS_CC_BEGIN
 #define CC_MAX_TOUCHES  5
 
 class EGLTouchDelegate;
-class Set;
+class CCSet;
 
 /**
  * @addtogroup platform
  * @{
  */
 
-class CC_DLL EGLViewProtocol
+class CC_DLL CCEGLViewProtocol
 {
 public:
-    EGLViewProtocol();
-    virtual ~EGLViewProtocol();
+    CCEGLViewProtocol();
+    virtual ~CCEGLViewProtocol();
 
     /** Force destroying EGL view, subclass must implement this method. */
     virtual void    end() = 0;
@@ -59,16 +59,10 @@ public:
     virtual void    setIMEKeyboardState(bool bOpen) = 0;
 
     /**
-     * Polls input events. Subclass must implement methods if platform
-     * does not provide event callbacks.
-     */
-    virtual void pollInputEvents();
-
-    /**
      * Get the frame size of EGL view.
      * In general, it returns the screen size since the EGL view is a fullscreen view.
      */
-    virtual const Size& getFrameSize() const;
+    virtual const CCSize& getFrameSize() const;
 
     /**
      * Set the frame size of EGL view.
@@ -78,28 +72,28 @@ public:
     /**
      * Get the visible area size of opengl viewport.
      */
-    virtual Size getVisibleSize() const;
+    virtual CCSize getVisibleSize() const;
 
     /**
      * Get the visible origin point of opengl viewport.
      */
-    virtual Point getVisibleOrigin() const;
+    virtual CCPoint getVisibleOrigin() const;
 
     /**
      * Set the design resolution size.
      * @param width Design resolution width.
      * @param height Design resolution height.
      * @param resolutionPolicy The resolution policy desired, you may choose:
-     *                         [1] EXACT_FIT Fill screen by stretch-to-fit: if the design resolution ratio of width to height is different from the screen resolution ratio, your game view will be stretched.
-     *                         [2] NO_BORDER Full screen without black border: if the design resolution ratio of width to height is different from the screen resolution ratio, two areas of your game view will be cut.
-     *                         [3] SHOW_ALL  Full screen with black border: if the design resolution ratio of width to height is different from the screen resolution ratio, two black borders will be shown.
+     *                         [1] kResolutionExactFit Fill screen by stretch-to-fit: if the design resolution ratio of width to height is different from the screen resolution ratio, your game view will be stretched.
+     *                         [2] kResolutionNoBorder Full screen without black border: if the design resolution ratio of width to height is different from the screen resolution ratio, two areas of your game view will be cut.
+     *                         [3] kResolutionShowAll  Full screen with black border: if the design resolution ratio of width to height is different from the screen resolution ratio, two black borders will be shown.
      */
     virtual void setDesignResolutionSize(float width, float height, ResolutionPolicy resolutionPolicy);
 
     /** Get design resolution size.
      *  Default resolution size is the same as 'getFrameSize'.
      */
-    virtual const Size&  getDesignResolutionSize() const;
+    virtual const CCSize&  getDesignResolutionSize() const;
 
     /** Set touch delegate */
     virtual void setTouchDelegate(EGLTouchDelegate * pDelegate);
@@ -122,7 +116,7 @@ public:
     /**
      * Get the current scissor rectangle
      */
-    virtual Rect getScissorRect();
+    virtual CCRect getScissorRect();
 
     virtual void setViewName(const char* pszViewName);
 
@@ -137,7 +131,7 @@ public:
     /**
      * Get the opengl view port rectangle.
      */
-    const Rect& getViewPortRect() const;
+    const CCRect& getViewPortRect() const;
 
     /**
      * Get scale factor of the horizontal direction.
@@ -149,23 +143,23 @@ public:
      */
     float getScaleY() const;
 private:
-    void getSetOfTouchesEndOrCancel(Set& set, int num, int ids[], float xs[], float ys[]);
+    void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[]);
 
 protected:
-    EGLTouchDelegate* _delegate;
+    EGLTouchDelegate* m_pDelegate;
 
     // real screen size
-    Size _screenSize;
+    CCSize m_obScreenSize;
     // resolution size, it is the size appropriate for the app resources.
-    Size _designResolutionSize;
+    CCSize m_obDesignResolutionSize;
     // the view port size
-    Rect _viewPortRect;
+    CCRect m_obViewPortRect;
     // the view name
-    char   _viewName[50];
+    char   m_szViewName[50];
 
-    float  _scaleX;
-    float  _scaleY;
-    ResolutionPolicy _resolutionPolicy;
+    float  m_fScaleX;
+    float  m_fScaleY;
+    ResolutionPolicy m_eResolutionPolicy;
 };
 
 // end of platform group

@@ -6,7 +6,7 @@
 
 NS_CC_BEGIN
 
-class LuaObjcBridge : public LuaBridge
+class CCLuaObjcBridge : public CCLuaBridge
 {
 public:
     static void luaopen_luaoc(lua_State *L);

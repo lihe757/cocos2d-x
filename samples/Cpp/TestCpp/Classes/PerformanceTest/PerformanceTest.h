@@ -3,30 +3,31 @@
 
 #include "../testBasic.h"
 
-class PerformanceMainLayer : public Layer
+class PerformanceMainLayer : public CCLayer
 {
 public:
     virtual void onEnter();
+    void menuCallback(CCObject* pSender);
 };
 
-class PerformBasicLayer : public Layer
+class PerformBasicLayer : public CCLayer
 {
 public:
     PerformBasicLayer(bool bControlMenuVisible, int nMaxCases = 0, int nCurCase = 0);
 
     virtual void onEnter();
 
-    virtual void restartCallback(Object* sender);
-    virtual void nextCallback(Object* sender);
-    virtual void backCallback(Object* sender);
+    virtual void restartCallback(CCObject* pSender);
+    virtual void nextCallback(CCObject* pSender);
+    virtual void backCallback(CCObject* pSender);
     virtual void showCurrentTest() = 0;
 
-    virtual void toMainLayer(Object* sender);
+    virtual void toMainLayer(CCObject* pSender);
 
 protected:
-    bool _controlMenuVisible;
-    int  _maxCases;
-    int  _curCase;
+    bool m_bControlMenuVisible;
+    int  m_nMaxCases;
+    int  m_nCurCase;
 };
 
 class PerformanceTestScene : public TestScene

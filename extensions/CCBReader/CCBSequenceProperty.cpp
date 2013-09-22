@@ -6,47 +6,47 @@ using namespace std;
 NS_CC_EXT_BEGIN
 
 CCBSequenceProperty::CCBSequenceProperty()
-: _name("")
-, _type(0)
+: mName("")
+, mType(0)
 {
     init();
 }
 
 bool CCBSequenceProperty::init()
 {
-    _keyframes = new Array();
+    mKeyframes = new CCArray();
     
     return true;
 }
 
 CCBSequenceProperty::~CCBSequenceProperty()
 {
-    CC_SAFE_RELEASE_NULL(_keyframes);
+    CC_SAFE_RELEASE_NULL(mKeyframes);
 }
 
 const char* CCBSequenceProperty::getName()
 {
-    return _name.c_str();
+    return mName.c_str();
 }
 
 void CCBSequenceProperty::setName(const char *pName)
 {
-    _name = pName;
+    mName = pName;
 }
 
 int CCBSequenceProperty::getType()
 {
-    return _type;
+    return mType;
 }
 
-void CCBSequenceProperty::setType(int type)
+void CCBSequenceProperty::setType(int nType)
 {
-    _type = type;
+    mType = nType;
 }
 
-Array* CCBSequenceProperty::getKeyframes()
+CCArray* CCBSequenceProperty::getKeyframes()
 {
-    return _keyframes;
+    return mKeyframes;
 }
 
 NS_CC_EXT_END

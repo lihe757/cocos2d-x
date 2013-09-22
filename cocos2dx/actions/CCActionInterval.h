@@ -46,7 +46,7 @@ NS_CC_BEGIN
 It has an start time, and a finish time. The finish time is the parameter
 duration plus the start time.
 
-These ActionInterval actions have some interesting properties, like:
+These CCActionInterval actions have some interesting properties, like:
 - They can run normally (default)
 - They can run reversed with the reverse method
 - They can run with the time altered with the Accelerate, AccelDeccel and Speed actions.
@@ -56,678 +56,624 @@ then running it again in Reverse mode.
 
 Example:
 
-Action *pingPongAction = Sequence::actions(action, action->reverse(), NULL);
+CCAction *pingPongAction = CCSequence::actions(action, action->reverse(), NULL);
 */
-class CC_DLL ActionInterval : public FiniteTimeAction
+class CC_DLL CCActionInterval : public CCFiniteTimeAction
 {
 public:
     /** how many seconds had elapsed since the actions started to run. */
-    inline float getElapsed(void) { return _elapsed; }
+    inline float getElapsed(void) { return m_elapsed; }
 
     /** initializes the action */
     bool initWithDuration(float d);
 
-    //extension in GridAction
+    /** returns true if the action has finished */
+    virtual bool isDone(void);
+
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void step(float dt);
+    virtual void startWithTarget(CCNode *pTarget);
+    /** returns a reversed action */
+    virtual CCActionInterval* reverse(void);
+
+public:
+
+    /** creates the action */
+    static CCActionInterval* create(float d);
+
+public:
+    //extension in CCGridAction 
     void setAmplitudeRate(float amp);
     float getAmplitudeRate(void);
 
-    //
-    // Overrides
-    //
-    virtual bool isDone(void) const override;
-    virtual void step(float dt) override;
-    virtual void startWithTarget(Node *target) override;
-    virtual ActionInterval* reverse() const override = 0;
-	virtual ActionInterval *clone() const override = 0;
-
-
 protected:
-    float _elapsed;
-    bool   _firstTick;
+    float m_elapsed;
+    bool   m_bFirstTick;
 };
 
 /** @brief Runs actions sequentially, one after another
  */
-class CC_DLL Sequence : public ActionInterval
+class CC_DLL CCSequence : public CCActionInterval
 {
 public:
-    /** helper constructor to create an array of sequenceable actions */
-    static Sequence* create(FiniteTimeAction *pAction1, ...) CC_REQUIRES_NULL_TERMINATION;
-    /** helper constructor to create an array of sequenceable actions given an array */
-    static Sequence* create(Array *arrayOfActions);
-    /** helper constructor to create an array of sequence-able actions */
-    static Sequence* createWithVariableList(FiniteTimeAction *pAction1, va_list args);
-    /** creates the action */
-    static Sequence* createWithTwoActions(FiniteTimeAction *pActionOne, FiniteTimeAction *pActionTwo);
-
-    virtual ~Sequence(void);
+    ~CCSequence(void);
 
     /** initializes the action */
-    bool initWithTwoActions(FiniteTimeAction *pActionOne, FiniteTimeAction *pActionTwo);
+    bool initWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
 
-    //
-    // Overrides
-    //
-    virtual Sequence* clone() const override;
-	virtual Sequence* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float t) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float t);
+    virtual CCActionInterval* reverse(void);
+
+public:
+
+    /** helper constructor to create an array of sequenceable actions */
+    static CCSequence* create(CCFiniteTimeAction *pAction1, ...);
+    /** helper constructor to create an array of sequenceable actions given an array */
+    static CCSequence* create(CCArray *arrayOfActions);
+    /** helper constructor to create an array of sequence-able actions */
+    static CCSequence* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
+    /** creates the action */
+    static CCSequence* createWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
 
 protected:
-    FiniteTimeAction *_actions[2];
-    float _split;
-    int _last;
+    CCFiniteTimeAction *m_pActions[2];
+    float m_split;
+    int m_last;
 };
 
 /** @brief Repeats an action a number of times.
- * To repeat an action forever use the RepeatForever action.
+ * To repeat an action forever use the CCRepeatForever action.
  */
-class CC_DLL Repeat : public ActionInterval
+class CC_DLL CCRepeat : public CCActionInterval
 {
 public:
-    /** creates a Repeat action. Times is an unsigned integer between 1 and pow(2,30) */
-    static Repeat* create(FiniteTimeAction *pAction, unsigned int times);
+    ~CCRepeat(void);
 
-    virtual ~Repeat(void);
+    /** initializes a CCRepeat action. Times is an unsigned integer between 1 and pow(2,30) */
+    bool initWithAction(CCFiniteTimeAction *pAction, unsigned int times);
 
-    /** initializes a Repeat action. Times is an unsigned integer between 1 and pow(2,30) */
-    bool initWithAction(FiniteTimeAction *pAction, unsigned int times);
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float dt);
+    virtual bool isDone(void);
+    virtual CCActionInterval* reverse(void);
 
-    inline void setInnerAction(FiniteTimeAction *pAction)
+    inline void setInnerAction(CCFiniteTimeAction *pAction)
     {
-        if (_innerAction != pAction)
+        if (m_pInnerAction != pAction)
         {
             CC_SAFE_RETAIN(pAction);
-            CC_SAFE_RELEASE(_innerAction);
-            _innerAction = pAction;
+            CC_SAFE_RELEASE(m_pInnerAction);
+            m_pInnerAction = pAction;
         }
     }
 
-    inline FiniteTimeAction* getInnerAction()
+    inline CCFiniteTimeAction* getInnerAction()
     {
-        return _innerAction;
+        return m_pInnerAction;
     }
 
-    //
-    // Overrides
-    //
-    virtual Repeat* clone() const override;
-	virtual Repeat* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float dt) override;
-    virtual bool isDone(void) const override;
+public:
 
+    /** creates a CCRepeat action. Times is an unsigned integer between 1 and pow(2,30) */
+    static CCRepeat* create(CCFiniteTimeAction *pAction, unsigned int times);
 protected:
-    unsigned int _times;
-    unsigned int _total;
-    float _nextDt;
-    bool _actionInstant;
+    unsigned int m_uTimes;
+    unsigned int m_uTotal;
+    float m_fNextDt;
+    bool m_bActionInstant;
     /** Inner action */
-    FiniteTimeAction *_innerAction;
+    CCFiniteTimeAction *m_pInnerAction;
 };
 
 /** @brief Repeats an action for ever.
 To repeat the an action for a limited number of times use the Repeat action.
 @warning This action can't be Sequenceable because it is not an IntervalAction
 */
-class CC_DLL RepeatForever : public ActionInterval
+class CC_DLL CCRepeatForever : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static RepeatForever* create(ActionInterval *pAction);
-
-    RepeatForever()
-        : _innerAction(NULL)
+    CCRepeatForever()
+        : m_pInnerAction(NULL)
     {}
-    virtual ~RepeatForever();
+    virtual ~CCRepeatForever();
 
     /** initializes the action */
-    bool initWithAction(ActionInterval *pAction);
+    bool initWithAction(CCActionInterval *pAction);
+    virtual CCObject* copyWithZone(CCZone *pZone);
+    virtual void startWithTarget(CCNode* pTarget);
+    virtual void step(float dt);
+    virtual bool isDone(void);
+    virtual CCActionInterval* reverse(void);
 
-    inline void setInnerAction(ActionInterval *pAction)
+    inline void setInnerAction(CCActionInterval *pAction)
     {
-        if (_innerAction != pAction)
+        if (m_pInnerAction != pAction)
         {
-            CC_SAFE_RELEASE(_innerAction);
-            _innerAction = pAction;
-            CC_SAFE_RETAIN(_innerAction);
+            CC_SAFE_RELEASE(m_pInnerAction);
+            m_pInnerAction = pAction;
+            CC_SAFE_RETAIN(m_pInnerAction);
         }
     }
 
-    inline ActionInterval* getInnerAction()
+    inline CCActionInterval* getInnerAction()
     {
-        return _innerAction;
+        return m_pInnerAction;
     }
 
-    //
-    // Overrides
-    //
-    virtual RepeatForever* clone() const override;
-	virtual RepeatForever* reverse(void) const override;
-    virtual void startWithTarget(Node* target) override;
-    virtual void step(float dt) override;
-    virtual bool isDone(void) const override;
+public:
 
+    /** creates the action */
+    static CCRepeatForever* create(CCActionInterval *pAction);
 protected:
     /** Inner action */
-    ActionInterval *_innerAction;
+    CCActionInterval *m_pInnerAction;
 };
 
 /** @brief Spawn a new action immediately
  */
-class CC_DLL Spawn : public ActionInterval
+class CC_DLL CCSpawn : public CCActionInterval
 {
 public:
-    /** helper constructor to create an array of spawned actions */
-    static Spawn* create(FiniteTimeAction *pAction1, ...) CC_REQUIRES_NULL_TERMINATION;
-
-    /** helper constructor to create an array of spawned actions */
-    static Spawn* createWithVariableList(FiniteTimeAction *pAction1, va_list args);
-
-    /** helper constructor to create an array of spawned actions given an array */
-    static Spawn* create(Array *arrayOfActions);
-
-    /** creates the Spawn action */
-    static Spawn* createWithTwoActions(FiniteTimeAction *pAction1, FiniteTimeAction *pAction2);
-
-    virtual ~Spawn(void);
+    ~CCSpawn(void);
 
     /** initializes the Spawn action with the 2 actions to spawn */
-    bool initWithTwoActions(FiniteTimeAction *pAction1, FiniteTimeAction *pAction2);
+    bool initWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
 
-    //
-    // Overrides
-    //
-    virtual Spawn* clone() const override;
-	virtual Spawn* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+
+public:
+
+    /** helper constructor to create an array of spawned actions */
+    static CCSpawn* create(CCFiniteTimeAction *pAction1, ...);
+    
+    /** helper constructor to create an array of spawned actions */
+    static CCSpawn* createWithVariableList(CCFiniteTimeAction *pAction1, va_list args);
+
+    /** helper constructor to create an array of spawned actions given an array */
+    static CCSpawn* create(CCArray *arrayOfActions);
+
+    /** creates the Spawn action */
+    static CCSpawn* createWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
 
 protected:
-    FiniteTimeAction *_one;
-    FiniteTimeAction *_two;
+    CCFiniteTimeAction *m_pOne;
+    CCFiniteTimeAction *m_pTwo;
 };
 
-/** @brief Rotates a Node object to a certain angle by modifying it's
+/** @brief Rotates a CCNode object to a certain angle by modifying it's
  rotation attribute.
  The direction will be decided by the shortest angle.
 */ 
-class CC_DLL RotateTo : public ActionInterval
+class CC_DLL CCRotateTo : public CCActionInterval
 {
 public:
+    /** creates the action */
+    static CCRotateTo* create(float fDuration, float fDeltaAngle);
+    /** initializes the action */
+    bool initWithDuration(float fDuration, float fDeltaAngle);
+    
     /** creates the action with separate rotation angles */
-    static RotateTo* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
+    static CCRotateTo* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
+    virtual bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
 
-    /** creates the action */
-    static RotateTo* create(float fDuration, float fDeltaAngle);
-    /** initializes the action */
-    bool initWithDuration(float fDuration, float fDeltaAngle);
-    
-    bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
-
-    //
-    // Overrides
-    //
-    virtual RotateTo* clone() const override;
-    virtual RotateTo* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
     
 protected:
-    float _dstAngleX;
-    float _startAngleX;
-    float _diffAngleX;
+    float m_fDstAngleX;
+    float m_fStartAngleX;
+    float m_fDiffAngleX;
     
-    float _dstAngleY;
-    float _startAngleY;
-    float _diffAngleY;
+    float m_fDstAngleY;
+    float m_fStartAngleY;
+    float m_fDiffAngleY;
 };
 
-/** @brief Rotates a Node object clockwise a number of degrees by modifying it's rotation attribute.
+/** @brief Rotates a CCNode object clockwise a number of degrees by modifying it's rotation attribute.
 */
-class CC_DLL RotateBy : public ActionInterval
+class CC_DLL CCRotateBy : public CCActionInterval
 {
 public:
     /** creates the action */
-    static RotateBy* create(float fDuration, float fDeltaAngle);
-
+    static CCRotateBy* create(float fDuration, float fDeltaAngle);
     /** initializes the action */
     bool initWithDuration(float fDuration, float fDeltaAngle);
     
-    static RotateBy* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
+    static CCRotateBy* create(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
     bool initWithDuration(float fDuration, float fDeltaAngleX, float fDeltaAngleY);
 
-    //
-    // Override
-    //
-    virtual RotateBy* clone() const override;
-	virtual RotateBy* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
     
 protected:
-    float _angleX;
-    float _startAngleX;
-    float _angleY;
-    float _startAngleY;
+    float m_fAngleX;
+    float m_fStartAngleX;
+    float m_fAngleY;
+    float m_fStartAngleY;
 };
 
-/**  Moves a Node object x,y pixels by modifying it's position attribute.
+/**  Moves a CCNode object x,y pixels by modifying it's position attribute.
  x and y are relative to the position of the object.
- Several MoveBy actions can be concurrently called, and the resulting
+ Several CCMoveBy actions can be concurrently called, and the resulting
  movement will be the sum of individual movements.
  @since v2.1beta2-custom
  */
-class CC_DLL MoveBy : public ActionInterval
+class CC_DLL CCMoveBy : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static MoveBy* create(float duration, const Point& deltaPosition);
-
     /** initializes the action */
-    bool initWithDuration(float duration, const Point& deltaPosition);
+    bool initWithDuration(float duration, const CCPoint& deltaPosition);
 
-    //
-    // Overrides
-    //
-    virtual MoveBy* clone() const override;
-	virtual MoveBy* reverse(void) const  override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCActionInterval* reverse(void);
+    virtual void update(float time);
 
+public:
+    /** creates the action */
+    static CCMoveBy* create(float duration, const CCPoint& deltaPosition);
 protected:
-    Point _positionDelta;
-    Point _startPosition;
-    Point _previousPosition;
+    CCPoint m_positionDelta;
+    CCPoint m_startPosition;
+    CCPoint m_previousPosition;
 };
 
-/** Moves a Node object to the position x,y. x and y are absolute coordinates by modifying it's position attribute.
- Several MoveTo actions can be concurrently called, and the resulting
+/** Moves a CCNode object to the position x,y. x and y are absolute coordinates by modifying it's position attribute.
+ Several CCMoveTo actions can be concurrently called, and the resulting
  movement will be the sum of individual movements.
  @since v2.1beta2-custom
  */
-class CC_DLL MoveTo : public MoveBy
+class CC_DLL CCMoveTo : public CCMoveBy
 {
 public:
-    /** creates the action */
-    static MoveTo* create(float duration, const Point& position);
-
     /** initializes the action */
-    bool initWithDuration(float duration, const Point& position);
+    bool initWithDuration(float duration, const CCPoint& position);
 
-    //
-    // Overrides
-    //
-    virtual MoveTo* clone() const override;
-    virtual void startWithTarget(Node *target) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
 
+public:
+    /** creates the action */
+    static CCMoveTo* create(float duration, const CCPoint& position);
 protected:
-    Point _endPosition;
+    CCPoint m_endPosition;
 };
 
-/** Skews a Node object to given angles by modifying it's skewX and skewY attributes
+/** Skews a CCNode object to given angles by modifying it's skewX and skewY attributes
 @since v1.0
 */
-class CC_DLL SkewTo : public ActionInterval
+class CC_DLL CCSkewTo : public CCActionInterval
 {
 public:
+    CCSkewTo();
+    virtual bool initWithDuration(float t, float sx, float sy);
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+
+public:
+
     /** creates the action */
-    static SkewTo* create(float t, float sx, float sy);
-
-    SkewTo();
-    bool initWithDuration(float t, float sx, float sy);
-
-    //
-    // Overrides
-    //
-    virtual SkewTo* clone() const override;
-	virtual SkewTo* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
-
+    static CCSkewTo* create(float t, float sx, float sy);
 protected:
-    float _skewX;
-    float _skewY;
-    float _startSkewX;
-    float _startSkewY;
-    float _endSkewX;
-    float _endSkewY;
-    float _deltaX;
-    float _deltaY;
+    float m_fSkewX;
+    float m_fSkewY;
+    float m_fStartSkewX;
+    float m_fStartSkewY;
+    float m_fEndSkewX;
+    float m_fEndSkewY;
+    float m_fDeltaX;
+    float m_fDeltaY;
 };
 
-/** Skews a Node object by skewX and skewY degrees
+/** Skews a CCNode object by skewX and skewY degrees
 @since v1.0
 */
-class CC_DLL SkewBy : public SkewTo
+class CC_DLL CCSkewBy : public CCSkewTo
 {
 public:
+    virtual bool initWithDuration(float t, float sx, float sy);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCActionInterval* reverse(void);
+
+public:
+
     /** creates the action */
-    static SkewBy* create(float t, float deltaSkewX, float deltaSkewY);
-
-    bool initWithDuration(float t, float sx, float sy);
-
-    //
-    // Overrides
-    //
-    virtual void startWithTarget(Node *target) override;
-    virtual SkewBy* clone() const  override;
-	virtual SkewBy* reverse(void) const override;
+    static CCSkewBy* create(float t, float deltaSkewX, float deltaSkewY);
 };
 
-/** @brief Moves a Node object simulating a parabolic jump movement by modifying it's position attribute.
+/** @brief Moves a CCNode object simulating a parabolic jump movement by modifying it's position attribute.
 */
-class CC_DLL JumpBy : public ActionInterval
+class CC_DLL CCJumpBy : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static JumpBy* create(float duration, const Point& position, float height, int jumps);
-
     /** initializes the action */
-    bool initWithDuration(float duration, const Point& position, float height, int jumps);
+    bool initWithDuration(float duration, const CCPoint& position, float height, unsigned int jumps);
 
-    //
-    // Overrides
-    //
-    virtual JumpBy* clone() const override;
-	virtual JumpBy* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates the action */
+    static CCJumpBy* create(float duration, const CCPoint& position, float height, unsigned int jumps);
 protected:
-    Point           _startPosition;
-    Point           _delta;
-    float           _height;
-    int             _jumps;
-    Point           _previousPos;
+    CCPoint         m_startPosition;
+    CCPoint         m_delta;
+    float           m_height;
+    unsigned int    m_nJumps;
+    CCPoint         m_previousPos;
 };
 
-/** @brief Moves a Node object to a parabolic position simulating a jump movement by modifying it's position attribute.
+/** @brief Moves a CCNode object to a parabolic position simulating a jump movement by modifying it's position attribute.
 */ 
-class CC_DLL JumpTo : public JumpBy
+class CC_DLL CCJumpTo : public CCJumpBy
 {
 public:
-    /** creates the action */
-    static JumpTo* create(float duration, const Point& position, float height, int jumps);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
-    //
-    // Override
-    //
-    virtual void startWithTarget(Node *target) override;
-    virtual JumpTo* clone() const override;
-	virtual JumpTo* reverse(void) const override;
+public:
+    /** creates the action */
+    static CCJumpTo* create(float duration, const CCPoint& position, float height, int jumps);
 };
 
-/** Bezier configuration structure
+/** @typedef bezier configuration structure
  */
 typedef struct _ccBezierConfig {
     //! end position of the bezier
-    Point endPosition;
+    CCPoint endPosition;
     //! Bezier control point 1
-    Point controlPoint_1;
+    CCPoint controlPoint_1;
     //! Bezier control point 2
-    Point controlPoint_2;
+    CCPoint controlPoint_2;
 } ccBezierConfig;
 
 /** @brief An action that moves the target with a cubic Bezier curve by a certain distance.
  */
-class CC_DLL BezierBy : public ActionInterval
+class CC_DLL CCBezierBy : public CCActionInterval
 {
 public:
-    /** creates the action with a duration and a bezier configuration */
-    static BezierBy* create(float t, const ccBezierConfig& c);
-
     /** initializes the action with a duration and a bezier configuration */
     bool initWithDuration(float t, const ccBezierConfig& c);
 
-    //
-    // Overrides
-    //
-    virtual BezierBy* clone() const override;
-	virtual BezierBy* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates the action with a duration and a bezier configuration */
+    static CCBezierBy* create(float t, const ccBezierConfig& c);
 protected:
-    ccBezierConfig _config;
-    Point _startPosition;
-    Point _previousPosition;
+    ccBezierConfig m_sConfig;
+    CCPoint m_startPosition;
+    CCPoint m_previousPosition;
 };
 
 /** @brief An action that moves the target with a cubic Bezier curve to a destination point.
  @since v0.8.2
  */
-class CC_DLL BezierTo : public BezierBy
+class CC_DLL CCBezierTo : public CCBezierBy
 {
 public:
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCObject* copyWithZone(CCZone* pZone);
+
+public:
+
     /** creates the action with a duration and a bezier configuration */
-    static BezierTo* create(float t, const ccBezierConfig& c);
+    static CCBezierTo* create(float t, const ccBezierConfig& c);
     bool initWithDuration(float t, const ccBezierConfig &c);
-
-    //
-    // Overrides
-    //
-    virtual void startWithTarget(Node *target) override;
-    virtual BezierTo* clone() const override;
-	virtual BezierTo* reverse(void) const override;
-
+    
 protected:
-    ccBezierConfig _toConfig;
+    ccBezierConfig m_sToConfig;
 };
 
-/** @brief Scales a Node object to a zoom factor by modifying it's scale attribute.
+/** @brief Scales a CCNode object to a zoom factor by modifying it's scale attribute.
  @warning This action doesn't support "reverse"
  */
-class CC_DLL ScaleTo : public ActionInterval
+class CC_DLL CCScaleTo : public CCActionInterval
 {
 public:
-    /** creates the action with the same scale factor for X and Y */
-    static ScaleTo* create(float duration, float s);
-
-    /** creates the action with and X factor and a Y factor */
-    static ScaleTo* create(float duration, float sx, float sy);
-
     /** initializes the action with the same scale factor for X and Y */
     bool initWithDuration(float duration, float s);
 
     /** initializes the action with and X factor and a Y factor */
     bool initWithDuration(float duration, float sx, float sy);
 
-    //
-    // Overrides
-    //
-    virtual ScaleTo* clone() const override;
-	virtual ScaleTo* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
 
-protected:
-    float _scaleX;
-    float _scaleY;
-    float _startScaleX;
-    float _startScaleY;
-    float _endScaleX;
-    float _endScaleY;
-    float _deltaX;
-    float _deltaY;
-};
-
-/** @brief Scales a Node object a zoom factor by modifying it's scale attribute.
-*/
-class CC_DLL ScaleBy : public ScaleTo
-{
 public:
+
     /** creates the action with the same scale factor for X and Y */
-    static ScaleBy* create(float duration, float s);
+    static CCScaleTo* create(float duration, float s);
 
     /** creates the action with and X factor and a Y factor */
-    static ScaleBy* create(float duration, float sx, float sy);
-
-    //
-    // Overrides
-    //
-    virtual void startWithTarget(Node *target) override;
-    virtual ScaleBy* clone() const override;
-	virtual ScaleBy* reverse(void) const override;
+    static CCScaleTo* create(float duration, float sx, float sy);
+protected:
+    float m_fScaleX;
+    float m_fScaleY;
+    float m_fStartScaleX;
+    float m_fStartScaleY;
+    float m_fEndScaleX;
+    float m_fEndScaleY;
+    float m_fDeltaX;
+    float m_fDeltaY;
 };
 
-/** @brief Blinks a Node object by modifying it's visible attribute
+/** @brief Scales a CCNode object a zoom factor by modifying it's scale attribute.
 */
-class CC_DLL Blink : public ActionInterval
+class CC_DLL CCScaleBy : public CCScaleTo
 {
 public:
-    /** creates the action */
-    static Blink* create(float duration, int blinks);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual CCActionInterval* reverse(void);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
+public:
+
+    /** creates the action with the same scale factor for X and Y */
+    static CCScaleBy* create(float duration, float s);
+
+    /** creates the action with and X factor and a Y factor */
+    static CCScaleBy* create(float duration, float sx, float sy);
+};
+
+/** @brief Blinks a CCNode object by modifying it's visible attribute
+*/
+class CC_DLL CCBlink : public CCActionInterval
+{
+public:
     /** initializes the action */
-    bool initWithDuration(float duration, int blinks);
+    bool initWithDuration(float duration, unsigned int uBlinks);
 
-    //
-    // Overrides
-    //
-    virtual Blink* clone() const override;
-	virtual Blink* reverse(void) const override;
-    virtual void update(float time) override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop() override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+
+public:
+
+    /** creates the action */
+    static CCBlink* create(float duration, unsigned int uBlinks);
+    
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop();
     
 protected:
-    int _times;
-    bool _originalState;
+    unsigned int m_nTimes;
+    bool m_bOriginalState;
 };
 
-/** @brief Fades In an object that implements the RGBAProtocol protocol. It modifies the opacity from 0 to 255.
+/** @brief Fades In an object that implements the CCRGBAProtocol protocol. It modifies the opacity from 0 to 255.
  The "reverse" of this action is FadeOut
  */
-class CC_DLL FadeIn : public ActionInterval
+class CC_DLL CCFadeIn : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static FadeIn* create(float d);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
-    //
-    // Overrides
-    //
-    virtual void update(float time) override;
-    virtual FadeIn* clone() const override;
-	virtual ActionInterval* reverse(void) const override;
+public:
+    /** creates the action */
+    static CCFadeIn* create(float d);
 };
 
-/** @brief Fades Out an object that implements the RGBAProtocol protocol. It modifies the opacity from 255 to 0.
+/** @brief Fades Out an object that implements the CCRGBAProtocol protocol. It modifies the opacity from 255 to 0.
  The "reverse" of this action is FadeIn
 */
-class CC_DLL FadeOut : public ActionInterval
+class CC_DLL CCFadeOut : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static FadeOut* create(float d);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
-    //
-    // Overrides
-    //
-    virtual void update(float time) override;
-    virtual FadeOut* clone() const  override;
-	virtual ActionInterval* reverse(void) const override;
+public:
+
+    /** creates the action */
+    static CCFadeOut* create(float d);
 };
 
-/** @brief Fades an object that implements the RGBAProtocol protocol. It modifies the opacity from the current value to a custom one.
+/** @brief Fades an object that implements the CCRGBAProtocol protocol. It modifies the opacity from the current value to a custom one.
  @warning This action doesn't support "reverse"
  */
-class CC_DLL FadeTo : public ActionInterval
+class CC_DLL CCFadeTo : public CCActionInterval
 {
 public:
-    /** creates an action with duration and opacity */
-    static FadeTo* create(float duration, GLubyte opacity);
-
     /** initializes the action with duration and opacity */
     bool initWithDuration(float duration, GLubyte opacity);
 
-    //
-    // Overrides
-    //
-    virtual FadeTo* clone() const override;
-	virtual FadeTo* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
 
+public:
+    /** creates an action with duration and opacity */
+    static CCFadeTo* create(float duration, GLubyte opacity);
 protected:
-    GLubyte _toOpacity;
-    GLubyte _fromOpacity;
+    GLubyte m_toOpacity;
+    GLubyte m_fromOpacity;
 };
 
-/** @brief Tints a Node that implements the NodeRGB protocol from current tint to a custom one.
+/** @brief Tints a CCNode that implements the CCNodeRGB protocol from current tint to a custom one.
  @warning This action doesn't support "reverse"
  @since v0.7.2
 */
-class CC_DLL TintTo : public ActionInterval
+class CC_DLL CCTintTo : public CCActionInterval
 {
 public:
-    /** creates an action with duration and color */
-    static TintTo* create(float duration, GLubyte red, GLubyte green, GLubyte blue);
-
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLubyte red, GLubyte green, GLubyte blue);
 
-    //
-    // Overrides
-    //
-    virtual TintTo* clone() const override;
-	virtual TintTo* reverse(void) const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
 
-protected:
-    Color3B _to;
-    Color3B _from;
-};
-
-/** @brief Tints a Node that implements the NodeRGB protocol from current tint to a custom one.
- @since v0.7.2
- */
-class CC_DLL TintBy : public ActionInterval
-{
 public:
     /** creates an action with duration and color */
-    static TintBy* create(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
+    static CCTintTo* create(float duration, GLubyte red, GLubyte green, GLubyte blue);
+protected:
+    ccColor3B m_to;
+    ccColor3B m_from;
+};
 
+/** @brief Tints a CCNode that implements the CCNodeRGB protocol from current tint to a custom one.
+ @since v0.7.2
+ */
+class CC_DLL CCTintBy : public CCActionInterval
+{
+public:
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
 
-    //
-    // Overrides
-    //
-    virtual TintBy* clone() const override;
-	virtual TintBy* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates an action with duration and color */
+    static CCTintBy* create(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
 protected:
-    GLshort _deltaR;
-    GLshort _deltaG;
-    GLshort _deltaB;
+    GLshort m_deltaR;
+    GLshort m_deltaG;
+    GLshort m_deltaB;
 
-    GLshort _fromR;
-    GLshort _fromG;
-    GLshort _fromB;
+    GLshort m_fromR;
+    GLshort m_fromG;
+    GLshort m_fromB;
 };
 
 /** @brief Delays the action a certain amount of seconds
 */
-class CC_DLL DelayTime : public ActionInterval
+class CC_DLL CCDelayTime : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static DelayTime* create(float d);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
-    //
-    // Overrides
-    //
-    virtual void update(float time) override;
-    virtual DelayTime* reverse() const override;
-    virtual DelayTime* clone() const override;
+public:
+
+    /** creates the action */
+    static CCDelayTime* create(float d);
 };
 
 /** @brief Executes an action in reverse order, from time=duration to time=0
@@ -737,101 +683,81 @@ public:
  of your own actions, but using it outside the "reversed"
  scope is not recommended.
 */
-class CC_DLL ReverseTime : public ActionInterval
+class CC_DLL CCReverseTime : public CCActionInterval
 {
 public:
-    /** creates the action */
-    static ReverseTime* create(FiniteTimeAction *pAction);
-
-    virtual ~ReverseTime(void);
-    ReverseTime();
+    ~CCReverseTime(void);
+    CCReverseTime();
 
     /** initializes the action */
-    bool initWithAction(FiniteTimeAction *pAction);
+    bool initWithAction(CCFiniteTimeAction *pAction);
 
-    //
-    // Overrides
-    //
-	virtual ReverseTime* reverse() const override;
-    virtual ReverseTime* clone() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float time) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float time);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates the action */
+    static CCReverseTime* create(CCFiniteTimeAction *pAction);
 protected:
-    FiniteTimeAction *_other;
+    CCFiniteTimeAction *m_pOther;
 };
 
-class Texture2D;
+class CCTexture2D;
 /** @brief Animates a sprite given the name of an Animation */
-class CC_DLL Animate : public ActionInterval
+class CC_DLL CCAnimate : public CCActionInterval
 {
 public:
-    /** creates the action with an Animation and will restore the original frame when the animation is over */
-    static Animate* create(Animation *pAnimation);
-
-    Animate();
-    virtual ~Animate();
+    CCAnimate();
+    ~CCAnimate();
 
     /** initializes the action with an Animation and will restore the original frame when the animation is over */
-    bool initWithAnimation(Animation *pAnimation);
+    bool initWithAnimation(CCAnimation *pAnimation);
 
-    /** sets the Animation object to be animated */
-    void setAnimation( Animation* animation );
-    /** returns the Animation object that is being animated */
-    Animation* getAnimation() { return _animation; }
-    const Animation* getAnimation() const { return _animation; }
 
-    //
-    // Overrides
-    //
-    virtual Animate* clone() const override;
-    virtual Animate* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float t) override;
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float t);
+    virtual CCActionInterval* reverse(void);
 
+public:
+    /** creates the action with an Animation and will restore the original frame when the animation is over */
+    static CCAnimate* create(CCAnimation *pAnimation);
+    CC_SYNTHESIZE_RETAIN(CCAnimation*, m_pAnimation, Animation)
 protected:
-    std::vector<float>* _splitTimes;
-    int             _nextFrame;
-    SpriteFrame*    _origFrame;
-    unsigned int    _executedLoops;
-    Animation*      _animation;
+    std::vector<float>* m_pSplitTimes;
+    int                m_nNextFrame;
+    CCSpriteFrame*  m_pOrigFrame;
+       unsigned int    m_uExecutedLoops;
 };
 
 /** Overrides the target of an action so that it always runs on the target
  * specified at action creation rather than the one specified by runAction.
  */
-class CC_DLL TargetedAction : public ActionInterval
+class CC_DLL CCTargetedAction : public CCActionInterval
 {
 public:
-    TargetedAction();
-    virtual ~TargetedAction();
+    CCTargetedAction();
+    virtual ~CCTargetedAction();
 
     /** Create an action with the specified action and forced target */
-    static TargetedAction* create(Node* target, FiniteTimeAction* pAction);
+    static CCTargetedAction* create(CCNode* pTarget, CCFiniteTimeAction* pAction);
 
     /** Init an action with the specified action and forced target */
-    bool initWithTarget(Node* target, FiniteTimeAction* pAction);
+    bool initWithTarget(CCNode* pTarget, CCFiniteTimeAction* pAction);
 
-    /** Sets the target that the action will be forced to run with */
-    void setForcedTarget(Node* forcedTarget);
-    /** returns the target that the action is forced to run with */
-    Node* getForcedTarget() { return _forcedTarget; }
-    const Node* getForcedTarget() const { return _forcedTarget; }
+    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual void startWithTarget(CCNode *pTarget);
+    virtual void stop(void);
+    virtual void update(float time);
 
-    //
-    // Overrides
-    //
-    virtual TargetedAction* clone() const override;
-    virtual TargetedAction* reverse() const  override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    virtual void update(float time) override;
-
+    /** This is the target that the action will be forced to run with */
+    CC_SYNTHESIZE_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
 private:
-    FiniteTimeAction* _action;
-    Node* _forcedTarget;
+    CCFiniteTimeAction* m_pAction;
 };
 
 // end of actions group

@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "CCMenu.h"
 #include "CCDirector.h"
 #include "CCApplication.h"
+#include "support/CCPointExtension.h"
 #include "touch_dispatcher/CCTouchDispatcher.h"
 #include "touch_dispatcher/CCTouch.h"
 #include "CCStdC.h"
@@ -37,13 +38,13 @@ using namespace std;
 
 NS_CC_BEGIN
 
-static std::vector<unsigned int> ccarray_to_std_vector(Array* pArray)
+static std::vector<unsigned int> ccarray_to_std_vector(CCArray* pArray)
 {
     std::vector<unsigned int> ret;
-    Object* pObj;
+    CCObject* pObj;
     CCARRAY_FOREACH(pArray, pObj)
     {
-        Integer* pInteger = static_cast<Integer*>(pObj);
+        CCInteger* pInteger = (CCInteger*)pObj;
         ret.push_back((unsigned int)pInteger->getValue());
     }
     return ret;
@@ -58,26 +59,26 @@ enum
 //CCMenu
 //
 
-Menu* Menu::create()
+CCMenu* CCMenu::create()
 {
-    return Menu::create(NULL, NULL);
+    return CCMenu::create(NULL, NULL);
 }
 
-Menu * Menu::create(MenuItem* item, ...)
+CCMenu * CCMenu::create(CCMenuItem* item, ...)
 {
     va_list args;
     va_start(args,item);
     
-    Menu *pRet = Menu::createWithItems(item, args);
+    CCMenu *pRet = CCMenu::createWithItems(item, args);
     
     va_end(args);
     
     return pRet;
 }
 
-Menu* Menu::createWithArray(Array* pArrayOfItems)
+CCMenu* CCMenu::createWithArray(CCArray* pArrayOfItems)
 {
-    Menu *pRet = new Menu();
+    CCMenu *pRet = new CCMenu();
     if (pRet && pRet->initWithArray(pArrayOfItems))
     {
         pRet->autorelease();
@@ -90,66 +91,66 @@ Menu* Menu::createWithArray(Array* pArrayOfItems)
     return pRet;
 }
 
-Menu* Menu::createWithItems(MenuItem* item, va_list args)
+CCMenu* CCMenu::createWithItems(CCMenuItem* item, va_list args)
 {
-    Array* pArray = NULL;
+    CCArray* pArray = NULL;
     if( item )
     {
-        pArray = Array::create(item, NULL);
-        MenuItem *i = va_arg(args, MenuItem*);
+        pArray = CCArray::create(item, NULL);
+        CCMenuItem *i = va_arg(args, CCMenuItem*);
         while(i)
         {
             pArray->addObject(i);
-            i = va_arg(args, MenuItem*);
+            i = va_arg(args, CCMenuItem*);
         }
     }
     
-    return Menu::createWithArray(pArray);
+    return CCMenu::createWithArray(pArray);
 }
 
-Menu* Menu::createWithItem(MenuItem* item)
+CCMenu* CCMenu::createWithItem(CCMenuItem* item)
 {
-    return Menu::create(item, NULL);
+    return CCMenu::create(item, NULL);
 }
 
-bool Menu::init()
+bool CCMenu::init()
 {
     return initWithArray(NULL);
 }
 
-bool Menu::initWithArray(Array* pArrayOfItems)
+bool CCMenu::initWithArray(CCArray* pArrayOfItems)
 {
-    if (Layer::init())
+    if (CCLayer::init())
     {
-        setTouchPriority(Menu::HANDLER_PRIORITY);
-        setTouchMode(Touch::DispatchMode::ONE_BY_ONE);
+        setTouchPriority(kCCMenuHandlerPriority);
+        setTouchMode(kCCTouchesOneByOne);
         setTouchEnabled(true);
 
-        _enabled = true;
+        m_bEnabled = true;
         // menu in the center of the screen
-        Size s = Director::getInstance()->getWinSize();
+        CCSize s = CCDirector::sharedDirector()->getWinSize();
 
         this->ignoreAnchorPointForPosition(true);
-        setAnchorPoint(Point(0.5f, 0.5f));
+        setAnchorPoint(ccp(0.5f, 0.5f));
         this->setContentSize(s);
 
-        setPosition(Point(s.width/2, s.height/2));
+        setPosition(ccp(s.width/2, s.height/2));
         
         if (pArrayOfItems != NULL)
         {
             int z=0;
-            Object* pObj = NULL;
+            CCObject* pObj = NULL;
             CCARRAY_FOREACH(pArrayOfItems, pObj)
             {
-                MenuItem* item = static_cast<MenuItem*>(pObj);
+                CCMenuItem* item = (CCMenuItem*)pObj;
                 this->addChild(item, z);
                 z++;
             }
         }
     
         //    [self alignItemsVertically];
-        _selectedItem = NULL;
-        _state = Menu::State::WAITING;
+        m_pSelectedItem = NULL;
+        m_eState = kCCMenuStateWaiting;
         
         // enable cascade color and opacity on menus
         setCascadeColorEnabled(true);
@@ -163,74 +164,74 @@ bool Menu::initWithArray(Array* pArrayOfItems)
 /*
 * override add:
 */
-void Menu::addChild(Node * child)
+void CCMenu::addChild(CCNode * child)
 {
-    Layer::addChild(child);
+    CCLayer::addChild(child);
 }
 
-void Menu::addChild(Node * child, int zOrder)
+void CCMenu::addChild(CCNode * child, int zOrder)
 {
-    Layer::addChild(child, zOrder);
+    CCLayer::addChild(child, zOrder);
 }
 
-void Menu::addChild(Node * child, int zOrder, int tag)
+void CCMenu::addChild(CCNode * child, int zOrder, int tag)
 {
-    CCASSERT( dynamic_cast<MenuItem*>(child) != NULL, "Menu only supports MenuItem objects as children");
-    Layer::addChild(child, zOrder, tag);
+    CCAssert( dynamic_cast<CCMenuItem*>(child) != NULL, "Menu only supports MenuItem objects as children");
+    CCLayer::addChild(child, zOrder, tag);
 }
 
-void Menu::onExit()
+void CCMenu::onExit()
 {
-    if (_state == Menu::State::TRACKING_TOUCH)
+    if (m_eState == kCCMenuStateTrackingTouch)
     {
-        if (_selectedItem)
+        if (m_pSelectedItem)
         {
-            _selectedItem->unselected();
-            _selectedItem = NULL;
+            m_pSelectedItem->unselected();
+            m_pSelectedItem = NULL;
         }
         
-        _state = Menu::State::WAITING;
+        m_eState = kCCMenuStateWaiting;
     }
 
-    Layer::onExit();
+    CCLayer::onExit();
 }
 
-void Menu::removeChild(Node* child, bool cleanup)
+void CCMenu::removeChild(CCNode* child, bool cleanup)
 {
-    MenuItem *pMenuItem = dynamic_cast<MenuItem*>(child);
-    CCASSERT(pMenuItem != NULL, "Menu only supports MenuItem objects as children");
+    CCMenuItem *pMenuItem = dynamic_cast<CCMenuItem*>(child);
+    CCAssert(pMenuItem != NULL, "Menu only supports MenuItem objects as children");
     
-    if (_selectedItem == pMenuItem)
+    if (m_pSelectedItem == pMenuItem)
     {
-        _selectedItem = NULL;
+        m_pSelectedItem = NULL;
     }
     
-    Node::removeChild(child, cleanup);
+    CCNode::removeChild(child, cleanup);
 }
 
 //Menu - Events
 
-void Menu::setHandlerPriority(int newPriority)
+void CCMenu::setHandlerPriority(int newPriority)
 {
-    TouchDispatcher* pDispatcher = Director::getInstance()->getTouchDispatcher();
+    CCTouchDispatcher* pDispatcher = CCDirector::sharedDirector()->getTouchDispatcher();
     pDispatcher->setPriority(newPriority, this);
 }
 
-void Menu::registerWithTouchDispatcher()
+void CCMenu::registerWithTouchDispatcher()
 {
-    Director* pDirector = Director::getInstance();
+    CCDirector* pDirector = CCDirector::sharedDirector();
     pDirector->getTouchDispatcher()->addTargetedDelegate(this, this->getTouchPriority(), true);
 }
 
-bool Menu::ccTouchBegan(Touch* touch, Event* event)
+bool CCMenu::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(event);
-    if (_state != Menu::State::WAITING || ! _visible || !_enabled)
+    if (m_eState != kCCMenuStateWaiting || ! m_bVisible || !m_bEnabled)
     {
         return false;
     }
 
-    for (Node *c = this->_parent; c != NULL; c = c->getParent())
+    for (CCNode *c = this->m_pParent; c != NULL; c = c->getParent())
     {
         if (c->isVisible() == false)
         {
@@ -238,137 +239,137 @@ bool Menu::ccTouchBegan(Touch* touch, Event* event)
         }
     }
 
-    _selectedItem = this->itemForTouch(touch);
-    if (_selectedItem)
+    m_pSelectedItem = this->itemForTouch(touch);
+    if (m_pSelectedItem)
     {
-        _state = Menu::State::TRACKING_TOUCH;
-        _selectedItem->selected();
+        m_eState = kCCMenuStateTrackingTouch;
+        m_pSelectedItem->selected();
         return true;
     }
     return false;
 }
 
-void Menu::ccTouchEnded(Touch *touch, Event* event)
+void CCMenu::ccTouchEnded(CCTouch *touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(touch);
     CC_UNUSED_PARAM(event);
-    CCASSERT(_state == Menu::State::TRACKING_TOUCH, "[Menu ccTouchEnded] -- invalid state");
-    if (_selectedItem)
+    CCAssert(m_eState == kCCMenuStateTrackingTouch, "[Menu ccTouchEnded] -- invalid state");
+    if (m_pSelectedItem)
     {
-        _selectedItem->unselected();
-        _selectedItem->activate();
+        m_pSelectedItem->unselected();
+        m_pSelectedItem->activate();
     }
-    _state = Menu::State::WAITING;
+    m_eState = kCCMenuStateWaiting;
 }
 
-void Menu::ccTouchCancelled(Touch *touch, Event* event)
+void CCMenu::ccTouchCancelled(CCTouch *touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(touch);
     CC_UNUSED_PARAM(event);
-    CCASSERT(_state == Menu::State::TRACKING_TOUCH, "[Menu ccTouchCancelled] -- invalid state");
-    if (_selectedItem)
+    CCAssert(m_eState == kCCMenuStateTrackingTouch, "[Menu ccTouchCancelled] -- invalid state");
+    if (m_pSelectedItem)
     {
-        _selectedItem->unselected();
+        m_pSelectedItem->unselected();
     }
-    _state = Menu::State::WAITING;
+    m_eState = kCCMenuStateWaiting;
 }
 
-void Menu::ccTouchMoved(Touch* touch, Event* event)
+void CCMenu::ccTouchMoved(CCTouch* touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(event);
-    CCASSERT(_state == Menu::State::TRACKING_TOUCH, "[Menu ccTouchMoved] -- invalid state");
-    MenuItem *currentItem = this->itemForTouch(touch);
-    if (currentItem != _selectedItem) 
+    CCAssert(m_eState == kCCMenuStateTrackingTouch, "[Menu ccTouchMoved] -- invalid state");
+    CCMenuItem *currentItem = this->itemForTouch(touch);
+    if (currentItem != m_pSelectedItem) 
     {
-        if (_selectedItem)
+        if (m_pSelectedItem)
         {
-            _selectedItem->unselected();
+            m_pSelectedItem->unselected();
         }
-        _selectedItem = currentItem;
-        if (_selectedItem)
+        m_pSelectedItem = currentItem;
+        if (m_pSelectedItem)
         {
-            _selectedItem->selected();
+            m_pSelectedItem->selected();
         }
     }
 }
 
 //Menu - Alignment
-void Menu::alignItemsVertically()
+void CCMenu::alignItemsVertically()
 {
     this->alignItemsVerticallyWithPadding(kDefaultPadding);
 }
 
-void Menu::alignItemsVerticallyWithPadding(float padding)
+void CCMenu::alignItemsVerticallyWithPadding(float padding)
 {
     float height = -padding;
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
-                height += child->getContentSize().height * child->getScaleY() + padding;
+                height += pChild->getContentSize().height * pChild->getScaleY() + padding;
             }
         }
     }
 
     float y = height / 2.0f;
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
-                child->setPosition(Point(0, y - child->getContentSize().height * child->getScaleY() / 2.0f));
-                y -= child->getContentSize().height * child->getScaleY() + padding;
+                pChild->setPosition(ccp(0, y - pChild->getContentSize().height * pChild->getScaleY() / 2.0f));
+                y -= pChild->getContentSize().height * pChild->getScaleY() + padding;
             }
         }
     }
 }
 
-void Menu::alignItemsHorizontally(void)
+void CCMenu::alignItemsHorizontally(void)
 {
     this->alignItemsHorizontallyWithPadding(kDefaultPadding);
 }
 
-void Menu::alignItemsHorizontallyWithPadding(float padding)
+void CCMenu::alignItemsHorizontallyWithPadding(float padding)
 {
 
     float width = -padding;
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
-                width += child->getContentSize().width * child->getScaleX() + padding;
+                width += pChild->getContentSize().width * pChild->getScaleX() + padding;
             }
         }
     }
 
     float x = -width / 2.0f;
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
-                child->setPosition(Point(x + child->getContentSize().width * child->getScaleX() / 2.0f, 0));
-                 x += child->getContentSize().width * child->getScaleX() + padding;
+                pChild->setPosition(ccp(x + pChild->getContentSize().width * pChild->getScaleX() / 2.0f, 0));
+                 x += pChild->getContentSize().width * pChild->getScaleX() + padding;
             }
         }
     }
 }
 
-void Menu::alignItemsInColumns(int columns, ...)
+void CCMenu::alignItemsInColumns(unsigned int columns, ...)
 {
     va_list args;
     va_start(args, columns);
@@ -378,19 +379,18 @@ void Menu::alignItemsInColumns(int columns, ...)
     va_end(args);
 }
 
-void Menu::alignItemsInColumns(int columns, va_list args)
+void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
 {
-    CCASSERT(columns >= 0, "Columns must be >= 0");
-    Array* rows = Array::create();
+    CCArray* rows = CCArray::create();
     while (columns)
     {
-        rows->addObject(Integer::create(columns));
-        columns = va_arg(args, int);
+        rows->addObject(CCInteger::create(columns));
+        columns = va_arg(args, unsigned int);
     }
     alignItemsInColumnsWithArray(rows);
 }
 
-void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
+void CCMenu::alignItemsInColumnsWithArray(CCArray* rowsArray)
 {
     vector<unsigned int> rows = ccarray_to_std_vector(rowsArray);
 
@@ -400,21 +400,21 @@ void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
     unsigned int columnsOccupied = 0;
     unsigned int rowColumns;
 
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
-                CCASSERT(row < rows.size(), "");
+                CCAssert(row < rows.size(), "");
 
                 rowColumns = rows[row];
                 // can not have zero columns on a row
-                CCASSERT(rowColumns, "");
+                CCAssert(rowColumns, "");
 
-                float tmp = child->getContentSize().height;
+                float tmp = pChild->getContentSize().height;
                 rowHeight = (unsigned int)((rowHeight >= tmp || isnan(tmp)) ? rowHeight : tmp);
 
                 ++columnsOccupied;
@@ -431,9 +431,9 @@ void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
     }    
 
     // check if too many rows/columns for available menu items
-    CCASSERT(! columnsOccupied, "");
+    CCAssert(! columnsOccupied, "");
 
-    Size winSize = Director::getInstance()->getWinSize();
+    CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
     row = 0;
     rowHeight = 0;
@@ -442,13 +442,13 @@ void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
     float x = 0.0;
     float y = (float)(height / 2);
 
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
                 if (rowColumns == 0)
                 {
@@ -457,11 +457,11 @@ void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
                     x = w;
                 }
 
-                float tmp = child->getContentSize().height;
+                float tmp = pChild->getContentSize().height;
                 rowHeight = (unsigned int)((rowHeight >= tmp || isnan(tmp)) ? rowHeight : tmp);
 
-                child->setPosition(Point(x - winSize.width / 2,
-                                       y - child->getContentSize().height / 2));
+                pChild->setPosition(ccp(x - winSize.width / 2,
+                                       y - pChild->getContentSize().height / 2));
 
                 x += w;
                 ++columnsOccupied;
@@ -480,7 +480,7 @@ void Menu::alignItemsInColumnsWithArray(Array* rowsArray)
     }    
 }
 
-void Menu::alignItemsInRows(int rows, ...)
+void CCMenu::alignItemsInRows(unsigned int rows, ...)
 {
     va_list args;
     va_start(args, rows);
@@ -490,18 +490,18 @@ void Menu::alignItemsInRows(int rows, ...)
     va_end(args);
 }
 
-void Menu::alignItemsInRows(int rows, va_list args)
+void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
 {
-    Array* pArray = Array::create();
+    CCArray* pArray = CCArray::create();
     while (rows)
     {
-        pArray->addObject(Integer::create(rows));
-        rows = va_arg(args, int);
+        pArray->addObject(CCInteger::create(rows));
+        rows = va_arg(args, unsigned int);
     }
     alignItemsInRowsWithArray(pArray);
 }
 
-void Menu::alignItemsInRowsWithArray(Array* columnArray)
+void CCMenu::alignItemsInRowsWithArray(CCArray* columnArray)
 {
     vector<unsigned int> columns = ccarray_to_std_vector(columnArray);
 
@@ -515,26 +515,26 @@ void Menu::alignItemsInRowsWithArray(Array* columnArray)
     unsigned int rowsOccupied = 0;
     unsigned int columnRows;
 
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
                 // check if too many menu items for the amount of rows/columns
-                CCASSERT(column < columns.size(), "");
+                CCAssert(column < columns.size(), "");
 
                 columnRows = columns[column];
                 // can't have zero rows on a column
-                CCASSERT(columnRows, "");
+                CCAssert(columnRows, "");
 
                 // columnWidth = fmaxf(columnWidth, [item contentSize].width);
-                float tmp = child->getContentSize().width;
+                float tmp = pChild->getContentSize().width;
                 columnWidth = (unsigned int)((columnWidth >= tmp || isnan(tmp)) ? columnWidth : tmp);
 
-                columnHeight += (int)(child->getContentSize().height + 5);
+                columnHeight += (int)(pChild->getContentSize().height + 5);
                 ++rowsOccupied;
 
                 if (rowsOccupied >= columnRows)
@@ -553,9 +553,9 @@ void Menu::alignItemsInRowsWithArray(Array* columnArray)
     }
 
     // check if too many rows/columns for available menu items.
-    CCASSERT(! rowsOccupied, "");
+    CCAssert(! rowsOccupied, "");
 
-    Size winSize = Director::getInstance()->getWinSize();
+    CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
     column = 0;
     columnWidth = 0;
@@ -563,13 +563,13 @@ void Menu::alignItemsInRowsWithArray(Array* columnArray)
     float x = (float)(-width / 2);
     float y = 0.0;
 
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            Node* child = dynamic_cast<Node*>(pObject);
-            if (child)
+            CCNode* pChild = dynamic_cast<CCNode*>(pObject);
+            if (pChild)
             {
                 if (columnRows == 0)
                 {
@@ -578,13 +578,13 @@ void Menu::alignItemsInRowsWithArray(Array* columnArray)
                 }
 
                 // columnWidth = fmaxf(columnWidth, [item contentSize].width);
-                float tmp = child->getContentSize().width;
+                float tmp = pChild->getContentSize().width;
                 columnWidth = (unsigned int)((columnWidth >= tmp || isnan(tmp)) ? columnWidth : tmp);
 
-                child->setPosition(Point(x + columnWidths[column] / 2,
+                pChild->setPosition(ccp(x + columnWidths[column] / 2,
                                        y - winSize.height / 2));
 
-                y -= child->getContentSize().height + 10;
+                y -= pChild->getContentSize().height + 10;
                 ++rowsOccupied;
 
                 if (rowsOccupied >= columnRows)
@@ -600,25 +600,25 @@ void Menu::alignItemsInRowsWithArray(Array* columnArray)
     }
 }
 
-MenuItem* Menu::itemForTouch(Touch *touch)
+CCMenuItem* CCMenu::itemForTouch(CCTouch *touch)
 {
-    Point touchLocation = touch->getLocation();
+    CCPoint touchLocation = touch->getLocation();
 
-    if (_children && _children->count() > 0)
+    if (m_pChildren && m_pChildren->count() > 0)
     {
-        Object* pObject = NULL;
-        CCARRAY_FOREACH(_children, pObject)
+        CCObject* pObject = NULL;
+        CCARRAY_FOREACH(m_pChildren, pObject)
         {
-            MenuItem* child = dynamic_cast<MenuItem*>(pObject);
-            if (child && child->isVisible() && child->isEnabled())
+            CCMenuItem* pChild = dynamic_cast<CCMenuItem*>(pObject);
+            if (pChild && pChild->isVisible() && pChild->isEnabled())
             {
-                Point local = child->convertToNodeSpace(touchLocation);
-                Rect r = child->rect();
-                r.origin = Point::ZERO;
+                CCPoint local = pChild->convertToNodeSpace(touchLocation);
+                CCRect r = pChild->rect();
+                r.origin = CCPointZero;
 
                 if (r.containsPoint(local))
                 {
-                    return child;
+                    return pChild;
                 }
             }
         }

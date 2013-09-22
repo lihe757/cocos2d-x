@@ -3,9 +3,8 @@
 
 ////----#include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
-class TestCocosNodeDemo : public BaseTest
+class TestCocosNodeDemo : public CCLayer
 {
 public:
     TestCocosNodeDemo(void);
@@ -15,9 +14,9 @@ public:
     virtual std::string subtitle();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 };
 
 class Test2 : public TestCocosNodeDemo
@@ -58,7 +57,7 @@ public:
 class StressTest1 : public TestCocosNodeDemo
 {
     void shouldNotCrash(float dt);
-    void removeMe(Node* node);
+    void removeMe(CCNode* node);
 public:
     StressTest1();
 
@@ -102,7 +101,7 @@ public:
 
 class CameraZoomTest : public TestCocosNodeDemo
 {
-    float    _z;
+    float    m_z;
 public:
     CameraZoomTest();
     void update(float dt);
@@ -125,7 +124,7 @@ class ConvertToNode : public TestCocosNodeDemo
 {
 public:
     ConvertToNode();
-    virtual void ccTouchesEnded(Set* touches, Event *event);
+    virtual void ccTouchesEnded(CCSet* touches, CCEvent *event);
     virtual std::string title();
     virtual std::string subtitle();
 };

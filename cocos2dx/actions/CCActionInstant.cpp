@@ -28,40 +28,56 @@
 #include "base_nodes/CCNode.h"
 #include "sprite_nodes/CCSprite.h"
 #include "script_support/CCScriptSupport.h"
-
-#if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#elif _MSC_VER >= 1400 //vs 2005 or higher
-#pragma warning (push)
-#pragma warning (disable: 4996)
-#endif
+#include "cocoa/CCZone.h"
 
 NS_CC_BEGIN
 //
 // InstantAction
 //
-bool ActionInstant::isDone() const
-{
+CCActionInstant::CCActionInstant() {
+}
+
+CCObject * CCActionInstant::copyWithZone(CCZone *pZone) {
+    CCZone *pNewZone = NULL;
+    CCActionInstant *pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCActionInstant*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCActionInstant();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCFiniteTimeAction::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
+}
+
+bool CCActionInstant::isDone() {
     return true;
 }
 
-void ActionInstant::step(float dt) {
+void CCActionInstant::step(float dt) {
     CC_UNUSED_PARAM(dt);
     update(1);
 }
 
-void ActionInstant::update(float time) {
+void CCActionInstant::update(float time) {
     CC_UNUSED_PARAM(time);
     // nothing
+}
+
+CCFiniteTimeAction * CCActionInstant::reverse() {
+    return (CCFiniteTimeAction*) (copy()->autorelease());
 }
 
 //
 // Show
 //
 
-Show* Show::create() 
+CCShow* CCShow::create() 
 {
-    Show* pRet = new Show();
+    CCShow* pRet = new CCShow();
 
     if (pRet) {
         pRet->autorelease();
@@ -70,30 +86,37 @@ Show* Show::create()
     return pRet;
 }
 
-void Show::update(float time) {
+void CCShow::update(float time) {
     CC_UNUSED_PARAM(time);
-    _target->setVisible(true);
+    m_pTarget->setVisible(true);
 }
 
-ActionInstant* Show::reverse() const
-{
-    return Hide::create();
+CCFiniteTimeAction* CCShow::reverse() {
+    return (CCFiniteTimeAction*) (CCHide::create());
 }
 
-Show * Show::clone() const
-{
-	// no copy constructor
-	auto a = new Show();
-	a->autorelease();
-	return a;
+CCObject* CCShow::copyWithZone(CCZone *pZone) {
+
+    CCZone *pNewZone = NULL;
+    CCShow *pRet = NULL;
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCShow*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCShow();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 //
 // Hide
 //
-Hide * Hide::create() 
+CCHide * CCHide::create() 
 {
-    Hide *pRet = new Hide();
+    CCHide *pRet = new CCHide();
 
     if (pRet) {
         pRet->autorelease();
@@ -102,30 +125,37 @@ Hide * Hide::create()
     return pRet;
 }
 
-void Hide::update(float time) {
+void CCHide::update(float time) {
     CC_UNUSED_PARAM(time);
-    _target->setVisible(false);
+    m_pTarget->setVisible(false);
 }
 
-ActionInstant *Hide::reverse() const
-{
-    return Show::create();
+CCFiniteTimeAction *CCHide::reverse() {
+    return (CCFiniteTimeAction*) (CCShow::create());
 }
 
-Hide * Hide::clone() const
-{
-	// no copy constructor
-	auto a = new Hide();
-	a->autorelease();
-	return a;
+CCObject* CCHide::copyWithZone(CCZone *pZone) {
+    CCZone *pNewZone = NULL;
+    CCHide *pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCHide*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCHide();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 //
 // ToggleVisibility
 //
-ToggleVisibility * ToggleVisibility::create()
+CCToggleVisibility * CCToggleVisibility::create()
 {
-    ToggleVisibility *pRet = new ToggleVisibility();
+    CCToggleVisibility *pRet = new CCToggleVisibility();
 
     if (pRet)
     {
@@ -135,31 +165,35 @@ ToggleVisibility * ToggleVisibility::create()
     return pRet;
 }
 
-void ToggleVisibility::update(float time) 
+void CCToggleVisibility::update(float time) 
 {
     CC_UNUSED_PARAM(time);
-    _target->setVisible(!_target->isVisible());
+    m_pTarget->setVisible(!m_pTarget->isVisible());
 }
 
-ToggleVisibility * ToggleVisibility::reverse() const
+CCObject* CCToggleVisibility::copyWithZone(CCZone *pZone)
 {
-	return ToggleVisibility::create();
-}
+    CCZone *pNewZone = NULL;
+    CCToggleVisibility *pRet = NULL;
 
-ToggleVisibility * ToggleVisibility::clone() const
-{
-	// no copy constructor
-	auto a = new ToggleVisibility();
-	a->autorelease();
-	return a;
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCToggleVisibility*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCToggleVisibility();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 //
 // Remove Self
 //
-RemoveSelf * RemoveSelf::create(bool isNeedCleanUp /*= true*/) 
+CCRemoveSelf * CCRemoveSelf::create(bool isNeedCleanUp /*= true*/) 
 {
-	RemoveSelf *pRet = new RemoveSelf();
+	CCRemoveSelf *pRet = new CCRemoveSelf();
 
 	if (pRet && pRet->init(isNeedCleanUp)) {
 		pRet->autorelease();
@@ -168,37 +202,44 @@ RemoveSelf * RemoveSelf::create(bool isNeedCleanUp /*= true*/)
 	return pRet;
 }
 
-bool RemoveSelf::init(bool isNeedCleanUp) {
-	_isNeedCleanUp = isNeedCleanUp;
+bool CCRemoveSelf::init(bool isNeedCleanUp) {
+	m_bIsNeedCleanUp = isNeedCleanUp;
 	return true;
 }
 
-void RemoveSelf::update(float time) {
+void CCRemoveSelf::update(float time) {
 	CC_UNUSED_PARAM(time);
-	_target->removeFromParentAndCleanup(_isNeedCleanUp);
+	m_pTarget->removeFromParentAndCleanup(m_bIsNeedCleanUp);
 }
 
-RemoveSelf *RemoveSelf::reverse() const
-{
-	return RemoveSelf::create(_isNeedCleanUp);
+CCFiniteTimeAction *CCRemoveSelf::reverse() {
+	return (CCFiniteTimeAction*) (CCRemoveSelf::create(m_bIsNeedCleanUp));
 }
 
-RemoveSelf * RemoveSelf::clone() const
-{
-	// no copy constructor
-	auto a = new RemoveSelf();
-	a->init(_isNeedCleanUp);
-	a->autorelease();
-	return a;
+CCObject* CCRemoveSelf::copyWithZone(CCZone *pZone) {
+	CCZone *pNewZone = NULL;
+	CCRemoveSelf *pRet = NULL;
+
+	if (pZone && pZone->m_pCopyObject) {
+		pRet = (CCRemoveSelf*) (pZone->m_pCopyObject);
+	} else {
+		pRet = new CCRemoveSelf();
+		pZone = pNewZone = new CCZone(pRet);
+	}
+
+	CCActionInstant::copyWithZone(pZone);
+	pRet->init(m_bIsNeedCleanUp);
+	CC_SAFE_DELETE(pNewZone);
+	return pRet;
 }
 
 //
 // FlipX
 //
 
-FlipX *FlipX::create(bool x)
+CCFlipX *CCFlipX::create(bool x)
 {
-    FlipX *pRet = new FlipX();
+    CCFlipX *pRet = new CCFlipX();
 
     if (pRet && pRet->initWithFlipX(x)) {
         pRet->autorelease();
@@ -209,36 +250,44 @@ FlipX *FlipX::create(bool x)
     return NULL;
 }
 
-bool FlipX::initWithFlipX(bool x) {
-    _flipX = x;
+bool CCFlipX::initWithFlipX(bool x) {
+    m_bFlipX = x;
     return true;
 }
 
-void FlipX::update(float time) {
+void CCFlipX::update(float time) {
     CC_UNUSED_PARAM(time);
-    static_cast<Sprite*>(_target)->setFlipX(_flipX);
+    ((CCSprite*) (m_pTarget))->setFlipX(m_bFlipX);
 }
 
-FlipX* FlipX::reverse() const
-{
-    return FlipX::create(!_flipX);
+CCFiniteTimeAction* CCFlipX::reverse() {
+    return CCFlipX::create(!m_bFlipX);
 }
 
-FlipX * FlipX::clone() const
-{
-	// no copy constructor
-	auto a = new FlipX();
-	a->initWithFlipX(_flipX);
-	a->autorelease();
-	return a;
+CCObject * CCFlipX::copyWithZone(CCZone *pZone) {
+    CCZone *pNewZone = NULL;
+    CCFlipX *pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCFlipX*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCFlipX();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    pRet->initWithFlipX(m_bFlipX);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
+
 //
 // FlipY
 //
 
-FlipY * FlipY::create(bool y)
+CCFlipY * CCFlipY::create(bool y)
 {
-    FlipY *pRet = new FlipY();
+    CCFlipY *pRet = new CCFlipY();
 
     if (pRet && pRet->initWithFlipY(y)) {
         pRet->autorelease();
@@ -249,37 +298,44 @@ FlipY * FlipY::create(bool y)
     return NULL;
 }
 
-bool FlipY::initWithFlipY(bool y) {
-    _flipY = y;
+bool CCFlipY::initWithFlipY(bool y) {
+    m_bFlipY = y;
     return true;
 }
 
-void FlipY::update(float time) {
+void CCFlipY::update(float time) {
     CC_UNUSED_PARAM(time);
-    static_cast<Sprite*>(_target)->setFlipY(_flipY);
+    ((CCSprite*) (m_pTarget))->setFlipY(m_bFlipY);
 }
 
-FlipY* FlipY::reverse() const
-{
-    return FlipY::create(!_flipY);
+CCFiniteTimeAction* CCFlipY::reverse() {
+    return CCFlipY::create(!m_bFlipY);
 }
 
-FlipY * FlipY::clone() const
-{
-	// no copy constructor
-	auto a = new FlipY();
-	a->initWithFlipY(_flipY);
-	a->autorelease();
-	return a;
+CCObject* CCFlipY::copyWithZone(CCZone *pZone) {
+    CCZone *pNewZone = NULL;
+    CCFlipY *pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCFlipY*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCFlipY();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    pRet->initWithFlipY(m_bFlipY);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 //
 // Place
 //
 
-Place* Place::create(const Point& pos)
+CCPlace* CCPlace::create(const CCPoint& pos)
 {
-    Place *pRet = new Place();
+    CCPlace *pRet = new CCPlace();
 
     if (pRet && pRet->initWithPosition(pos)) {
         pRet->autorelease();
@@ -290,40 +346,42 @@ Place* Place::create(const Point& pos)
     return NULL;
 }
 
-bool Place::initWithPosition(const Point& pos) {
-    _position = pos;
+bool CCPlace::initWithPosition(const CCPoint& pos) {
+    m_tPosition = pos;
     return true;
 }
 
-Place * Place::clone() const
-{
-	// no copy constructor
-	auto a = new Place();
-	a->initWithPosition(_position);
-	a->autorelease();
-	return a;
+CCObject * CCPlace::copyWithZone(CCZone *pZone) {
+    CCZone *pNewZone = NULL;
+    CCPlace *pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        pRet = (CCPlace*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCPlace();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    pRet->initWithPosition(m_tPosition);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-Place * Place::reverse() const
-{
-	// no reverse, just clone
-	return this->clone();
-}
-
-void Place::update(float time) {
+void CCPlace::update(float time) {
     CC_UNUSED_PARAM(time);
-    _target->setPosition(_position);
+    m_pTarget->setPosition(m_tPosition);
 }
 
 //
 // CallFunc
 //
-
-CallFunc * CallFunc::create(const std::function<void()> &func)
+CCCallFunc * CCCallFunc::create(CCObject* pSelectorTarget, SEL_CallFunc selector) 
 {
-    CallFunc *pRet = new CallFunc();
+    CCCallFunc *pRet = new CCCallFunc();
 
-    if (pRet && pRet->initWithFunction(func) ) {
+    if (pRet && pRet->initWithTarget(pSelectorTarget)) {
+        pRet->m_pCallFunc = selector;
         pRet->autorelease();
         return pRet;
     }
@@ -332,104 +390,97 @@ CallFunc * CallFunc::create(const std::function<void()> &func)
     return NULL;
 }
 
-CallFunc * CallFunc::create(Object* selectorTarget, SEL_CallFunc selector) 
+CCCallFunc * CCCallFunc::create(int nHandler)
 {
-    CallFunc *pRet = new CallFunc();
+	CCCallFunc *pRet = new CCCallFunc();
 
-    if (pRet && pRet->initWithTarget(selectorTarget)) {
-        pRet->_callFunc = selector;
-        pRet->autorelease();
-        return pRet;
-    }
-
-    CC_SAFE_DELETE(pRet);
-    return NULL;
+	if (pRet) {
+		pRet->m_nScriptHandler = nHandler;
+		pRet->autorelease();
+	}
+	else{
+		CC_SAFE_DELETE(pRet);
+	}
+	return pRet;
 }
 
-bool CallFunc::initWithFunction(const std::function<void()> &func)
-{
-	_function = func;
+bool CCCallFunc::initWithTarget(CCObject* pSelectorTarget) {
+    if (pSelectorTarget) 
+    {
+        pSelectorTarget->retain();
+    }
+
+    if (m_pSelectorTarget) 
+    {
+        m_pSelectorTarget->release();
+    }
+
+    m_pSelectorTarget = pSelectorTarget;
     return true;
 }
 
-bool CallFunc::initWithTarget(Object* selectorTarget) {
-    if (selectorTarget) 
-    {
-        selectorTarget->retain();
-    }
-
-    if (_selectorTarget) 
-    {
-        _selectorTarget->release();
-    }
-
-    _selectorTarget = selectorTarget;
-    return true;
-}
-
-CallFunc::~CallFunc(void)
+CCCallFunc::~CCCallFunc(void)
 {
-    CC_SAFE_RELEASE(_selectorTarget);
-}
-
-CallFunc * CallFunc::clone() const
+    if (m_nScriptHandler)
     {
-    // no copy constructor
-    auto a = new CallFunc();
-    if( _selectorTarget) {
-        a->initWithTarget(_selectorTarget);
-        a->_callFunc = _callFunc;
+        cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine()->removeScriptHandler(m_nScriptHandler);
     }
-    else if( _function ){
-        a->initWithFunction(_function);
-    }
-
-    a->autorelease();
-    return a;
+    CC_SAFE_RELEASE(m_pSelectorTarget);
 }
 
-CallFunc * CallFunc::reverse() const
-{
-	// no reverse here, just return a clone
-	return this->clone();
+CCObject * CCCallFunc::copyWithZone(CCZone *pZone) {
+    CCZone* pNewZone = NULL;
+    CCCallFunc* pRet = NULL;
+
+    if (pZone && pZone->m_pCopyObject) {
+        //in case of being called at sub class
+        pRet = (CCCallFunc*) (pZone->m_pCopyObject);
+    } else {
+        pRet = new CCCallFunc();
+        pZone = pNewZone = new CCZone(pRet);
+    }
+
+    CCActionInstant::copyWithZone(pZone);
+    pRet->initWithTarget(m_pSelectorTarget);
+    pRet->m_pCallFunc = m_pCallFunc;
+    if (m_nScriptHandler > 0 ) {
+        pRet->m_nScriptHandler = cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine()->reallocateScriptHandler(m_nScriptHandler);
+    }
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-void CallFunc::update(float time) {
+void CCCallFunc::update(float time) {
     CC_UNUSED_PARAM(time);
     this->execute();
 }
 
-void CallFunc::execute() {
-    if (_callFunc) {
-        (_selectorTarget->*_callFunc)();
-    } else if( _function ){
-        _function();
+void CCCallFunc::execute() {
+    if (m_pCallFunc) {
+        (m_pSelectorTarget->*m_pCallFunc)();
     }
+	if (m_nScriptHandler) {
+		CCScriptEngineManager::sharedManager()->getScriptEngine()->executeCallFuncActionEvent(this);
+	}
 }
 
 //
 // CallFuncN
 //
-
-CallFuncN * CallFuncN::create(const std::function<void(Node*)> &func)
-{
-    auto ret = new CallFuncN();
-
-    if (ret && ret->initWithFunction(func) ) {
-        ret->autorelease();
-        return ret;
+void CCCallFuncN::execute() {
+    if (m_pCallFuncN) {
+        (m_pSelectorTarget->*m_pCallFuncN)(m_pTarget);
     }
-
-    CC_SAFE_DELETE(ret);
-    return NULL;
+	if (m_nScriptHandler) {
+		CCScriptEngineManager::sharedManager()->getScriptEngine()->executeCallFuncActionEvent(this, m_pTarget);
+	}
 }
 
-// XXX deprecated
-CallFuncN * CallFuncN::create(Object* selectorTarget, SEL_CallFuncN selector)
+CCCallFuncN * CCCallFuncN::create(CCObject* pSelectorTarget, SEL_CallFuncN selector)
 {
-    CallFuncN *pRet = new CallFuncN();
+    CCCallFuncN *pRet = new CCCallFuncN();
 
-    if (pRet && pRet->initWithTarget(selectorTarget, selector))
+    if (pRet && pRet->initWithTarget(pSelectorTarget, selector))
     {
         pRet->autorelease();
         return pRet;
@@ -439,178 +490,159 @@ CallFuncN * CallFuncN::create(Object* selectorTarget, SEL_CallFuncN selector)
     return NULL;
 }
 
-void CallFuncN::execute() {
-    if (_callFuncN) {
-        (_selectorTarget->*_callFuncN)(_target);
-    }
-    else if (_functionN) {
-        _functionN(_target);
-    }
+CCCallFuncN * CCCallFuncN::create(int nHandler)
+{
+	CCCallFuncN *pRet = new CCCallFuncN();
+
+	if (pRet) {
+		pRet->m_nScriptHandler = nHandler;
+		pRet->autorelease();
+	}
+	else{
+		CC_SAFE_DELETE(pRet);
+	}
+	return pRet;
 }
 
-bool CallFuncN::initWithFunction(const std::function<void (Node *)> &func)
-{
-    _functionN = func;
-    return true;
-}
-
-bool CallFuncN::initWithTarget(Object* selectorTarget, SEL_CallFuncN selector)
-{
-    if (CallFunc::initWithTarget(selectorTarget)) {
-        _callFuncN = selector;
+bool CCCallFuncN::initWithTarget(CCObject* pSelectorTarget,
+        SEL_CallFuncN selector) {
+    if (CCCallFunc::initWithTarget(pSelectorTarget)) {
+        m_pCallFuncN = selector;
         return true;
     }
 
     return false;
 }
 
-CallFuncN * CallFuncN::clone() const
-{
-	// no copy constructor
-	auto a = new CallFuncN();
+CCObject * CCCallFuncN::copyWithZone(CCZone* zone) {
+    CCZone* pNewZone = NULL;
+    CCCallFuncN* pRet = NULL;
 
-    if( _selectorTarget) {
-        a->initWithTarget(_selectorTarget, _callFuncN);
-    }
-    else if( _function ){
-        a->initWithFunction(_functionN);
+    if (zone && zone->m_pCopyObject) {
+        //in case of being called at sub class
+        pRet = (CCCallFuncN*) (zone->m_pCopyObject);
+    } else {
+        pRet = new CCCallFuncN();
+        zone = pNewZone = new CCZone(pRet);
     }
 
-	a->autorelease();
-	return a;
+    CCCallFunc::copyWithZone(zone);
+    pRet->initWithTarget(m_pSelectorTarget, m_pCallFuncN);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 //
 // CallFuncND
 //
 
-__CCCallFuncND * __CCCallFuncND::create(Object* selectorTarget, SEL_CallFuncND selector, void* d)
+CCCallFuncND * CCCallFuncND::create(CCObject* pSelectorTarget, SEL_CallFuncND selector, void* d)
 {
-    __CCCallFuncND* pRet = new __CCCallFuncND();
-    
-    if (pRet && pRet->initWithTarget(selectorTarget, selector, d)) {
+    CCCallFuncND* pRet = new CCCallFuncND();
+
+    if (pRet && pRet->initWithTarget(pSelectorTarget, selector, d)) {
         pRet->autorelease();
         return pRet;
     }
-    
+
     CC_SAFE_DELETE(pRet);
     return NULL;
 }
 
-bool __CCCallFuncND::initWithTarget(Object* selectorTarget, SEL_CallFuncND selector, void* d)
-{
-    if (CallFunc::initWithTarget(selectorTarget))
-    {
-        _data = d;
-        _callFuncND = selector;
+bool CCCallFuncND::initWithTarget(CCObject* pSelectorTarget,
+        SEL_CallFuncND selector, void* d) {
+    if (CCCallFunc::initWithTarget(pSelectorTarget)) {
+        m_pData = d;
+        m_pCallFuncND = selector;
         return true;
     }
-    
+
     return false;
 }
 
-void __CCCallFuncND::execute()
-{
-    if (_callFuncND)
-    {
-        (_selectorTarget->*_callFuncND)(_target, _data);
+CCObject * CCCallFuncND::copyWithZone(CCZone* zone) {
+    CCZone* pNewZone = NULL;
+    CCCallFuncND* pRet = NULL;
+
+    if (zone && zone->m_pCopyObject) {
+        //in case of being called at sub class
+        pRet = (CCCallFuncND*) (zone->m_pCopyObject);
+    } else {
+        pRet = new CCCallFuncND();
+        zone = pNewZone = new CCZone(pRet);
     }
+
+    CCCallFunc::copyWithZone(zone);
+    pRet->initWithTarget(m_pSelectorTarget, m_pCallFuncND, m_pData);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
-__CCCallFuncND * __CCCallFuncND::clone() const
-{
-	// no copy constructor
-	auto a = new __CCCallFuncND();
-    
-    if( _selectorTarget)
-    {
-        a->initWithTarget(_selectorTarget, _callFuncND, _data);
+void CCCallFuncND::execute() {
+    if (m_pCallFuncND) {
+        (m_pSelectorTarget->*m_pCallFuncND)(m_pTarget, m_pData);
     }
-    
-	a->autorelease();
-	return a;
 }
 
 //
-// CallFuncO
+// CCCallFuncO
 //
-__CCCallFuncO::__CCCallFuncO() :
-_object(NULL)
-{
+CCCallFuncO::CCCallFuncO() :
+        m_pObject(NULL) {
 }
 
-__CCCallFuncO::~__CCCallFuncO()
-{
-    CC_SAFE_RELEASE(_object);
+CCCallFuncO::~CCCallFuncO() {
+    CC_SAFE_RELEASE(m_pObject);
 }
 
-void __CCCallFuncO::execute()
-{
-    if (_callFuncO) {
-        (_selectorTarget->*_callFuncO)(_object);
+void CCCallFuncO::execute() {
+    if (m_pCallFuncO) {
+        (m_pSelectorTarget->*m_pCallFuncO)(m_pObject);
     }
 }
 
-__CCCallFuncO * __CCCallFuncO::create(Object* selectorTarget, SEL_CallFuncO selector, Object* object)
+CCCallFuncO * CCCallFuncO::create(CCObject* pSelectorTarget, SEL_CallFuncO selector, CCObject* pObject)
 {
-    __CCCallFuncO *pRet = new __CCCallFuncO();
-    
-    if (pRet && pRet->initWithTarget(selectorTarget, selector, object)) {
+    CCCallFuncO *pRet = new CCCallFuncO();
+
+    if (pRet && pRet->initWithTarget(pSelectorTarget, selector, pObject)) {
         pRet->autorelease();
         return pRet;
     }
-    
+
     CC_SAFE_DELETE(pRet);
     return NULL;
 }
 
-bool __CCCallFuncO::initWithTarget(Object* selectorTarget, SEL_CallFuncO selector, Object* object)
-{
-    if (CallFunc::initWithTarget(selectorTarget))
-    {
-        _object = object;
-        CC_SAFE_RETAIN(_object);
-        
-        _callFuncO = selector;
+bool CCCallFuncO::initWithTarget(CCObject* pSelectorTarget,
+        SEL_CallFuncO selector, CCObject* pObject) {
+    if (CCCallFunc::initWithTarget(pSelectorTarget)) {
+        m_pObject = pObject;
+        CC_SAFE_RETAIN(m_pObject);
+
+        m_pCallFuncO = selector;
         return true;
     }
-    
+
     return false;
 }
 
-__CCCallFuncO * __CCCallFuncO::clone() const
-{
-	// no copy constructor
-	auto a = new __CCCallFuncO();
-    
-    if( _selectorTarget)
-    {
-        a->initWithTarget(_selectorTarget, _callFuncO, _object);
-    }
-    
-	a->autorelease();
-	return a;
-}
+CCObject * CCCallFuncO::copyWithZone(CCZone* zone) {
+    CCZone* pNewZone = NULL;
+    CCCallFuncO* pRet = NULL;
 
-Object* __CCCallFuncO::getObject() const
-{
-    return _object;
-}
-    
-void __CCCallFuncO::setObject(Object* obj)
-{
-    if (obj != _object)
-    {
-        CC_SAFE_RELEASE(_object);
-        _object = obj;
-        CC_SAFE_RETAIN(_object);
+    if (zone && zone->m_pCopyObject) {
+        //in case of being called at sub class
+        pRet = (CCCallFuncO*) (zone->m_pCopyObject);
+    } else {
+        pRet = new CCCallFuncO();
+        zone = pNewZone = new CCZone(pRet);
     }
+
+    CCCallFunc::copyWithZone(zone);
+    pRet->initWithTarget(m_pSelectorTarget, m_pCallFuncO, m_pObject);
+    CC_SAFE_DELETE(pNewZone);
+    return pRet;
 }
 
 NS_CC_END
-
-#if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
-#elif _MSC_VER >= 1400 //vs 2005 or higher
-#pragma warning (pop)
-#endif

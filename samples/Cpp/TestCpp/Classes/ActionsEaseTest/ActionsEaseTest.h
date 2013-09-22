@@ -3,18 +3,17 @@
 
 ////----#include "cocos2d.h"
 #include "../testBasic.h"
-#include "../BaseTest.h"
 
 USING_NS_CC;
 
-class EaseSpriteDemo : public BaseTest
+class EaseSpriteDemo : public CCLayer
 {
 protected:
-    Sprite*    _grossini;
-    Sprite*    _tamara;
-    Sprite*    _kathia;
+    CCSprite*    m_grossini;
+    CCSprite*    m_tamara;
+    CCSprite*    m_kathia;
 
-    std::string    _title;
+    std::string    m_strTitle;
 
 public:
     EaseSpriteDemo(void);
@@ -23,9 +22,9 @@ public:
     virtual std::string title();
     virtual void onEnter();
 
-    void restartCallback(Object* sender);
-    void nextCallback(Object* sender);
-    void backCallback(Object* sender);
+    void restartCallback(CCObject* pSender);
+    void nextCallback(CCObject* pSender);
+    void backCallback(CCObject* pSender);
 
     void positionForTwo();
 };

@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "CCTransition.h"
 #include "CCCamera.h"
+#include "support/CCPointExtension.h"
 #include "CCDirector.h"
 #include "touch_dispatcher/CCTouchDispatcher.h"
 #include "actions/CCActionInterval.h"
@@ -42,18 +43,18 @@ NS_CC_BEGIN
 
 const unsigned int kSceneFade = 0xFADEFADE;
 
-TransitionScene::TransitionScene()
+CCTransitionScene::CCTransitionScene()
 {
 }
-TransitionScene::~TransitionScene()
+CCTransitionScene::~CCTransitionScene()
 {
-    _inScene->release();
-    _outScene->release();
+    m_pInScene->release();
+    m_pOutScene->release();
 }
 
-TransitionScene * TransitionScene::create(float t, Scene *scene)
+CCTransitionScene * CCTransitionScene::create(float t, CCScene *scene)
 {
-    TransitionScene * pScene = new TransitionScene();
+    CCTransitionScene * pScene = new CCTransitionScene();
     if(pScene && pScene->initWithDuration(t,scene))
     {
         pScene->autorelease();
@@ -63,26 +64,26 @@ TransitionScene * TransitionScene::create(float t, Scene *scene)
     return NULL;
 }
 
-bool TransitionScene::initWithDuration(float t, Scene *scene)
+bool CCTransitionScene::initWithDuration(float t, CCScene *scene)
 {
-    CCASSERT( scene != NULL, "Argument scene must be non-nil");
+    CCAssert( scene != NULL, "Argument scene must be non-nil");
 
-    if (Scene::init())
+    if (CCScene::init())
     {
-        _duration = t;
+        m_fDuration = t;
 
         // retain
-        _inScene = scene;
-        _inScene->retain();
-        _outScene = Director::getInstance()->getRunningScene();
-        if (_outScene == NULL)
+        m_pInScene = scene;
+        m_pInScene->retain();
+        m_pOutScene = CCDirector::sharedDirector()->getRunningScene();
+        if (m_pOutScene == NULL)
         {
-            _outScene = Scene::create();
-            _outScene->init();
+            m_pOutScene = CCScene::create();
+            m_pOutScene->init();
         }
-        _outScene->retain();
+        m_pOutScene->retain();
 
-        CCASSERT( _inScene != _outScene, "Incoming scene must be different from the outgoing scene" );
+        CCAssert( m_pInScene != m_pOutScene, "Incoming scene must be different from the outgoing scene" );
         
         sceneOrder();
 
@@ -94,131 +95,131 @@ bool TransitionScene::initWithDuration(float t, Scene *scene)
     }
 }
 
-void TransitionScene::sceneOrder()
+void CCTransitionScene::sceneOrder()
 {
-    _isInSceneOnTop = true;
+    m_bIsInSceneOnTop = true;
 }
 
-void TransitionScene::draw()
+void CCTransitionScene::draw()
 {
-    Scene::draw();
+    CCScene::draw();
 
-    if( _isInSceneOnTop ) {
-        _outScene->visit();
-        _inScene->visit();
+    if( m_bIsInSceneOnTop ) {
+        m_pOutScene->visit();
+        m_pInScene->visit();
     } else {
-        _inScene->visit();
-        _outScene->visit();
+        m_pInScene->visit();
+        m_pOutScene->visit();
     }
 }
 
-void TransitionScene::finish()
+void CCTransitionScene::finish()
 {
     // clean up     
-     _inScene->setVisible(true);
-     _inScene->setPosition(Point(0,0));
-     _inScene->setScale(1.0f);
-     _inScene->setRotation(0.0f);
-     _inScene->getCamera()->restore();
+     m_pInScene->setVisible(true);
+     m_pInScene->setPosition(ccp(0,0));
+     m_pInScene->setScale(1.0f);
+     m_pInScene->setRotation(0.0f);
+     m_pInScene->getCamera()->restore();
  
-     _outScene->setVisible(false);
-     _outScene->setPosition(Point(0,0));
-     _outScene->setScale(1.0f);
-     _outScene->setRotation(0.0f);
-     _outScene->getCamera()->restore();
+     m_pOutScene->setVisible(false);
+     m_pOutScene->setPosition(ccp(0,0));
+     m_pOutScene->setScale(1.0f);
+     m_pOutScene->setRotation(0.0f);
+     m_pOutScene->getCamera()->restore();
 
     //[self schedule:@selector(setNewScene:) interval:0];
-    this->schedule(schedule_selector(TransitionScene::setNewScene), 0);
+    this->schedule(schedule_selector(CCTransitionScene::setNewScene), 0);
 
 }
 
-void TransitionScene::setNewScene(float dt)
+void CCTransitionScene::setNewScene(float dt)
 {    
     CC_UNUSED_PARAM(dt);
 
-    this->unschedule(schedule_selector(TransitionScene::setNewScene));
+    this->unschedule(schedule_selector(CCTransitionScene::setNewScene));
     
     // Before replacing, save the "send cleanup to scene"
-    Director *director = Director::getInstance();
-    _isSendCleanupToScene = director->isSendCleanupToScene();
+    CCDirector *director = CCDirector::sharedDirector();
+    m_bIsSendCleanupToScene = director->isSendCleanupToScene();
     
-    director->replaceScene(_inScene);
+    director->replaceScene(m_pInScene);
     
     // issue #267
-    _outScene->setVisible(true);
+    m_pOutScene->setVisible(true);
 }
 
-void TransitionScene::hideOutShowIn()
+void CCTransitionScene::hideOutShowIn()
 {
-    _inScene->setVisible(true);
-    _outScene->setVisible(false);
+    m_pInScene->setVisible(true);
+    m_pOutScene->setVisible(false);
 }
 
 
 // custom onEnter
-void TransitionScene::onEnter()
+void CCTransitionScene::onEnter()
 {
-    Scene::onEnter();
+    CCScene::onEnter();
     
     // disable events while transitions
-    Director::getInstance()->getTouchDispatcher()->setDispatchEvents(false);
+    CCDirector::sharedDirector()->getTouchDispatcher()->setDispatchEvents(false);
     
     // outScene should not receive the onEnter callback
     // only the onExitTransitionDidStart
-    _outScene->onExitTransitionDidStart();
+    m_pOutScene->onExitTransitionDidStart();
     
-    _inScene->onEnter();
+    m_pInScene->onEnter();
 }
 
 // custom onExit
-void TransitionScene::onExit()
+void CCTransitionScene::onExit()
 {
-    Scene::onExit();
+    CCScene::onExit();
     
     // enable events while transitions
-    Director::getInstance()->getTouchDispatcher()->setDispatchEvents(true);
+    CCDirector::sharedDirector()->getTouchDispatcher()->setDispatchEvents(true);
     
-    _outScene->onExit();
+    m_pOutScene->onExit();
 
-    // _inScene should not receive the onEnter callback
+    // m_pInScene should not receive the onEnter callback
     // only the onEnterTransitionDidFinish
-    _inScene->onEnterTransitionDidFinish();
+    m_pInScene->onEnterTransitionDidFinish();
 }
 
 // custom cleanup
-void TransitionScene::cleanup()
+void CCTransitionScene::cleanup()
 {
-    Scene::cleanup();
+    CCScene::cleanup();
 
-    if( _isSendCleanupToScene )
-        _outScene->cleanup();
+    if( m_bIsSendCleanupToScene )
+        m_pOutScene->cleanup();
 }
 
 //
 // Oriented Transition
 //
 
-TransitionSceneOriented::TransitionSceneOriented()
+CCTransitionSceneOriented::CCTransitionSceneOriented()
 {
 }
 
-TransitionSceneOriented::~TransitionSceneOriented()
+CCTransitionSceneOriented::~CCTransitionSceneOriented()
 {
 }
 
-TransitionSceneOriented * TransitionSceneOriented::create(float t, Scene *scene, Orientation orientation)
+CCTransitionSceneOriented * CCTransitionSceneOriented::create(float t, CCScene *scene, tOrientation orientation)
 {
-    TransitionSceneOriented * pScene = new TransitionSceneOriented();
+    CCTransitionSceneOriented * pScene = new CCTransitionSceneOriented();
     pScene->initWithDuration(t,scene,orientation);
     pScene->autorelease();
     return pScene;
 }
 
-bool TransitionSceneOriented::initWithDuration(float t, Scene *scene, Orientation orientation)
+bool CCTransitionSceneOriented::initWithDuration(float t, CCScene *scene, tOrientation orientation)
 {
-    if ( TransitionScene::initWithDuration(t, scene) )
+    if ( CCTransitionScene::initWithDuration(t, scene) )
     {
-        _orientation = orientation;
+        m_eOrientation = orientation;
     }
     return true;
 }
@@ -226,13 +227,13 @@ bool TransitionSceneOriented::initWithDuration(float t, Scene *scene, Orientatio
 //
 // RotoZoom
 //
-TransitionRotoZoom::TransitionRotoZoom()
+CCTransitionRotoZoom::CCTransitionRotoZoom()
 {
 }
 
-TransitionRotoZoom* TransitionRotoZoom::create(float t, Scene* scene)                   
+CCTransitionRotoZoom* CCTransitionRotoZoom::create(float t, CCScene* scene)                   
 {                                                               
-    TransitionRotoZoom* pScene = new TransitionRotoZoom();                                
+    CCTransitionRotoZoom* pScene = new CCTransitionRotoZoom();                                
     if(pScene && pScene->initWithDuration(t, scene))            
     {                                                           
         pScene->autorelease();                                  
@@ -242,39 +243,39 @@ TransitionRotoZoom* TransitionRotoZoom::create(float t, Scene* scene)
     return NULL;                                                
 }
 
-TransitionRotoZoom::~TransitionRotoZoom()
+CCTransitionRotoZoom::~CCTransitionRotoZoom()
 {
 }
 
-void TransitionRotoZoom:: onEnter()
+void CCTransitionRotoZoom:: onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
-    _inScene->setScale(0.001f);
-    _outScene->setScale(1.0f);
+    m_pInScene->setScale(0.001f);
+    m_pOutScene->setScale(1.0f);
 
-    _inScene->setAnchorPoint(Point(0.5f, 0.5f));
-    _outScene->setAnchorPoint(Point(0.5f, 0.5f));
+    m_pInScene->setAnchorPoint(ccp(0.5f, 0.5f));
+    m_pOutScene->setAnchorPoint(ccp(0.5f, 0.5f));
 
-    ActionInterval *rotozoom = (ActionInterval*)(Sequence::create
+    CCActionInterval *rotozoom = (CCActionInterval*)(CCSequence::create
     (
-        Spawn::create
+        CCSpawn::create
         (
-            ScaleBy::create(_duration/2, 0.001f),
-            RotateBy::create(_duration/2, 360 * 2),
+            CCScaleBy::create(m_fDuration/2, 0.001f),
+            CCRotateBy::create(m_fDuration/2, 360 * 2),
             NULL
         ),
-        DelayTime::create(_duration/2),
+        CCDelayTime::create(m_fDuration/2),
         NULL
     ));
 
-    _outScene->runAction(rotozoom);
-    _inScene->runAction
+    m_pOutScene->runAction(rotozoom);
+    m_pInScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             rotozoom->reverse(),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         )
     );
@@ -283,16 +284,16 @@ void TransitionRotoZoom:: onEnter()
 //
 // JumpZoom
 //
-TransitionJumpZoom::TransitionJumpZoom()
+CCTransitionJumpZoom::CCTransitionJumpZoom()
 {
 }
-TransitionJumpZoom::~TransitionJumpZoom()
+CCTransitionJumpZoom::~CCTransitionJumpZoom()
 {
 }
 
-TransitionJumpZoom* TransitionJumpZoom::create(float t, Scene* scene)
+CCTransitionJumpZoom* CCTransitionJumpZoom::create(float t, CCScene* scene)
 {
-    TransitionJumpZoom* pScene = new TransitionJumpZoom();
+    CCTransitionJumpZoom* pScene = new CCTransitionJumpZoom();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -302,33 +303,33 @@ TransitionJumpZoom* TransitionJumpZoom::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionJumpZoom::onEnter()
+void CCTransitionJumpZoom::onEnter()
 {
-    TransitionScene::onEnter();
-    Size s = Director::getInstance()->getWinSize();
+    CCTransitionScene::onEnter();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
-    _inScene->setScale(0.5f);
-    _inScene->setPosition(Point(s.width, 0));
-    _inScene->setAnchorPoint(Point(0.5f, 0.5f));
-    _outScene->setAnchorPoint(Point(0.5f, 0.5f));
+    m_pInScene->setScale(0.5f);
+    m_pInScene->setPosition(ccp(s.width, 0));
+    m_pInScene->setAnchorPoint(ccp(0.5f, 0.5f));
+    m_pOutScene->setAnchorPoint(ccp(0.5f, 0.5f));
 
-    ActionInterval *jump = JumpBy::create(_duration/4, Point(-s.width,0), s.width/4, 2);
-    ActionInterval *scaleIn = ScaleTo::create(_duration/4, 1.0f);
-    ActionInterval *scaleOut = ScaleTo::create(_duration/4, 0.5f);
+    CCActionInterval *jump = CCJumpBy::create(m_fDuration/4, ccp(-s.width,0), s.width/4, 2);
+    CCActionInterval *scaleIn = CCScaleTo::create(m_fDuration/4, 1.0f);
+    CCActionInterval *scaleOut = CCScaleTo::create(m_fDuration/4, 0.5f);
 
-    ActionInterval *jumpZoomOut = (ActionInterval*)(Sequence::create(scaleOut, jump, NULL));
-    ActionInterval *jumpZoomIn = (ActionInterval*)(Sequence::create(jump, scaleIn, NULL));
+    CCActionInterval *jumpZoomOut = (CCActionInterval*)(CCSequence::create(scaleOut, jump, NULL));
+    CCActionInterval *jumpZoomIn = (CCActionInterval*)(CCSequence::create(jump, scaleIn, NULL));
 
-    ActionInterval *delay = DelayTime::create(_duration/2);
+    CCActionInterval *delay = CCDelayTime::create(m_fDuration/2);
 
-    _outScene->runAction(jumpZoomOut);
-    _inScene->runAction
+    m_pOutScene->runAction(jumpZoomOut);
+    m_pInScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             delay,
             jumpZoomIn,
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         )
     );
@@ -337,17 +338,17 @@ void TransitionJumpZoom::onEnter()
 //
 // MoveInL
 //
-TransitionMoveInL::TransitionMoveInL()
+CCTransitionMoveInL::CCTransitionMoveInL()
 {
 }
 
-TransitionMoveInL::~TransitionMoveInL()
+CCTransitionMoveInL::~CCTransitionMoveInL()
 {
 }
 
-TransitionMoveInL* TransitionMoveInL::create(float t, Scene* scene)
+CCTransitionMoveInL* CCTransitionMoveInL::create(float t, CCScene* scene)
 {
-    TransitionMoveInL* pScene = new TransitionMoveInL();
+    CCTransitionMoveInL* pScene = new CCTransitionMoveInL();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -357,54 +358,54 @@ TransitionMoveInL* TransitionMoveInL::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionMoveInL::onEnter()
+void CCTransitionMoveInL::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
     this->initScenes();
 
-    ActionInterval *a = this->action();
+    CCActionInterval *a = this->action();
 
-    _inScene->runAction
+    m_pInScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             this->easeActionWithAction(a),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         )
     );
 }
  
-ActionInterval* TransitionMoveInL::action()
+CCActionInterval* CCTransitionMoveInL::action()
 {
-    return MoveTo::create(_duration, Point(0,0));
+    return CCMoveTo::create(m_fDuration, ccp(0,0));
 }
 
-ActionInterval* TransitionMoveInL::easeActionWithAction(ActionInterval* action)
+CCActionInterval* CCTransitionMoveInL::easeActionWithAction(CCActionInterval* action)
 {
-    return EaseOut::create(action, 2.0f);
+    return CCEaseOut::create(action, 2.0f);
 //    return [EaseElasticOut actionWithAction:action period:0.4f];
 }
 
-void TransitionMoveInL::initScenes()
+void CCTransitionMoveInL::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition(Point(-s.width,0));
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition(ccp(-s.width,0));
 }
 
 //
 // MoveInR
 //
-TransitionMoveInR::TransitionMoveInR()
+CCTransitionMoveInR::CCTransitionMoveInR()
 {
 }
-TransitionMoveInR::~TransitionMoveInR()
+CCTransitionMoveInR::~CCTransitionMoveInR()
 {
 }
 
-TransitionMoveInR* TransitionMoveInR::create(float t, Scene* scene)
+CCTransitionMoveInR* CCTransitionMoveInR::create(float t, CCScene* scene)
 {
-    TransitionMoveInR* pScene = new TransitionMoveInR();
+    CCTransitionMoveInR* pScene = new CCTransitionMoveInR();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -414,25 +415,25 @@ TransitionMoveInR* TransitionMoveInR::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionMoveInR::initScenes()
+void CCTransitionMoveInR::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(s.width,0) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(s.width,0) );
 }
 
 //
 // MoveInT
 //
-TransitionMoveInT::TransitionMoveInT()
+CCTransitionMoveInT::CCTransitionMoveInT()
 {
 }
-TransitionMoveInT::~TransitionMoveInT()
+CCTransitionMoveInT::~CCTransitionMoveInT()
 {
 }
 
-TransitionMoveInT* TransitionMoveInT::create(float t, Scene* scene)
+CCTransitionMoveInT* CCTransitionMoveInT::create(float t, CCScene* scene)
 {
-    TransitionMoveInT* pScene = new TransitionMoveInT();
+    CCTransitionMoveInT* pScene = new CCTransitionMoveInT();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -442,25 +443,25 @@ TransitionMoveInT* TransitionMoveInT::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionMoveInT::initScenes()
+void CCTransitionMoveInT::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(0,s.height) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(0,s.height) );
 }
 
 //
 // MoveInB
 //
-TransitionMoveInB::TransitionMoveInB()
+CCTransitionMoveInB::CCTransitionMoveInB()
 {
 }
-TransitionMoveInB::~TransitionMoveInB()
+CCTransitionMoveInB::~CCTransitionMoveInB()
 {
 }
 
-TransitionMoveInB* TransitionMoveInB::create(float t, Scene* scene)
+CCTransitionMoveInB* CCTransitionMoveInB::create(float t, CCScene* scene)
 {
-    TransitionMoveInB* pScene = new TransitionMoveInB();
+    CCTransitionMoveInB* pScene = new CCTransitionMoveInB();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -470,10 +471,10 @@ TransitionMoveInB* TransitionMoveInB::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionMoveInB::initScenes()
+void CCTransitionMoveInB::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(0,-s.height) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(0,-s.height) );
 }
 
 
@@ -486,58 +487,58 @@ void TransitionMoveInB::initScenes()
 // The other issue is that in some transitions (and I don't know why)
 // the order should be reversed (In in top of Out or vice-versa).
 #define ADJUST_FACTOR 0.5f
-TransitionSlideInL::TransitionSlideInL()
+CCTransitionSlideInL::CCTransitionSlideInL()
 {
 }
 
-TransitionSlideInL::~TransitionSlideInL()
+CCTransitionSlideInL::~CCTransitionSlideInL()
 {
 }
 
-void TransitionSlideInL::onEnter()
+void CCTransitionSlideInL::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
     this->initScenes();
 
-    ActionInterval *in = this->action();
-    ActionInterval *out = this->action();
+    CCActionInterval *in = this->action();
+    CCActionInterval *out = this->action();
 
-    ActionInterval* inAction = easeActionWithAction(in);
-    ActionInterval* outAction = (ActionInterval*)Sequence::create
+    CCActionInterval* inAction = easeActionWithAction(in);
+    CCActionInterval* outAction = (CCActionInterval*)CCSequence::create
     (
         easeActionWithAction(out),
-        CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+        CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
         NULL
     );
-    _inScene->runAction(inAction);
-    _outScene->runAction(outAction);
+    m_pInScene->runAction(inAction);
+    m_pOutScene->runAction(outAction);
 }
 
-void TransitionSlideInL::sceneOrder()
+void CCTransitionSlideInL::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionSlideInL:: initScenes()
+void CCTransitionSlideInL:: initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(-(s.width-ADJUST_FACTOR),0) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(-(s.width-ADJUST_FACTOR),0) );
 }
 
-ActionInterval* TransitionSlideInL::action()
+CCActionInterval* CCTransitionSlideInL::action()
 {
-    Size s = Director::getInstance()->getWinSize();
-    return MoveBy::create(_duration, Point(s.width-ADJUST_FACTOR,0));
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    return CCMoveBy::create(m_fDuration, ccp(s.width-ADJUST_FACTOR,0));
 }
 
-ActionInterval* TransitionSlideInL::easeActionWithAction(ActionInterval* action)
+CCActionInterval* CCTransitionSlideInL::easeActionWithAction(CCActionInterval* action)
 {
-    return EaseOut::create(action, 2.0f);
+    return CCEaseOut::create(action, 2.0f);
 }
 
-TransitionSlideInL* TransitionSlideInL::create(float t, Scene* scene)
+CCTransitionSlideInL* CCTransitionSlideInL::create(float t, CCScene* scene)
 {
-    TransitionSlideInL* pScene = new TransitionSlideInL();
+    CCTransitionSlideInL* pScene = new CCTransitionSlideInL();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -550,16 +551,16 @@ TransitionSlideInL* TransitionSlideInL::create(float t, Scene* scene)
 //
 // SlideInR
 //
-TransitionSlideInR::TransitionSlideInR()
+CCTransitionSlideInR::CCTransitionSlideInR()
 {
 }
-TransitionSlideInR::~TransitionSlideInR()
+CCTransitionSlideInR::~CCTransitionSlideInR()
 {
 }
 
-TransitionSlideInR* TransitionSlideInR::create(float t, Scene* scene)
+CCTransitionSlideInR* CCTransitionSlideInR::create(float t, CCScene* scene)
 {
-    TransitionSlideInR* pScene = new TransitionSlideInR();
+    CCTransitionSlideInR* pScene = new CCTransitionSlideInR();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -569,38 +570,38 @@ TransitionSlideInR* TransitionSlideInR::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionSlideInR::sceneOrder()
+void CCTransitionSlideInR::sceneOrder()
 {
-    _isInSceneOnTop = true;
+    m_bIsInSceneOnTop = true;
 }
 
-void TransitionSlideInR::initScenes()
+void CCTransitionSlideInR::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(s.width-ADJUST_FACTOR,0) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(s.width-ADJUST_FACTOR,0) );
 }
 
 
-ActionInterval* TransitionSlideInR:: action()
+CCActionInterval* CCTransitionSlideInR:: action()
 {
-    Size s = Director::getInstance()->getWinSize();
-    return MoveBy::create(_duration, Point(-(s.width-ADJUST_FACTOR),0));
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    return CCMoveBy::create(m_fDuration, ccp(-(s.width-ADJUST_FACTOR),0));
 }
 
 
 //
 // SlideInT
 //
-TransitionSlideInT::TransitionSlideInT()
+CCTransitionSlideInT::CCTransitionSlideInT()
 {
 }
-TransitionSlideInT::~TransitionSlideInT()
+CCTransitionSlideInT::~CCTransitionSlideInT()
 {
 }
 
-TransitionSlideInT* TransitionSlideInT::create(float t, Scene* scene)
+CCTransitionSlideInT* CCTransitionSlideInT::create(float t, CCScene* scene)
 {
-    TransitionSlideInT* pScene = new TransitionSlideInT();
+    CCTransitionSlideInT* pScene = new CCTransitionSlideInT();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -610,37 +611,37 @@ TransitionSlideInT* TransitionSlideInT::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionSlideInT::sceneOrder()
+void CCTransitionSlideInT::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionSlideInT::initScenes()
+void CCTransitionSlideInT::initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(0,s.height-ADJUST_FACTOR) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(0,s.height-ADJUST_FACTOR) );
 }
 
 
-ActionInterval* TransitionSlideInT::action()
+CCActionInterval* CCTransitionSlideInT::action()
 {
-    Size s = Director::getInstance()->getWinSize();
-    return MoveBy::create(_duration, Point(0,-(s.height-ADJUST_FACTOR)));
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    return CCMoveBy::create(m_fDuration, ccp(0,-(s.height-ADJUST_FACTOR)));
 }
 
 //
 // SlideInB
 //
-TransitionSlideInB::TransitionSlideInB()
+CCTransitionSlideInB::CCTransitionSlideInB()
 {
 }
-TransitionSlideInB::~TransitionSlideInB()
+CCTransitionSlideInB::~CCTransitionSlideInB()
 {
 }
 
-TransitionSlideInB* TransitionSlideInB::create(float t, Scene* scene)
+CCTransitionSlideInB* CCTransitionSlideInB::create(float t, CCScene* scene)
 {
-    TransitionSlideInB* pScene = new TransitionSlideInB();
+    CCTransitionSlideInB* pScene = new CCTransitionSlideInB();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -650,37 +651,37 @@ TransitionSlideInB* TransitionSlideInB::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionSlideInB::sceneOrder()
+void CCTransitionSlideInB::sceneOrder()
 {
-    _isInSceneOnTop = true;
+    m_bIsInSceneOnTop = true;
 }
 
-void TransitionSlideInB:: initScenes()
+void CCTransitionSlideInB:: initScenes()
 {
-    Size s = Director::getInstance()->getWinSize();
-    _inScene->setPosition( Point(0,-(s.height-ADJUST_FACTOR)) );
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    m_pInScene->setPosition( ccp(0,-(s.height-ADJUST_FACTOR)) );
 }
 
 
-ActionInterval* TransitionSlideInB:: action()
+CCActionInterval* CCTransitionSlideInB:: action()
 {
-    Size s = Director::getInstance()->getWinSize();
-    return MoveBy::create(_duration, Point(0,s.height-ADJUST_FACTOR));
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    return CCMoveBy::create(m_fDuration, ccp(0,s.height-ADJUST_FACTOR));
 }
 
 //
 // ShrinkGrow Transition
 //
-TransitionShrinkGrow::TransitionShrinkGrow()
+CCTransitionShrinkGrow::CCTransitionShrinkGrow()
 {
 }
-TransitionShrinkGrow::~TransitionShrinkGrow()
+CCTransitionShrinkGrow::~CCTransitionShrinkGrow()
 {
 }
 
-TransitionShrinkGrow* TransitionShrinkGrow::create(float t, Scene* scene)
+CCTransitionShrinkGrow* CCTransitionShrinkGrow::create(float t, CCScene* scene)
 {
-    TransitionShrinkGrow* pScene = new TransitionShrinkGrow();
+    CCTransitionShrinkGrow* pScene = new CCTransitionShrinkGrow();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -690,57 +691,57 @@ TransitionShrinkGrow* TransitionShrinkGrow::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionShrinkGrow::onEnter()
+void CCTransitionShrinkGrow::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
-    _inScene->setScale(0.001f);
-    _outScene->setScale(1.0f);
+    m_pInScene->setScale(0.001f);
+    m_pOutScene->setScale(1.0f);
 
-    _inScene->setAnchorPoint(Point(2/3.0f,0.5f));
-    _outScene->setAnchorPoint(Point(1/3.0f,0.5f));    
+    m_pInScene->setAnchorPoint(ccp(2/3.0f,0.5f));
+    m_pOutScene->setAnchorPoint(ccp(1/3.0f,0.5f));    
 
-    ActionInterval* scaleOut = ScaleTo::create(_duration, 0.01f);
-    ActionInterval* scaleIn = ScaleTo::create(_duration, 1.0f);
+    CCActionInterval* scaleOut = CCScaleTo::create(m_fDuration, 0.01f);
+    CCActionInterval* scaleIn = CCScaleTo::create(m_fDuration, 1.0f);
 
-    _inScene->runAction(this->easeActionWithAction(scaleIn));
-    _outScene->runAction
+    m_pInScene->runAction(this->easeActionWithAction(scaleIn));
+    m_pOutScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             this->easeActionWithAction(scaleOut),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
             NULL
         )
     );
 }
-ActionInterval* TransitionShrinkGrow:: easeActionWithAction(ActionInterval* action)
+CCActionInterval* CCTransitionShrinkGrow:: easeActionWithAction(CCActionInterval* action)
 {
-    return EaseOut::create(action, 2.0f);
+    return CCEaseOut::create(action, 2.0f);
 //    return [EaseElasticOut actionWithAction:action period:0.3f];
 }
 
 //
 // FlipX Transition
 //
-TransitionFlipX::TransitionFlipX()
+CCTransitionFlipX::CCTransitionFlipX()
 {
 }
-TransitionFlipX::~TransitionFlipX()
+CCTransitionFlipX::~CCTransitionFlipX()
 {
 }
 
-void TransitionFlipX::onEnter()
+void CCTransitionFlipX::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation == TransitionScene::Orientation::RIGHT_OVER )
+    if( m_eOrientation == kCCTransitionOrientationRightOver )
     {
         inDeltaZ = 90;
         inAngleZ = 270;
@@ -755,62 +756,62 @@ void TransitionFlipX::onEnter()
         outAngleZ = 0;
     }
 
-    inA = (ActionInterval*)Sequence::create
+    inA = (CCActionInterval*)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Show::create(),
-            OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, 0, 0),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCDelayTime::create(m_fDuration/2),
+            CCShow::create(),
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, 0, 0),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
             NULL
         );
 
-    outA = (ActionInterval *)Sequence::create
+    outA = (CCActionInterval *)CCSequence::create
         (
-            OrbitCamera::create(_duration/2, 1, 0, outAngleZ, outDeltaZ, 0, 0),
-            Hide::create(),
-            DelayTime::create(_duration/2),                            
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, outAngleZ, outDeltaZ, 0, 0),
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),                            
             NULL 
         );
 
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 }
 
-TransitionFlipX* TransitionFlipX::create(float t, Scene* s, Orientation o)
+CCTransitionFlipX* CCTransitionFlipX::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionFlipX* pScene = new TransitionFlipX();
+    CCTransitionFlipX* pScene = new CCTransitionFlipX();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionFlipX* TransitionFlipX::create(float t, Scene* s)
+CCTransitionFlipX* CCTransitionFlipX::create(float t, CCScene* s)
 {
-    return TransitionFlipX::create(t, s, TransitionScene::Orientation::RIGHT_OVER);
+    return CCTransitionFlipX::create(t, s, kCCTransitionOrientationRightOver);
 }
 
 //
 // FlipY Transition
 //
-TransitionFlipY::TransitionFlipY()
+CCTransitionFlipY::CCTransitionFlipY()
 {
 }
-TransitionFlipY::~TransitionFlipY()
+CCTransitionFlipY::~CCTransitionFlipY()
 {
 }
 
-void TransitionFlipY::onEnter()
+void CCTransitionFlipY::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation == TransitionScene::Orientation::UP_OVER ) 
+    if( m_eOrientation == kCCTransitionOrientationUpOver ) 
     {
         inDeltaZ = 90;
         inAngleZ = 270;
@@ -825,63 +826,63 @@ void TransitionFlipY::onEnter()
         outAngleZ = 0;
     }
 
-    inA = (ActionInterval*)Sequence::create
+    inA = (CCActionInterval*)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Show::create(),
-            OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, 90, 0),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCDelayTime::create(m_fDuration/2),
+            CCShow::create(),
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, 90, 0),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
             NULL
         );
-    outA = (ActionInterval*)Sequence::create
+    outA = (CCActionInterval*)CCSequence::create
         (
-            OrbitCamera::create(_duration/2, 1, 0, outAngleZ, outDeltaZ, 90, 0),
-            Hide::create(),
-            DelayTime::create(_duration/2),                            
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, outAngleZ, outDeltaZ, 90, 0),
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),                            
             NULL
         );
 
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 
 }
 
-TransitionFlipY* TransitionFlipY::create(float t, Scene* s, Orientation o)
+CCTransitionFlipY* CCTransitionFlipY::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionFlipY* pScene = new TransitionFlipY();
+    CCTransitionFlipY* pScene = new CCTransitionFlipY();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionFlipY* TransitionFlipY::create(float t, Scene* s)
+CCTransitionFlipY* CCTransitionFlipY::create(float t, CCScene* s)
 {
-    return TransitionFlipY::create(t, s, TransitionScene::Orientation::UP_OVER);
+    return CCTransitionFlipY::create(t, s, kCCTransitionOrientationUpOver);
 }
 
 //
 // FlipAngular Transition
 //
-TransitionFlipAngular::TransitionFlipAngular()
+CCTransitionFlipAngular::CCTransitionFlipAngular()
 {
 }
 
-TransitionFlipAngular::~TransitionFlipAngular()
+CCTransitionFlipAngular::~CCTransitionFlipAngular()
 {
 }
 
-void TransitionFlipAngular::onEnter()
+void CCTransitionFlipAngular::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation == TransitionScene::Orientation::RIGHT_OVER ) 
+    if( m_eOrientation == kCCTransitionOrientationRightOver ) 
     {
         inDeltaZ = 90;
         inAngleZ = 270;
@@ -896,61 +897,61 @@ void TransitionFlipAngular::onEnter()
         outAngleZ = 0;
     }
 
-    inA = (ActionInterval *)Sequence::create
+    inA = (CCActionInterval *)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Show::create(),
-            OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, -45, 0),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCDelayTime::create(m_fDuration/2),
+            CCShow::create(),
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, -45, 0),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
             NULL
         );
-    outA = (ActionInterval *)Sequence::create
+    outA = (CCActionInterval *)CCSequence::create
         (
-            OrbitCamera::create(_duration/2, 1, 0, outAngleZ, outDeltaZ, 45, 0),
-            Hide::create(),
-            DelayTime::create(_duration/2),                            
+            CCOrbitCamera::create(m_fDuration/2, 1, 0, outAngleZ, outDeltaZ, 45, 0),
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),                            
             NULL
         );
 
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 }
 
-TransitionFlipAngular* TransitionFlipAngular::create(float t, Scene* s, Orientation o)
+CCTransitionFlipAngular* CCTransitionFlipAngular::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionFlipAngular* pScene = new TransitionFlipAngular();
+    CCTransitionFlipAngular* pScene = new CCTransitionFlipAngular();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionFlipAngular* TransitionFlipAngular::create(float t, Scene* s)
+CCTransitionFlipAngular* CCTransitionFlipAngular::create(float t, CCScene* s)
 {
-    return TransitionFlipAngular::create(t, s, TransitionScene::Orientation::RIGHT_OVER);
+    return CCTransitionFlipAngular::create(t, s, kCCTransitionOrientationRightOver);
 }
 
 //
 // ZoomFlipX Transition
 //
-TransitionZoomFlipX::TransitionZoomFlipX()
+CCTransitionZoomFlipX::CCTransitionZoomFlipX()
 {
 }
-TransitionZoomFlipX::~TransitionZoomFlipX()
+CCTransitionZoomFlipX::~CCTransitionZoomFlipX()
 {
 }
 
-void TransitionZoomFlipX::onEnter()
+void CCTransitionZoomFlipX::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation == TransitionScene::Orientation::RIGHT_OVER ) {
+    if( m_eOrientation == kCCTransitionOrientationRightOver ) {
         inDeltaZ = 90;
         inAngleZ = 270;
         outDeltaZ = 90;
@@ -963,73 +964,73 @@ void TransitionZoomFlipX::onEnter()
         outDeltaZ = -90;
         outAngleZ = 0;
     }
-    inA = (ActionInterval *)Sequence::create
+    inA = (CCActionInterval *)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Spawn::create
+            CCDelayTime::create(m_fDuration/2),
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, 0, 0),
-                ScaleTo::create(_duration/2, 1),
-                Show::create(),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, 0, 0),
+                CCScaleTo::create(m_fDuration/2, 1),
+                CCShow::create(),
                 NULL
             ),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         );
-    outA = (ActionInterval *)Sequence::create
+    outA = (CCActionInterval *)CCSequence::create
         (
-            Spawn::create
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0, outAngleZ, outDeltaZ, 0, 0),
-                ScaleTo::create(_duration/2, 0.5f),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0, outAngleZ, outDeltaZ, 0, 0),
+                CCScaleTo::create(m_fDuration/2, 0.5f),
                 NULL
             ),
-            Hide::create(),
-            DelayTime::create(_duration/2),                            
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),                            
             NULL
         );
 
-    _inScene->setScale(0.5f);
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->setScale(0.5f);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 }
 
-TransitionZoomFlipX* TransitionZoomFlipX::create(float t, Scene* s, Orientation o)
+CCTransitionZoomFlipX* CCTransitionZoomFlipX::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionZoomFlipX* pScene = new TransitionZoomFlipX();
+    CCTransitionZoomFlipX* pScene = new CCTransitionZoomFlipX();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionZoomFlipX* TransitionZoomFlipX::create(float t, Scene* s)
+CCTransitionZoomFlipX* CCTransitionZoomFlipX::create(float t, CCScene* s)
 {
-    return TransitionZoomFlipX::create(t, s, TransitionScene::Orientation::RIGHT_OVER);
+    return CCTransitionZoomFlipX::create(t, s, kCCTransitionOrientationRightOver);
 }
 
 //
 // ZoomFlipY Transition
 //
-TransitionZoomFlipY::TransitionZoomFlipY()
+CCTransitionZoomFlipY::CCTransitionZoomFlipY()
 {
 }
 
-TransitionZoomFlipY::~TransitionZoomFlipY()
+CCTransitionZoomFlipY::~CCTransitionZoomFlipY()
 {
 }
 
-void TransitionZoomFlipY::onEnter()
+void CCTransitionZoomFlipY::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation== TransitionScene::Orientation::UP_OVER ) {
+    if( m_eOrientation== kCCTransitionOrientationUpOver ) {
         inDeltaZ = 90;
         inAngleZ = 270;
         outDeltaZ = 90;
@@ -1041,74 +1042,74 @@ void TransitionZoomFlipY::onEnter()
         outAngleZ = 0;
     }
 
-    inA = (ActionInterval *)Sequence::create
+    inA = (CCActionInterval *)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Spawn::create
+            CCDelayTime::create(m_fDuration/2),
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, 90, 0),
-                ScaleTo::create(_duration/2, 1),
-                Show::create(),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, 90, 0),
+                CCScaleTo::create(m_fDuration/2, 1),
+                CCShow::create(),
                 NULL
             ),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         );
 
-    outA = (ActionInterval *)Sequence::create
+    outA = (CCActionInterval *)CCSequence::create
         (
-            Spawn::create
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0, outAngleZ, outDeltaZ, 90, 0),
-                ScaleTo::create(_duration/2, 0.5f),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0, outAngleZ, outDeltaZ, 90, 0),
+                CCScaleTo::create(m_fDuration/2, 0.5f),
                 NULL
             ),                            
-            Hide::create(),
-            DelayTime::create(_duration/2),
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),
             NULL
         );
 
-    _inScene->setScale(0.5f);
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->setScale(0.5f);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 }
 
-TransitionZoomFlipY* TransitionZoomFlipY::create(float t, Scene* s, Orientation o)
+CCTransitionZoomFlipY* CCTransitionZoomFlipY::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionZoomFlipY* pScene = new TransitionZoomFlipY();
+    CCTransitionZoomFlipY* pScene = new CCTransitionZoomFlipY();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionZoomFlipY* TransitionZoomFlipY::create(float t, Scene* s)
+CCTransitionZoomFlipY* CCTransitionZoomFlipY::create(float t, CCScene* s)
 {
-    return TransitionZoomFlipY::create(t, s, TransitionScene::Orientation::UP_OVER);
+    return CCTransitionZoomFlipY::create(t, s, kCCTransitionOrientationUpOver);
 }
 
 //
 // ZoomFlipAngular Transition
 //
-TransitionZoomFlipAngular::TransitionZoomFlipAngular()
+CCTransitionZoomFlipAngular::CCTransitionZoomFlipAngular()
 {
 }
-TransitionZoomFlipAngular::~TransitionZoomFlipAngular()
+CCTransitionZoomFlipAngular::~CCTransitionZoomFlipAngular()
 {
 }
 
 
-void TransitionZoomFlipAngular::onEnter()
+void CCTransitionZoomFlipAngular::onEnter()
 {
-    TransitionSceneOriented::onEnter();
+    CCTransitionSceneOriented::onEnter();
 
-    ActionInterval *inA, *outA;
-    _inScene->setVisible(false);
+    CCActionInterval *inA, *outA;
+    m_pInScene->setVisible(false);
 
     float inDeltaZ, inAngleZ;
     float outDeltaZ, outAngleZ;
 
-    if( _orientation == TransitionScene::Orientation::RIGHT_OVER ) {
+    if( m_eOrientation == kCCTransitionOrientationRightOver ) {
         inDeltaZ = 90;
         inAngleZ = 270;
         outDeltaZ = 90;
@@ -1122,134 +1123,133 @@ void TransitionZoomFlipAngular::onEnter()
         outAngleZ = 0;
     }
 
-    inA = (ActionInterval *)Sequence::create
+    inA = (CCActionInterval *)CCSequence::create
         (
-            DelayTime::create(_duration/2),
-            Spawn::create
+            CCDelayTime::create(m_fDuration/2),
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0, inAngleZ, inDeltaZ, -45, 0),
-                ScaleTo::create(_duration/2, 1),
-                Show::create(),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0, inAngleZ, inDeltaZ, -45, 0),
+                CCScaleTo::create(m_fDuration/2, 1),
+                CCShow::create(),
                 NULL
             ),
-            Show::create(),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+            CCShow::create(),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
             NULL
         );
-    outA = (ActionInterval *)Sequence::create
+    outA = (CCActionInterval *)CCSequence::create
         (
-            Spawn::create
+            CCSpawn::create
             (
-                OrbitCamera::create(_duration/2, 1, 0 , outAngleZ, outDeltaZ, 45, 0),
-                ScaleTo::create(_duration/2, 0.5f),
+                CCOrbitCamera::create(m_fDuration/2, 1, 0 , outAngleZ, outDeltaZ, 45, 0),
+                CCScaleTo::create(m_fDuration/2, 0.5f),
                 NULL
             ),                            
-            Hide::create(),
-            DelayTime::create(_duration/2),                            
+            CCHide::create(),
+            CCDelayTime::create(m_fDuration/2),                            
             NULL
         );
 
-    _inScene->setScale(0.5f);
-    _inScene->runAction(inA);
-    _outScene->runAction(outA);
+    m_pInScene->setScale(0.5f);
+    m_pInScene->runAction(inA);
+    m_pOutScene->runAction(outA);
 }
 
-TransitionZoomFlipAngular* TransitionZoomFlipAngular::create(float t, Scene* s, Orientation o)
+CCTransitionZoomFlipAngular* CCTransitionZoomFlipAngular::create(float t, CCScene* s, tOrientation o)
 {
-    TransitionZoomFlipAngular* pScene = new TransitionZoomFlipAngular();
+    CCTransitionZoomFlipAngular* pScene = new CCTransitionZoomFlipAngular();
     pScene->initWithDuration(t, s, o);
     pScene->autorelease();
 
     return pScene;
 }
 
-TransitionZoomFlipAngular* TransitionZoomFlipAngular::create(float t, Scene* s)
+CCTransitionZoomFlipAngular* CCTransitionZoomFlipAngular::create(float t, CCScene* s)
 {
-    return TransitionZoomFlipAngular::create(t, s, TransitionScene::Orientation::RIGHT_OVER);
+    return CCTransitionZoomFlipAngular::create(t, s, kCCTransitionOrientationRightOver);
 }
 
 //
 // Fade Transition
 //
-TransitionFade::TransitionFade()
+CCTransitionFade::CCTransitionFade()
 {
 }
-TransitionFade::~TransitionFade()
+CCTransitionFade::~CCTransitionFade()
 {
 }
 
-TransitionFade * TransitionFade::create(float duration, Scene *scene, const Color3B& color)
+CCTransitionFade * CCTransitionFade::create(float duration, CCScene *scene, const ccColor3B& color)
 {
-    TransitionFade * pTransition = new TransitionFade();
+    CCTransitionFade * pTransition = new CCTransitionFade();
     pTransition->initWithDuration(duration, scene, color);
     pTransition->autorelease();
     return pTransition;
 }
 
-TransitionFade* TransitionFade::create(float duration,Scene* scene)
+CCTransitionFade* CCTransitionFade::create(float duration,CCScene* scene)
 {
-    return TransitionFade::create(duration, scene, Color3B::BLACK);
+    return CCTransitionFade::create(duration, scene, ccBLACK);
 }
 
-bool TransitionFade::initWithDuration(float duration, Scene *scene, const Color3B& color)
+bool CCTransitionFade::initWithDuration(float duration, CCScene *scene, const ccColor3B& color)
 {
-    if (TransitionScene::initWithDuration(duration, scene))
+    if (CCTransitionScene::initWithDuration(duration, scene))
     {
-        _color.r = color.r;
-        _color.g = color.g;
-        _color.b = color.b;
-        _color.a = 0;
+        m_tColor.r = color.r;
+        m_tColor.g = color.g;
+        m_tColor.b = color.b;
+        m_tColor.a = 0;
     }
     return true;
 }
 
-bool TransitionFade::initWithDuration(float t, Scene *scene)
+bool CCTransitionFade::initWithDuration(float t, CCScene *scene)
 {
-    this->initWithDuration(t, scene, Color3B::BLACK);
+    this->initWithDuration(t, scene, ccBLACK);
     return true;
 }
 
-void TransitionFade :: onEnter()
+void CCTransitionFade :: onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
-    LayerColor* l = LayerColor::create(_color);
-    _inScene->setVisible(false);
+    CCLayerColor* l = CCLayerColor::create(m_tColor);
+    m_pInScene->setVisible(false);
 
     addChild(l, 2, kSceneFade);
-    Node* f = getChildByTag(kSceneFade);
+    CCNode* f = getChildByTag(kSceneFade);
 
-    ActionInterval* a = (ActionInterval *)Sequence::create
+    CCActionInterval* a = (CCActionInterval *)CCSequence::create
         (
-            FadeIn::create(_duration/2),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::hideOutShowIn,this)),
-            FadeOut::create(_duration/2),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
-
-         NULL
+            CCFadeIn::create(m_fDuration/2),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::hideOutShowIn)),//CCCallFunc::create:self selector:@selector(hideOutShowIn)],
+            CCFadeOut::create(m_fDuration/2),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), //:self selector:@selector(finish)],
+            NULL
         );
     f->runAction(a);
 }
 
-void TransitionFade::onExit()
+void CCTransitionFade::onExit()
 {
-    TransitionScene::onExit();
+    CCTransitionScene::onExit();
     this->removeChildByTag(kSceneFade, false);
 }
 
 //
 // Cross Fade Transition
 //
-TransitionCrossFade::TransitionCrossFade()
+CCTransitionCrossFade::CCTransitionCrossFade()
 {
 }
-TransitionCrossFade::~TransitionCrossFade()
+CCTransitionCrossFade::~CCTransitionCrossFade()
 {
 }
 
-TransitionCrossFade* TransitionCrossFade::create(float t, Scene* scene)
+CCTransitionCrossFade* CCTransitionCrossFade::create(float t, CCScene* scene)
 {
-    TransitionCrossFade* pScene = new TransitionCrossFade();
+    CCTransitionCrossFade* pScene = new CCTransitionCrossFade();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1259,53 +1259,53 @@ TransitionCrossFade* TransitionCrossFade::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionCrossFade:: draw()
+void CCTransitionCrossFade:: draw()
 {
     // override draw since both scenes (textures) are rendered in 1 scene
 }
 
-void TransitionCrossFade::onEnter()
+void CCTransitionCrossFade::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
     // create a transparent color layer
     // in which we are going to add our rendertextures
-    Color4B  color(0,0,0,0);
-    Size size = Director::getInstance()->getWinSize();
-    LayerColor* layer = LayerColor::create(color);
+    ccColor4B  color = {0,0,0,0};
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
+    CCLayerColor* layer = CCLayerColor::create(color);
 
     // create the first render texture for inScene
-    RenderTexture* inTexture = RenderTexture::create((int)size.width, (int)size.height);
+    CCRenderTexture* inTexture = CCRenderTexture::create((int)size.width, (int)size.height);
 
     if (NULL == inTexture)
     {
         return;
     }
 
-    inTexture->getSprite()->setAnchorPoint( Point(0.5f,0.5f) );
-    inTexture->setPosition( Point(size.width/2, size.height/2) );
-    inTexture->setAnchorPoint( Point(0.5f,0.5f) );
+    inTexture->getSprite()->setAnchorPoint( ccp(0.5f,0.5f) );
+    inTexture->setPosition( ccp(size.width/2, size.height/2) );
+    inTexture->setAnchorPoint( ccp(0.5f,0.5f) );
 
     // render inScene to its texturebuffer
     inTexture->begin();
-    _inScene->visit();
+    m_pInScene->visit();
     inTexture->end();
 
     // create the second render texture for outScene
-    RenderTexture* outTexture = RenderTexture::create((int)size.width, (int)size.height);
-    outTexture->getSprite()->setAnchorPoint( Point(0.5f,0.5f) );
-    outTexture->setPosition( Point(size.width/2, size.height/2) );
-    outTexture->setAnchorPoint( Point(0.5f,0.5f) );
+    CCRenderTexture* outTexture = CCRenderTexture::create((int)size.width, (int)size.height);
+    outTexture->getSprite()->setAnchorPoint( ccp(0.5f,0.5f) );
+    outTexture->setPosition( ccp(size.width/2, size.height/2) );
+    outTexture->setAnchorPoint( ccp(0.5f,0.5f) );
 
     // render outScene to its texturebuffer
     outTexture->begin();
-    _outScene->visit();
+    m_pOutScene->visit();
     outTexture->end();
 
     // create blend functions
 
-    BlendFunc blend1 = {GL_ONE, GL_ONE}; // inScene will lay on background and will not be used with alpha
-    BlendFunc blend2 = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA}; // we are going to blend outScene via alpha 
+    ccBlendFunc blend1 = {GL_ONE, GL_ONE}; // inScene will lay on background and will not be used with alpha
+    ccBlendFunc blend2 = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA}; // we are going to blend outScene via alpha 
 
     // set blendfunctions
     inTexture->getSprite()->setBlendFunc(blend1);
@@ -1320,11 +1320,11 @@ void TransitionCrossFade::onEnter()
     outTexture->getSprite()->setOpacity(255);
 
     // create the blend action
-    Action* layerAction = Sequence::create
+    CCAction* layerAction = CCSequence::create
     (
-        FadeTo::create(_duration, 0),
-        CallFunc::create(CC_CALLBACK_0(TransitionScene::hideOutShowIn,this)),
-        CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
+        CCFadeTo::create(m_fDuration, 0),
+        CCCallFunc::create(this, callfunc_selector(CCTransitionScene::hideOutShowIn)),
+        CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
         NULL
     );
 
@@ -1337,27 +1337,27 @@ void TransitionCrossFade::onEnter()
 }
 
 // clean up on exit
-void TransitionCrossFade::onExit()
+void CCTransitionCrossFade::onExit()
 {
     // remove our layer and release all containing objects 
     this->removeChildByTag(kSceneFade, false);
-    TransitionScene::onExit();
+    CCTransitionScene::onExit();
 }
 
 //
 // TurnOffTilesTransition
 //
-TransitionTurnOffTiles::TransitionTurnOffTiles()
+CCTransitionTurnOffTiles::CCTransitionTurnOffTiles()
 {
 }
 
-TransitionTurnOffTiles::~TransitionTurnOffTiles()
+CCTransitionTurnOffTiles::~CCTransitionTurnOffTiles()
 {
 }
 
-TransitionTurnOffTiles* TransitionTurnOffTiles::create(float t, Scene* scene)
+CCTransitionTurnOffTiles* CCTransitionTurnOffTiles::create(float t, CCScene* scene)
 {
-    TransitionTurnOffTiles* pScene = new TransitionTurnOffTiles();
+    CCTransitionTurnOffTiles* pScene = new CCTransitionTurnOffTiles();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1368,35 +1368,35 @@ TransitionTurnOffTiles* TransitionTurnOffTiles::create(float t, Scene* scene)
 }
 
 // override addScenes, and change the order
-void TransitionTurnOffTiles::sceneOrder()
+void CCTransitionTurnOffTiles::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionTurnOffTiles::onEnter()
+void CCTransitionTurnOffTiles::onEnter()
 {
-    TransitionScene::onEnter();
-    Size s = Director::getInstance()->getWinSize();
+    CCTransitionScene::onEnter();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
     float aspect = s.width / s.height;
     int x = (int)(12 * aspect);
     int y = 12;
 
-    TurnOffTiles* toff = TurnOffTiles::create(_duration, Size(x,y));
-    ActionInterval* action = easeActionWithAction(toff);
-    _outScene->runAction
+    CCTurnOffTiles* toff = CCTurnOffTiles::create(m_fDuration, CCSizeMake(x,y));
+    CCActionInterval* action = easeActionWithAction(toff);
+    m_pOutScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             action,
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
-            StopGrid::create(),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
+            CCStopGrid::create(),
             NULL
         )
     );
 }
 
 
-ActionInterval* TransitionTurnOffTiles:: easeActionWithAction(ActionInterval* action)
+CCActionInterval* CCTransitionTurnOffTiles:: easeActionWithAction(CCActionInterval* action)
 {
     return action;
 }
@@ -1404,16 +1404,16 @@ ActionInterval* TransitionTurnOffTiles:: easeActionWithAction(ActionInterval* ac
 //
 // SplitCols Transition
 //
-TransitionSplitCols::TransitionSplitCols()
+CCTransitionSplitCols::CCTransitionSplitCols()
 {
 }
-TransitionSplitCols::~TransitionSplitCols()
+CCTransitionSplitCols::~CCTransitionSplitCols()
 {
 }
 
-TransitionSplitCols* TransitionSplitCols::create(float t, Scene* scene)
+CCTransitionSplitCols* CCTransitionSplitCols::create(float t, CCScene* scene)
 {
-    TransitionSplitCols* pScene = new TransitionSplitCols();
+    CCTransitionSplitCols* pScene = new CCTransitionSplitCols();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1423,63 +1423,63 @@ TransitionSplitCols* TransitionSplitCols::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionSplitCols::onEnter()
+void CCTransitionSplitCols::onEnter()
 {
-    TransitionScene::onEnter();
-    _inScene->setVisible(false);
+    CCTransitionScene::onEnter();
+    m_pInScene->setVisible(false);
 
-    ActionInterval* split = action();
-    ActionInterval* seq = (ActionInterval*)Sequence::create
+    CCActionInterval* split = action();
+    CCActionInterval* seq = (CCActionInterval*)CCSequence::create
     (
         split,
-        CallFunc::create(CC_CALLBACK_0(TransitionScene::hideOutShowIn,this)),
+        CCCallFunc::create(this, callfunc_selector(CCTransitionScene::hideOutShowIn)),
         split->reverse(),
         NULL
     );
 
     this->runAction
     ( 
-        Sequence::create
+        CCSequence::create
         (
             easeActionWithAction(seq),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
-            StopGrid::create(),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)),
+            CCStopGrid::create(),
             NULL
         )
     );
 }
 
-ActionInterval* TransitionSplitCols:: action()
+CCActionInterval* CCTransitionSplitCols:: action()
 {
-    return SplitCols::create(_duration/2.0f, 3);
+    return CCSplitCols::create(m_fDuration/2.0f, 3);
 }
 
 
-ActionInterval* TransitionSplitCols::easeActionWithAction(ActionInterval * action)
+CCActionInterval* CCTransitionSplitCols::easeActionWithAction(CCActionInterval * action)
 {
-    return EaseInOut::create(action, 3.0f);
+    return CCEaseInOut::create(action, 3.0f);
 }
 
 
 //
 // SplitRows Transition
 //
-TransitionSplitRows::TransitionSplitRows()
+CCTransitionSplitRows::CCTransitionSplitRows()
 {
 }
 
-TransitionSplitRows::~TransitionSplitRows()
+CCTransitionSplitRows::~CCTransitionSplitRows()
 {
 }
 
-ActionInterval* TransitionSplitRows::action()
+CCActionInterval* CCTransitionSplitRows::action()
 {
-    return SplitRows::create(_duration/2.0f, 3);
+    return CCSplitRows::create(m_fDuration/2.0f, 3);
 }
 
-TransitionSplitRows* TransitionSplitRows::create(float t, Scene* scene)
+CCTransitionSplitRows* CCTransitionSplitRows::create(float t, CCScene* scene)
 {
-    TransitionSplitRows* pScene = new TransitionSplitRows();
+    CCTransitionSplitRows* pScene = new CCTransitionSplitRows();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1492,16 +1492,16 @@ TransitionSplitRows* TransitionSplitRows::create(float t, Scene* scene)
 //
 // FadeTR Transition
 //
-TransitionFadeTR::TransitionFadeTR()
+CCTransitionFadeTR::CCTransitionFadeTR()
 {
 }
-TransitionFadeTR::~TransitionFadeTR()
+CCTransitionFadeTR::~CCTransitionFadeTR()
 {
 }
 
-TransitionFadeTR* TransitionFadeTR::create(float t, Scene* scene)
+CCTransitionFadeTR* CCTransitionFadeTR::create(float t, CCScene* scene)
 {
-    TransitionFadeTR* pScene = new TransitionFadeTR();
+    CCTransitionFadeTR* pScene = new CCTransitionFadeTR();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1511,41 +1511,41 @@ TransitionFadeTR* TransitionFadeTR::create(float t, Scene* scene)
     return NULL;
 }
 
-void TransitionFadeTR::sceneOrder()
+void CCTransitionFadeTR::sceneOrder()
 {
-    _isInSceneOnTop = false;
+    m_bIsInSceneOnTop = false;
 }
 
-void TransitionFadeTR::onEnter()
+void CCTransitionFadeTR::onEnter()
 {
-    TransitionScene::onEnter();
+    CCTransitionScene::onEnter();
 
-    Size s = Director::getInstance()->getWinSize();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
     float aspect = s.width / s.height;
     int x = (int)(12 * aspect);
     int y = 12;
 
-    ActionInterval* action  = actionWithSize(Size(x,y));
+    CCActionInterval* action  = actionWithSize(CCSizeMake(x,y));
 
-    _outScene->runAction
+    m_pOutScene->runAction
     (
-        Sequence::create
+        CCSequence::create
         (
             easeActionWithAction(action),
-            CallFunc::create(CC_CALLBACK_0(TransitionScene::finish,this)),
-            StopGrid::create(),
+            CCCallFunc::create(this, callfunc_selector(CCTransitionScene::finish)), 
+            CCStopGrid::create(),
             NULL
         )
     );
 }
 
 
-ActionInterval*  TransitionFadeTR::actionWithSize(const Size& size)
+CCActionInterval*  CCTransitionFadeTR::actionWithSize(const CCSize& size)
 {
-    return FadeOutTRTiles::create(_duration, size);
+    return CCFadeOutTRTiles::create(m_fDuration, size);
 }
 
-ActionInterval* TransitionFadeTR:: easeActionWithAction(ActionInterval* action)
+CCActionInterval* CCTransitionFadeTR:: easeActionWithAction(CCActionInterval* action)
 {
     return action;
 }
@@ -1555,16 +1555,16 @@ ActionInterval* TransitionFadeTR:: easeActionWithAction(ActionInterval* action)
 // FadeBL Transition
 //
 
-TransitionFadeBL::TransitionFadeBL()
+CCTransitionFadeBL::CCTransitionFadeBL()
 {
 }
-TransitionFadeBL::~TransitionFadeBL()
+CCTransitionFadeBL::~CCTransitionFadeBL()
 {
 }
 
-TransitionFadeBL* TransitionFadeBL::create(float t, Scene* scene)
+CCTransitionFadeBL* CCTransitionFadeBL::create(float t, CCScene* scene)
 {
-    TransitionFadeBL* pScene = new TransitionFadeBL();
+    CCTransitionFadeBL* pScene = new CCTransitionFadeBL();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1574,25 +1574,25 @@ TransitionFadeBL* TransitionFadeBL::create(float t, Scene* scene)
     return NULL;
 }
 
-ActionInterval*  TransitionFadeBL::actionWithSize(const Size& size)
+CCActionInterval*  CCTransitionFadeBL::actionWithSize(const CCSize& size)
 {
-    return FadeOutBLTiles::create(_duration, size);
+    return CCFadeOutBLTiles::create(m_fDuration, size);
 }
 
 //
 // FadeUp Transition
 //
-TransitionFadeUp::TransitionFadeUp()
+CCTransitionFadeUp::CCTransitionFadeUp()
 {
 }
 
-TransitionFadeUp::~TransitionFadeUp()
+CCTransitionFadeUp::~CCTransitionFadeUp()
 {
 }
 
-TransitionFadeUp* TransitionFadeUp::create(float t, Scene* scene)
+CCTransitionFadeUp* CCTransitionFadeUp::create(float t, CCScene* scene)
 {
-    TransitionFadeUp* pScene = new TransitionFadeUp();
+    CCTransitionFadeUp* pScene = new CCTransitionFadeUp();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1602,24 +1602,24 @@ TransitionFadeUp* TransitionFadeUp::create(float t, Scene* scene)
     return NULL;
 }
 
-ActionInterval* TransitionFadeUp::actionWithSize(const Size& size)
+CCActionInterval* CCTransitionFadeUp::actionWithSize(const CCSize& size)
 {
-    return FadeOutUpTiles::create(_duration, size);
+    return CCFadeOutUpTiles::create(m_fDuration, size);
 }
 
 //
 // FadeDown Transition
 //
-TransitionFadeDown::TransitionFadeDown()
+CCTransitionFadeDown::CCTransitionFadeDown()
 {
 }
-TransitionFadeDown::~TransitionFadeDown()
+CCTransitionFadeDown::~CCTransitionFadeDown()
 {
 }
 
-TransitionFadeDown* TransitionFadeDown::create(float t, Scene* scene)
+CCTransitionFadeDown* CCTransitionFadeDown::create(float t, CCScene* scene)
 {
-    TransitionFadeDown* pScene = new TransitionFadeDown();
+    CCTransitionFadeDown* pScene = new CCTransitionFadeDown();
     if(pScene && pScene->initWithDuration(t, scene))
     {
         pScene->autorelease();
@@ -1629,9 +1629,9 @@ TransitionFadeDown* TransitionFadeDown::create(float t, Scene* scene)
     return NULL;
 }
 
-ActionInterval* TransitionFadeDown::actionWithSize(const Size& size)
+CCActionInterval* CCTransitionFadeDown::actionWithSize(const CCSize& size)
 {
-    return FadeOutDownTiles::create(_duration, size);
+    return CCFadeOutDownTiles::create(m_fDuration, size);
 }
 
 NS_CC_END

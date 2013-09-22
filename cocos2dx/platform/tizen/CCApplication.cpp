@@ -33,22 +33,22 @@ using namespace Tizen::Base;
 using namespace Tizen::System;
 
 // sharedApplication pointer
-Application * Application::sm_pSharedApplication = 0;
-long Application::_animationInterval = 1000;
+CCApplication * CCApplication::sm_pSharedApplication = 0;
+long CCApplication::m_nAnimationInterval = 1000;
 
-Application::Application()
+CCApplication::CCApplication()
 {
     CCAssert(! sm_pSharedApplication, "");
     sm_pSharedApplication = this;
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
     CCAssert(this == sm_pSharedApplication, "");
     sm_pSharedApplication = NULL;
 }
 
-int Application::run()
+int CCApplication::run()
 {
     // Initialize instance and cocos2d.
     if (!applicationDidFinishLaunching())
@@ -59,37 +59,31 @@ int Application::run()
     return -1;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
-    _animationInterval = interval * 1000.0f;
+    m_nAnimationInterval = interval * 1000.0f;
 }
 
-long Application::getAnimationInterval()
+long CCApplication::getAnimationInterval()
 {
-    return _animationInterval;
+    return m_nAnimationInterval;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // static member function
 //////////////////////////////////////////////////////////////////////////
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
     CCAssert(sm_pSharedApplication, "");
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
-{
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
     result r = E_SUCCESS;
     int index = 0;
-    Tizen::Base::String localelanguageCode, languageCode;
-    LanguageType ret = LanguageType::ENGLISH;
+    String localelanguageCode, languageCode;
+    ccLanguageType ret = kLanguageEnglish;
 
     r = SettingInfo::GetValue(L"http://tizen.org/setting/locale.language", localelanguageCode);
     TryLog(!IsFailed(r), "[%s] Cannot get the current language setting", GetErrorMessage(r));
@@ -98,66 +92,59 @@ LanguageType Application::getCurrentLanguage()
 
     if (0 == languageCode.CompareTo(L"zho"))
     {
-        ret = LanguageType::CHINESE;
+        ret = kLanguageChinese;
     }
     else if (0 == languageCode.CompareTo(L"eng"))
     {
-        ret = LanguageType::ENGLISH;
+        ret = kLanguageEnglish;
     }
     else if (0 == languageCode.CompareTo(L"fre"))
     {
-        ret = LanguageType::FRENCH;
+        ret = kLanguageFrench;
     }
     else if (0 == languageCode.CompareTo(L"ita"))
     {
-        ret = LanguageType::ITALIAN;
+        ret = kLanguageItalian;
     }
     else if (0 == languageCode.CompareTo(L"deu"))
     {
-        ret = LanguageType::GERMAN;
+        ret = kLanguageGerman;
     }
     else if (0 == languageCode.CompareTo(L"spa"))
     {
-        ret = LanguageType::SPANISH;
+        ret = kLanguageSpanish;
     }
     else if (0 == languageCode.CompareTo(L"rus"))
     {
-        ret = LanguageType::RUSSIAN;
+        ret = kLanguageRussian;
     }
     else if (0 == languageCode.CompareTo(L"kor"))
     {
-        ret = LanguageType::KOREAN;
+        ret = kLanguageKorean;
     }
     else if (0 == languageCode.CompareTo(L"jpn"))
     {
-        ret = LanguageType::JAPANESE;
+        ret = kLanguageJapanese;
     }
     else if (0 == languageCode.CompareTo(L"hun"))
     {
-        ret = LanguageType::HUNGARIAN;
+        ret = kLanguageHungarian;
     }
     else if (0 == languageCode.CompareTo(L"por"))
     {
-        ret = LanguageType::PORTUGUESE;
+        ret = kLanguagePortuguese;
     }
     else if (0 == languageCode.CompareTo(L"ara"))
     {
-        ret = LanguageType::ARABIC;
+        ret = kLanguageArabic;
     }
-    else if (0 == languageCode.CompareTo(L"nor"))
-    {
-        ret = LanguageType::NORWEGIAN;
-    }
-    else if (0 == languageCode.CompareTo(L"pol"))
-    {
-        ret = LanguageType::POLISH;
-    }
+
     return ret;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_TIZEN;
+    return kTargetTizen;
 }
 
 NS_CC_END

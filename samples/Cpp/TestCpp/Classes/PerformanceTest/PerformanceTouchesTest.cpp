@@ -14,25 +14,25 @@ static int s_nTouchCurCase = 0;
 ////////////////////////////////////////////////////////
 void TouchesMainScene::showCurrentTest()
 {
-    Layer* layer = NULL;
-    switch (_curCase)
+    CCLayer* pLayer = NULL;
+    switch (m_nCurCase)
     {
     case 0:
-        layer = new TouchesPerformTest1(true, TEST_COUNT, _curCase);
+        pLayer = new TouchesPerformTest1(true, TEST_COUNT, m_nCurCase);
         break;
     case 1:
-        layer = new TouchesPerformTest2(true, TEST_COUNT, _curCase);
+        pLayer = new TouchesPerformTest2(true, TEST_COUNT, m_nCurCase);
         break;
     }
-    s_nTouchCurCase = _curCase;
+    s_nTouchCurCase = m_nCurCase;
 
-    if (layer)
+    if (pLayer)
     {
-        Scene* scene = Scene::create();
-        scene->addChild(layer);
-        layer->release();
+        CCScene* pScene = CCScene::create();
+        pScene->addChild(pLayer);
+        pLayer->release();
 
-        Director::getInstance()->replaceScene(scene);
+        CCDirector::sharedDirector()->replaceScene(pScene);
     }
 }
 
@@ -40,18 +40,18 @@ void TouchesMainScene::onEnter()
 {
     PerformBasicLayer::onEnter();
 
-    Size s = Director::getInstance()->getWinSize();
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
 
     // add title
-    LabelTTF *label = LabelTTF::create(title().c_str(), "Arial", 32);
+    CCLabelTTF *label = CCLabelTTF::create(title().c_str(), "Arial", 32);
     addChild(label, 1);
-    label->setPosition(Point(s.width/2, s.height-50));
+    label->setPosition(ccp(s.width/2, s.height-50));
 
     scheduleUpdate();
 
-    _plabel = LabelBMFont::create("00.0", "fonts/arial16.fnt");
-    _plabel->setPosition(Point(s.width/2, s.height/2));
-    addChild(_plabel);
+    m_plabel = CCLabelBMFont::create("00.0", "fonts/arial16.fnt");
+    m_plabel->setPosition(ccp(s.width/2, s.height/2));
+    addChild(m_plabel);
 
     elapsedTime = 0;
     numberOfTouchesB = numberOfTouchesM = numberOfTouchesE = numberOfTouchesC = 0;    
@@ -72,7 +72,7 @@ void TouchesMainScene::update(float dt)
 
         char str[32] = {0};
         sprintf(str, "%.1f %.1f %.1f %.1f", frameRateB, frameRateM, frameRateE, frameRateC);
-        _plabel->setString(str);
+        m_plabel->setString(str);
     }
 }
 
@@ -99,27 +99,27 @@ std::string TouchesPerformTest1::title()
 
 void TouchesPerformTest1::registerWithTouchDispatcher()
 {
-    Director* director = Director::getInstance();
-    director->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
+    CCDirector* pDirector = CCDirector::sharedDirector();
+    pDirector->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
 }
 
-bool TouchesPerformTest1::ccTouchBegan(Touch* touch, Event* event)
+bool TouchesPerformTest1::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
     numberOfTouchesB++;
     return true;
 }
 
-void TouchesPerformTest1::ccTouchMoved(Touch* touch, Event* event)
+void TouchesPerformTest1::ccTouchMoved(CCTouch* touch, CCEvent* event)
 {
     numberOfTouchesM++;
 }
 
-void TouchesPerformTest1::ccTouchEnded(Touch* touch, Event* event)
+void TouchesPerformTest1::ccTouchEnded(CCTouch* touch, CCEvent* event)
 {
     numberOfTouchesE++;
 }
 
-void TouchesPerformTest1::ccTouchCancelled(Touch* touch, Event* event)
+void TouchesPerformTest1::ccTouchCancelled(CCTouch* touch, CCEvent* event)
 {
     numberOfTouchesC++;
 }
@@ -142,25 +142,25 @@ std::string TouchesPerformTest2::title()
 
 void TouchesPerformTest2::registerWithTouchDispatcher()
 {
-    Director* director = Director::getInstance();
-    director->getTouchDispatcher()->addStandardDelegate(this, 0);
+    CCDirector* pDirector = CCDirector::sharedDirector();
+    pDirector->getTouchDispatcher()->addStandardDelegate(this, 0);
 }
 
-void TouchesPerformTest2::ccTouchesBegan(Set* touches, Event* event)
+void TouchesPerformTest2::ccTouchesBegan(CCSet* touches, CCEvent* event)
 {
     numberOfTouchesB += touches->count();
 }
 
-void TouchesPerformTest2::ccTouchesMoved(Set* touches, Event* event)
+void TouchesPerformTest2::ccTouchesMoved(CCSet* touches, CCEvent* event)
 {
     numberOfTouchesM += touches->count();
 }
-void TouchesPerformTest2::ccTouchesEnded(Set* touches, Event* event)
+void TouchesPerformTest2::ccTouchesEnded(CCSet* touches, CCEvent* event)
 {
     numberOfTouchesE += touches->count();
 }
 
-void TouchesPerformTest2::ccTouchesCancelled(Set* touches, Event* event)
+void TouchesPerformTest2::ccTouchesCancelled(CCSet* touches, CCEvent* event)
 {
     numberOfTouchesC += touches->count();
 }
@@ -168,11 +168,11 @@ void TouchesPerformTest2::ccTouchesCancelled(Set* touches, Event* event)
 void runTouchesTest()
 {
     s_nTouchCurCase = 0;
-    Scene* scene = Scene::create();
-    Layer* layer = new TouchesPerformTest1(true, TEST_COUNT, s_nTouchCurCase);
+    CCScene* pScene = CCScene::create();
+    CCLayer* pLayer = new TouchesPerformTest1(true, TEST_COUNT, s_nTouchCurCase);
 
-    scene->addChild(layer);
-    layer->release();
+    pScene->addChild(pLayer);
+    pLayer->release();
 
-    Director::getInstance()->replaceScene(scene);
+    CCDirector::sharedDirector()->replaceScene(pScene);
 }

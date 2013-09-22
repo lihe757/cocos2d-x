@@ -43,34 +43,34 @@ typedef enum {
 
 struct _ccCArray;
 /**
-@class KeypadDispatcher
+@class CCKeypadDispatcher
 @brief Dispatch the keypad message from the phone
 */
-class CC_DLL KeypadDispatcher : public Object
+class CC_DLL CCKeypadDispatcher : public CCObject
 {
 public:
-    KeypadDispatcher();
-    ~KeypadDispatcher();
+    CCKeypadDispatcher();
+    ~CCKeypadDispatcher();
 
     /**
     @brief add delegate to concern keypad msg
     */
-    void addDelegate(KeypadDelegate* pDelegate);
+    void addDelegate(CCKeypadDelegate* pDelegate);
 
     /**
     @brief remove the delegate from the delegates who concern keypad msg
     */
-    void removeDelegate(KeypadDelegate* pDelegate);
+    void removeDelegate(CCKeypadDelegate* pDelegate);
 
     /**
     @brief force add the delegate
     */
-    void forceAddDelegate(KeypadDelegate* pDelegate);
+    void forceAddDelegate(CCKeypadDelegate* pDelegate);
 
     /**
     @brief force remove the delegate
     */
-    void forceRemoveDelegate(KeypadDelegate* pDelegate);
+    void forceRemoveDelegate(CCKeypadDelegate* pDelegate);
 
     /**
     @brief dispatch the key pad msg
@@ -79,13 +79,13 @@ public:
 
 protected:
 
-    Array* _delegates;
-    bool _locked;
-    bool _toAdd;
-    bool _toRemove;
+    CCArray* m_pDelegates;
+    bool m_bLocked;
+    bool m_bToAdd;
+    bool m_bToRemove;
 
-    struct _ccCArray *_handlersToAdd;
-    struct _ccCArray *_handlersToRemove;
+    struct _ccCArray *m_pHandlersToAdd;
+    struct _ccCArray *m_pHandlersToRemove;
 };
 
 // end of input group

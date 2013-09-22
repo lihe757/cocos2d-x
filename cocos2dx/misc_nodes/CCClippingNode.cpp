@@ -30,38 +30,39 @@
 #include "shaders/CCGLProgram.h"
 #include "shaders/CCShaderCache.h"
 #include "CCDirector.h"
+#include "support/CCPointExtension.h"
 #include "draw_nodes/CCDrawingPrimitives.h"
 
 NS_CC_BEGIN
 
 static GLint g_sStencilBits = -1;
 
-static void setProgram(Node *n, GLProgram *p)
+static void setProgram(CCNode *n, CCGLProgram *p)
 {
     n->setShaderProgram(p);
     if (!n->getChildren()) return;
     
-    Object* pObj = NULL;
+    CCObject* pObj = NULL;
     CCARRAY_FOREACH(n->getChildren(), pObj)
     {
-        setProgram(static_cast<Node*>(pObj), p);
+        setProgram((CCNode*)pObj, p);
     }
 }
 
-ClippingNode::ClippingNode()
-: _stencil(NULL)
-, _alphaThreshold(0.0f)
-, _inverted(false)
+CCClippingNode::CCClippingNode()
+: m_pStencil(NULL)
+, m_fAlphaThreshold(0.0f)
+, m_bInverted(false)
 {}
 
-ClippingNode::~ClippingNode()
+CCClippingNode::~CCClippingNode()
 {
-    CC_SAFE_RELEASE(_stencil);
+    CC_SAFE_RELEASE(m_pStencil);
 }
 
-ClippingNode* ClippingNode::create()
+CCClippingNode* CCClippingNode::create()
 {
-    ClippingNode *pRet = new ClippingNode();
+    CCClippingNode *pRet = new CCClippingNode();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -74,9 +75,9 @@ ClippingNode* ClippingNode::create()
     return pRet;
 }
 
-ClippingNode* ClippingNode::create(Node *pStencil)
+CCClippingNode* CCClippingNode::create(CCNode *pStencil)
 {
-    ClippingNode *pRet = new ClippingNode();
+    CCClippingNode *pRet = new CCClippingNode();
     if (pRet && pRet->init(pStencil))
     {
         pRet->autorelease();
@@ -89,19 +90,19 @@ ClippingNode* ClippingNode::create(Node *pStencil)
     return pRet;
 }
 
-bool ClippingNode::init()
+bool CCClippingNode::init()
 {
     return init(NULL);
 }
 
-bool ClippingNode::init(Node *pStencil)
+bool CCClippingNode::init(CCNode *pStencil)
 {
-    CC_SAFE_RELEASE(_stencil);
-    _stencil = pStencil;
-    CC_SAFE_RETAIN(_stencil);
+    CC_SAFE_RELEASE(m_pStencil);
+    m_pStencil = pStencil;
+    CC_SAFE_RETAIN(m_pStencil);
     
-    _alphaThreshold = 1;
-    _inverted = false;
+    m_fAlphaThreshold = 1;
+    m_bInverted = false;
     // get (only once) the number of bits of the stencil buffer
     static bool once = true;
     if (once)
@@ -117,73 +118,55 @@ bool ClippingNode::init(Node *pStencil)
     return true;
 }
 
-void ClippingNode::onEnter()
+void CCClippingNode::onEnter()
 {
-    Node::onEnter();
-    _stencil->onEnter();
+    CCNode::onEnter();
+    m_pStencil->onEnter();
 }
 
-void ClippingNode::onEnterTransitionDidFinish()
+void CCClippingNode::onEnterTransitionDidFinish()
 {
-    Node::onEnterTransitionDidFinish();
-    _stencil->onEnterTransitionDidFinish();
+    CCNode::onEnterTransitionDidFinish();
+    m_pStencil->onEnterTransitionDidFinish();
 }
 
-void ClippingNode::onExitTransitionDidStart()
+void CCClippingNode::onExitTransitionDidStart()
 {
-    _stencil->onExitTransitionDidStart();
-    Node::onExitTransitionDidStart();
+    m_pStencil->onExitTransitionDidStart();
+    CCNode::onExitTransitionDidStart();
 }
 
-void ClippingNode::onExit()
+void CCClippingNode::onExit()
 {
-    _stencil->onExit();
-    Node::onExit();
+    m_pStencil->onExit();
+    CCNode::onExit();
 }
 
-void ClippingNode::drawFullScreenQuadClearStencil()
-{
-    kmGLMatrixMode(KM_GL_MODELVIEW);
-    kmGLPushMatrix();
-    kmGLLoadIdentity();
-    
-    kmGLMatrixMode(KM_GL_PROJECTION);
-    kmGLPushMatrix();
-    kmGLLoadIdentity();
-    
-    DrawPrimitives::drawSolidRect(Point(-1,-1), Point(1,1), Color4F(1, 1, 1, 1));
-    
-    kmGLMatrixMode(KM_GL_PROJECTION);
-    kmGLPopMatrix();
-    kmGLMatrixMode(KM_GL_MODELVIEW);
-    kmGLPopMatrix();
-}
-
-void ClippingNode::visit()
+void CCClippingNode::visit()
 {
     // if stencil buffer disabled
     if (g_sStencilBits < 1)
     {
         // draw everything, as if there where no stencil
-        Node::visit();
+        CCNode::visit();
         return;
     }
     
     // return fast (draw nothing, or draw everything if in inverted mode) if:
     // - nil stencil node
     // - or stencil node invisible:
-    if (!_stencil || !_stencil->isVisible())
+    if (!m_pStencil || !m_pStencil->isVisible())
     {
-        if (_inverted)
+        if (m_bInverted)
         {
             // draw everything
-            Node::visit();
+            CCNode::visit();
         }
         return;
     }
     
     // store the current stencil layer (position in the stencil buffer),
-    // this will allow nesting up to n ClippingNode,
+    // this will allow nesting up to n CCClippingNode,
     // where n is the number of bits of the stencil buffer.
     static GLint layer = -1;
     
@@ -201,7 +184,7 @@ void ClippingNode::visit()
             once = false;
         }
         // draw everything, as if there where no stencil
-        Node::visit();
+        CCNode::visit();
         return;
     }
     
@@ -269,11 +252,11 @@ void ClippingNode::visit()
     //     if not in inverted mode: set the current layer value to 0 in the stencil buffer
     //     if in inverted mode: set the current layer value to 1 in the stencil buffer
     glStencilFunc(GL_NEVER, mask_layer, mask_layer);
-    glStencilOp(!_inverted ? GL_ZERO : GL_REPLACE, GL_KEEP, GL_KEEP);
+    glStencilOp(!m_bInverted ? GL_ZERO : GL_REPLACE, GL_KEEP, GL_KEEP);
     
     // draw a fullscreen solid rectangle to clear the stencil buffer
-    //ccDrawSolidRect(Point::ZERO, ccpFromSize([[Director sharedDirector] winSize]), Color4F(1, 1, 1, 1));
-    drawFullScreenQuadClearStencil();
+    //ccDrawSolidRect(CCPointZero, ccpFromSize([[CCDirector sharedDirector] winSize]), ccc4f(1, 1, 1, 1));
+    ccDrawSolidRect(CCPointZero, ccpFromSize(CCDirector::sharedDirector()->getWinSize()), ccc4f(1, 1, 1, 1));
     
     ///////////////////////////////////
     // DRAW CLIPPING STENCIL
@@ -284,7 +267,7 @@ void ClippingNode::visit()
     //     if not in inverted mode: set the current layer value to 1 in the stencil buffer
     //     if in inverted mode: set the current layer value to 0 in the stencil buffer
     glStencilFunc(GL_NEVER, mask_layer, mask_layer);
-    glStencilOp(!_inverted ? GL_REPLACE : GL_ZERO, GL_KEEP, GL_KEEP);
+    glStencilOp(!m_bInverted ? GL_REPLACE : GL_ZERO, GL_KEEP, GL_KEEP);
     
     // enable alpha test only if the alpha threshold < 1,
     // indeed if alpha threshold == 1, every pixel will be drawn anyways
@@ -293,7 +276,7 @@ void ClippingNode::visit()
     GLenum currentAlphaTestFunc = GL_ALWAYS;
     GLclampf currentAlphaTestRef = 1;
 #endif
-    if (_alphaThreshold < 1) {
+    if (m_fAlphaThreshold < 1) {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WINDOWS || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
         // manually save the alpha test state
         currentAlphaTestEnabled = glIsEnabled(GL_ALPHA_TEST);
@@ -304,17 +287,17 @@ void ClippingNode::visit()
         // check for OpenGL error while enabling alpha test
         CHECK_GL_ERROR_DEBUG();
         // pixel will be drawn only if greater than an alpha threshold
-        glAlphaFunc(GL_GREATER, _alphaThreshold);
+        glAlphaFunc(GL_GREATER, m_fAlphaThreshold);
 #else
         // since glAlphaTest do not exists in OES, use a shader that writes
         // pixel only if greater than an alpha threshold
-        GLProgram *program = ShaderCache::getInstance()->programForKey(GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST);
-        GLint alphaValueLocation = glGetUniformLocation(program->getProgram(), GLProgram::UNIFORM_NAME_ALPHA_TEST_VALUE);
+        CCGLProgram *program = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColorAlphaTest);
+        GLint alphaValueLocation = glGetUniformLocation(program->getProgram(), kCCUniformAlphaTestValue);
         // set our alphaThreshold
-        program->setUniformLocationWith1f(alphaValueLocation, _alphaThreshold);
+        program->setUniformLocationWith1f(alphaValueLocation, m_fAlphaThreshold);
         // we need to recursively apply this shader to all the nodes in the stencil node
         // XXX: we should have a way to apply shader to all nodes without having to do this
-        setProgram(_stencil, program);
+        setProgram(m_pStencil, program);
        
 #endif
     }
@@ -323,11 +306,11 @@ void ClippingNode::visit()
     // (according to the stencil test func/op and alpha (or alpha shader) test)
     kmGLPushMatrix();
     transform();
-    _stencil->visit();
+    m_pStencil->visit();
     kmGLPopMatrix();
     
     // restore alpha test state
-    if (_alphaThreshold < 1)
+    if (m_fAlphaThreshold < 1)
     {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WINDOWS || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
         // manually restore the alpha test state
@@ -360,7 +343,7 @@ void ClippingNode::visit()
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     
     // draw (according to the stencil test func) this node and its childs
-    Node::visit();
+    CCNode::visit();
     
     ///////////////////////////////////
     // CLEANUP
@@ -378,36 +361,36 @@ void ClippingNode::visit()
     layer--;
 }
 
-Node* ClippingNode::getStencil() const
+CCNode* CCClippingNode::getStencil() const
 {
-    return _stencil;
+    return m_pStencil;
 }
 
-void ClippingNode::setStencil(Node *pStencil)
+void CCClippingNode::setStencil(CCNode *pStencil)
 {
-    CC_SAFE_RELEASE(_stencil);
-    _stencil = pStencil;
-    CC_SAFE_RETAIN(_stencil);
+    CC_SAFE_RELEASE(m_pStencil);
+    m_pStencil = pStencil;
+    CC_SAFE_RETAIN(m_pStencil);
 }
 
-GLfloat ClippingNode::getAlphaThreshold() const
+GLfloat CCClippingNode::getAlphaThreshold() const
 {
-    return _alphaThreshold;
+    return m_fAlphaThreshold;
 }
 
-void ClippingNode::setAlphaThreshold(GLfloat fAlphaThreshold)
+void CCClippingNode::setAlphaThreshold(GLfloat fAlphaThreshold)
 {
-    _alphaThreshold = fAlphaThreshold;
+    m_fAlphaThreshold = fAlphaThreshold;
 }
 
-bool ClippingNode::isInverted() const
+bool CCClippingNode::isInverted() const
 {
-    return _inverted;
+    return m_bInverted;
 }
 
-void ClippingNode::setInverted(bool bInverted)
+void CCClippingNode::setInverted(bool bInverted)
 {
-    _inverted = bInverted;
+    m_bInverted = bInverted;
 }
 
 NS_CC_END

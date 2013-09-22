@@ -87,19 +87,19 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/OpenALDecoder.cpp</name>
+			<name>src/OspPlayer.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/openal/OpenALDecoder.cpp</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/tizen/OspPlayer.cpp</locationURI>
 		</link>
 		<link>
-			<name>src/OpenALDecoder.h</name>
+			<name>src/OspPlayer.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/openal/OpenALDecoder.h</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/tizen/OspPlayer.h</locationURI>
 		</link>
 		<link>
-			<name>src/SimpleAudioEngineOpenAL.cpp</name>
+			<name>src/SimpleAudioEngine.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/openal/SimpleAudioEngineOpenAL.cpp</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/tizen/SimpleAudioEngine.cpp</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -31,8 +31,8 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-Application* Application::sm_pSharedApplication = 0;
-bool Application::s_running = false;
+CCApplication* CCApplication::sm_pSharedApplication = 0;
+bool CCApplication::s_running = false;
 
 /*
 static long getCurrentMillSecond()
@@ -46,20 +46,20 @@ static long getCurrentMillSecond()
 }
 */
 
-Application::Application()
+CCApplication::CCApplication()
 {
     CC_ASSERT(!sm_pSharedApplication);
     sm_pSharedApplication = this;
     setAnimationInterval(1.0f/60.0f);
 }
 
-Application::~Application()
+CCApplication::~CCApplication()
 {
     CC_ASSERT(this == sm_pSharedApplication);
     sm_pSharedApplication = NULL;
 }
 
-int Application::run()
+int CCApplication::run()
 {
     // Initialize instance and cocos2d.
     if (!applicationDidFinishLaunching())
@@ -69,14 +69,14 @@ int Application::run()
     for (;;)
     {
         //long iLastTime = getCurrentMillSecond();
-        Director::getInstance()->mainLoop();
-        EGLView::getInstance()->ProcessEventQueue();
+        CCDirector::sharedDirector()->mainLoop();
+        CCEGLView::sharedOpenGLView()->ProcessEventQueue();
 
         //long iCurTime = getCurrentMillSecond();
         /*
-        if (iCurTime-iLastTime<_animationInterval)
+        if (iCurTime-iLastTime<m_nAnimationInterval)
         {
-            usleep((_animationInterval - iCurTime+iLastTime)*1000);
+            usleep((m_nAnimationInterval - iCurTime+iLastTime)*1000);
         }
         */
     }
@@ -85,31 +85,25 @@ int Application::run()
     return -1;
 }
 
-void Application::setAnimationInterval(double interval)
+void CCApplication::setAnimationInterval(double interval)
 {
-    _animationInterval = interval * 1000.0f;
+    m_nAnimationInterval = interval * 1000.0f;
 }
 
-Application::Platform Application::getTargetPlatform()
+TargetPlatform CCApplication::getTargetPlatform()
 {
-    return Platform::OS_NACL;
+    return kTargetNaCl;
 }
 
-Application* Application::getInstance()
+CCApplication* CCApplication::sharedApplication()
 {
     CC_ASSERT(sm_pSharedApplication);
     return sm_pSharedApplication;
 }
 
-// @deprecated Use getInstance() instead
-Application* Application::sharedApplication()
+ccLanguageType CCApplication::getCurrentLanguage()
 {
-    return Application::getInstance();
-}
-
-LanguageType Application::getCurrentLanguage()
-{
-    LanguageType ret = LanguageType::ENGLISH;
+    ccLanguageType ret = kLanguageEnglish;
     return ret;
 }
 

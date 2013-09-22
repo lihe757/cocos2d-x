@@ -3,6 +3,10 @@
 #include "AppDelegate.h"
 #include "CCLuaEngine.h"
 #include "SimpleAudioEngine.h"
+#include "Lua_extensions_CCB.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#include "Lua_web_socket.h"
+#endif
 
 using namespace CocosDenshion;
 
@@ -20,8 +24,8 @@ AppDelegate::~AppDelegate()
 bool AppDelegate::applicationDidFinishLaunching()
 {
     // initialize director
-    Director *pDirector = Director::getInstance();
-    pDirector->setOpenGLView(EGLView::getInstance());
+    CCDirector *pDirector = CCDirector::sharedDirector();
+    pDirector->setOpenGLView(CCEGLView::sharedOpenGLView());
 
     // turn on display FPS
     pDirector->setDisplayStats(true);
@@ -29,53 +33,45 @@ bool AppDelegate::applicationDidFinishLaunching()
     // set FPS. the default value is 1.0/60 if you don't call this
     pDirector->setAnimationInterval(1.0 / 60);
     
-    Size screenSize = EGLView::getInstance()->getFrameSize();
-    
-    Size designSize = Size(480, 320);
-    
-    FileUtils* pFileUtils = FileUtils::getInstance();
-    
-    if (screenSize.height > 320)
-    {
-        Size resourceSize = Size(960, 640);
-        std::vector<std::string> searchPaths;
-        searchPaths.push_back("hd");
-        pFileUtils->setSearchPaths(searchPaths);
-        pDirector->setContentScaleFactor(resourceSize.height/designSize.height);
-    }
-    
-    EGLView::getInstance()->setDesignResolutionSize(designSize.width, designSize.height, ResolutionPolicy::FIXED_HEIGHT);
-    
     // register lua engine
-    LuaEngine* pEngine = LuaEngine::getInstance();
-    ScriptEngineManager::getInstance()->setScriptEngine(pEngine);
+    CCLuaEngine* pEngine = CCLuaEngine::defaultEngine();
+    CCScriptEngineManager::sharedManager()->setScriptEngine(pEngine);
     
-    std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
-    searchPaths.insert(searchPaths.begin(), "cocosbuilderRes");
+    CCLuaStack *pStack = pEngine->getLuaStack();
+    lua_State *tolua_s = pStack->getLuaState();
+    tolua_extensions_ccb_open(tolua_s);
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)    
+    pStack = pEngine->getLuaStack();
+    tolua_s = pStack->getLuaState();
+    tolua_web_socket_open(tolua_s);
+#endif
+    
+    std::vector<std::string> searchPaths;
+    searchPaths.push_back("cocosbuilderRes");
 
 #if CC_TARGET_PLATFORM == CC_PLATFORM_BLACKBERRY
     searchPaths.push_back("TestCppResources");
     searchPaths.push_back("script");
 #endif
-    FileUtils::getInstance()->setSearchPaths(searchPaths);
+    CCFileUtils::sharedFileUtils()->setSearchPaths(searchPaths);
 
     pEngine->executeScriptFile("luaScript/controller.lua");
-    
+
     return true;
 }
 
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void AppDelegate::applicationDidEnterBackground()
 {
-    Director::getInstance()->stopAnimation();
+    CCDirector::sharedDirector()->stopAnimation();
 
-    SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+    SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
 }
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground()
 {
-    Director::getInstance()->startAnimation();
+    CCDirector::sharedDirector()->startAnimation();
 
-    SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+    SimpleAudioEngine::sharedEngine()->resumeBackgroundMusic();
 }

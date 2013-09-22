@@ -15,58 +15,85 @@ public:
     virtual void completedAnimationSequenceNamed(const char *name) = 0;
 };
 
-class CCBAnimationManager : public Object
+class CCBAnimationManager : public CCObject
 {
+private:
+    CCArray *mSequences;
+    CCDictionary *mNodeSequences;
+    CCDictionary *mBaseValues;
+    int mAutoPlaySequenceId;
+    
+    CCNode *mRootNode;
+    
+    CCSize mRootContainerSize;
+    
+    CCBAnimationManagerDelegate *mDelegate;
+    CCBSequence *mRunningSequence;
+    
+    CCArray *mDocumentOutletNames;
+    CCArray *mDocumentOutletNodes;
+    CCArray *mDocumentCallbackNames;
+    CCArray *mDocumentCallbackNodes;
+    CCArray *mKeyframeCallbacks;
+    CCDictionary *mKeyframeCallFuncs;
+
+    std::string mDocumentControllerName;
+    std::string lastCompletedSequenceName;
+
+    SEL_CallFunc mAnimationCompleteCallbackFunc;
+    CCObject *mTarget;
+    
+    
 public:
-    bool _jsControlled;
+    bool jsControlled;
     CCBAnimationManager();
     ~CCBAnimationManager();
 
 
-    Object *_owner;
+    CCObject *mOwner;
     
     virtual bool init();
     
-    Array* getSequences();
-    void setSequences(Array* seq);
+    CCArray* getSequences();
+    void setSequences(CCArray* seq);
 
     
     int getAutoPlaySequenceId();
     void setAutoPlaySequenceId(int autoPlaySequenceId);
     
-    Node* getRootNode();
-    void setRootNode(Node* pRootNode); // weak reference    
+    CCNode* getRootNode();
+    void setRootNode(CCNode* pRootNode); // weak reference    
     
 
-    void addDocumentCallbackNode(Node *node);
+    void addDocumentCallbackNode(CCNode *node);
     void addDocumentCallbackName(std::string name);
-    void addDocumentOutletNode(Node *node);
+    void addDocumentOutletNode(CCNode *node);
     void addDocumentOutletName(std::string name);
 
     void setDocumentControllerName(const std::string &name);
     
     std::string getDocumentControllerName();
-    Array* getDocumentCallbackNames();
-    Array* getDocumentCallbackNodes();
-    Array* getDocumentOutletNames();
-    Array* getDocumentOutletNodes();
+    CCArray* getDocumentCallbackNames();
+    CCArray* getDocumentCallbackNodes();
+    CCArray* getDocumentOutletNames();
+    CCArray* getDocumentOutletNodes();
     std::string getLastCompletedSequenceName();
     
-    Array* getKeyframeCallbacks();
+    CCArray* getKeyframeCallbacks();
     
-    const Size& getRootContainerSize();
-    void setRootContainerSize(const Size &rootContainerSize);
+    const CCSize& getRootContainerSize();
+    void setRootContainerSize(const CCSize &rootContainerSize);
     
     CCBAnimationManagerDelegate* getDelegate();
     void setDelegate(CCBAnimationManagerDelegate* pDelegate); // retain
     
     const char* getRunningSequenceName();
     
-    const Size& getContainerSize(Node* pNode);
+    const CCSize& getContainerSize(CCNode* pNode);
     
-    void addNode(Node *pNode, Dictionary *pSeq);
-    void setBaseValue(Object *pValue, Node *pNode, const char *propName);
-    void moveAnimationsFromNode(Node* fromNode, Node* toNode);
+    void addNode(CCNode *pNode, CCDictionary *pSeq);
+    void setBaseValue(CCObject *pValue, CCNode *pNode, const char *pPropName);
+    void moveAnimationsFromNode(CCNode* fromNode, CCNode* toNode);
 
     /** @deprecated This interface will be deprecated sooner or later.*/
     CC_DEPRECATED_ATTRIBUTE void runAnimations(const char *pName, float fTweenDuration);
@@ -79,156 +106,111 @@ public:
     void runAnimationsForSequenceNamed(const char *pName);
     void runAnimationsForSequenceIdTweenDuration(int nSeqId, float fTweenDuraiton);
 
-    void setAnimationCompletedCallback(Object *target, SEL_CallFunc callbackFunc);
+    void setAnimationCompletedCallback(CCObject *target, SEL_CallFunc callbackFunc);
 
     void debug();
     
-    void setCallFunc(CallFunc *callFunc, const std::string &callbackNamed);
+    void setCallFunc(CCCallFunc *callFunc, const std::string &callbackNamed);
 
-    Object* actionForCallbackChannel(CCBSequenceProperty* channel);
-    Object* actionForSoundChannel(CCBSequenceProperty* channel);
+    CCObject* actionForCallbackChannel(CCBSequenceProperty* channel);
+    CCObject* actionForSoundChannel(CCBSequenceProperty* channel);
     
 private:
-    Object* getBaseValue(Node *pNode, const char* propName);
+    CCObject* getBaseValue(CCNode *pNode, const char* pPropName);
     int getSequenceId(const char* pSequenceName);
     CCBSequence* getSequence(int nSequenceId);
-    ActionInterval* getAction(CCBKeyframe *pKeyframe0, CCBKeyframe *pKeyframe1, const char *propName, Node *pNode);
-    void setAnimatedProperty(const char *propName, Node *pNode, Object *pValue, float fTweenDuraion);
-    void setFirstFrame(Node *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration);
-    ActionInterval* getEaseAction(ActionInterval *pAction, CCBKeyframe::EasingType easingType, float fEasingOpt);
-    void runAction(Node *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration);
+    CCActionInterval* getAction(CCBKeyframe *pKeyframe0, CCBKeyframe *pKeyframe1, const char *pPropName, CCNode *pNode);
+    void setAnimatedProperty(const char *pPropName, CCNode *pNode, CCObject *pValue, float fTweenDuraion);
+    void setFirstFrame(CCNode *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration);
+    CCActionInterval* getEaseAction(CCActionInterval *pAction, int nEasingType, float fEasingOpt);
+    void runAction(CCNode *pNode, CCBSequenceProperty *pSeqProp, float fTweenDuration);
     void sequenceCompleted();
-    
-private:
-    Array *_sequences;
-    Dictionary *_nodeSequences;
-    Dictionary *_baseValues;
-    int _autoPlaySequenceId;
-    
-    Node *_rootNode;
-    
-    Size _rootContainerSize;
-    
-    CCBAnimationManagerDelegate *_delegate;
-    CCBSequence *_runningSequence;
-    
-    Array *_documentOutletNames;
-    Array *_documentOutletNodes;
-    Array *_documentCallbackNames;
-    Array *_documentCallbackNodes;
-    Array *_keyframeCallbacks;
-    Dictionary *_keyframeCallFuncs;
-    
-    std::string _documentControllerName;
-    std::string _lastCompletedSequenceName;
-    
-    SEL_CallFunc _animationCompleteCallbackFunc;
-    Object *_target;
 };
 
-class CCBSetSpriteFrame : public ActionInstant
+class CCBSetSpriteFrame : public CCActionInstant
 {
+private:
+    CCSpriteFrame *mSpriteFrame;
+    
 public:
-    /** creates a Place action with a position */
-    static CCBSetSpriteFrame* create(SpriteFrame *pSpriteFrame);
-
     ~CCBSetSpriteFrame();
     
-    bool initWithSpriteFrame(SpriteFrame *pSpriteFrame);
-
-    // Overrides
-    virtual void update(float time) override;
-	virtual CCBSetSpriteFrame* clone() const override;
-	virtual CCBSetSpriteFrame* reverse() const override;
-
-private:
-    SpriteFrame *_spriteFrame;
+    /** creates a Place action with a position */
+    static CCBSetSpriteFrame* create(CCSpriteFrame *pSpriteFrame);
+    bool initWithSpriteFrame(CCSpriteFrame *pSpriteFrame);
+    virtual void update(float time);
+    virtual CCObject* copyWithZone(CCZone *pZone);
 };
 
 
-class CCBSoundEffect : public ActionInstant
+
+class CCBSoundEffect : public CCActionInstant
 {
+private:
+  std::string mSoundFile;
+  float mPitch, mPan, mGain;
+    
 public:
-    static CCBSoundEffect* actionWithSoundFile(const std::string &file, float pitch, float pan, float gain);
     ~CCBSoundEffect();
+    
+    static CCBSoundEffect* actionWithSoundFile(const std::string &file, float pitch, float pan, float gain);
     bool initWithSoundFile(const std::string &file, float pitch, float pan, float gain);
-
-    // Overrides
-    virtual void update(float time) override;
-	virtual CCBSoundEffect* clone() const override;
-	virtual CCBSoundEffect* reverse() const override;
-
-private:
-    std::string _soundFile;
-    float _pitch, _pan, _gain;
+    virtual void update(float time);
+    virtual CCObject* copyWithZone(CCZone *pZone);
 };
 
 
-class CCBRotateTo : public ActionInterval
+class CCBRotateTo : public CCActionInterval
 {
+private:
+    float mStartAngle;
+    float mDstAngle;
+    float mDiffAngle;
+    
 public:
     static CCBRotateTo* create(float fDuration, float fAngle);
     bool initWithDuration(float fDuration, float fAngle);
-
-    // Override
-    virtual void update(float time) override;
-	virtual CCBRotateTo* clone() const override;
-	virtual CCBRotateTo* reverse() const override;
-    virtual void startWithTarget(Node *pNode) override;
-
-private:
-    float _startAngle;
-    float _dstAngle;
-    float _diffAngle;
+    virtual void update(float time);
+    virtual CCObject* copyWithZone(CCZone *pZone);
+    virtual void startWithTarget(CCNode *pNode);
 };
 
 
-class CCBRotateXTo: public ActionInterval
-{
+class CCBRotateXTo: public CCActionInterval {
+private:
+    float mStartAngle;
+    float mDstAngle;
+    float mDiffAngle;
 public:
     static CCBRotateXTo* create(float fDuration, float fAngle);
     bool initWithDuration(float fDuration, float fAngle);
-
-    // Overrides
-    virtual void startWithTarget(Node *pNode) override;
-	virtual CCBRotateXTo* clone() const override;
-	virtual CCBRotateXTo* reverse() const override;
-    virtual void update(float time) override;
-
-private:
-    float _startAngle;
-    float _dstAngle;
-    float _diffAngle;
+    virtual void startWithTarget(CCNode *pNode);
+    virtual CCObject* copyWithZone(CCZone *pZone);
+    virtual void update(float time);
 };
 
 
-class CCBRotateYTo: public ActionInterval
-{
+class CCBRotateYTo: public CCActionInterval {
+private:
+    float mStartAngle;
+    float mDstAngle;
+    float mDiffAngle;
+    
 public:
     static CCBRotateYTo* create(float fDuration, float fAngle);
     bool initWithDuration(float fDuration, float fAngle);
-
-    // Override
-    virtual void startWithTarget(Node *pNode) override;
-	virtual CCBRotateYTo* clone() const override;
-	virtual CCBRotateYTo* reverse() const override;
-    virtual void update(float time) override;
-
-private:
-    float _startAngle;
-    float _dstAngle;
-    float _diffAngle;
+    virtual void startWithTarget(CCNode *pNode);
+    virtual CCObject* copyWithZone(CCZone *pZone);
+    virtual void update(float time);
 };
 
 
-class CCBEaseInstant : public ActionEase
+class CCBEaseInstant : public CCActionEase
 {
 public:
-    static CCBEaseInstant* create(ActionInterval *pAction);
-
-	virtual CCBEaseInstant* clone() const override;
-	virtual CCBEaseInstant* reverse() const override;
-    virtual void update(float dt) override;
+    static CCBEaseInstant* create(CCActionInterval *pAction);
+    
+    virtual void update(float dt);
 };
 
 

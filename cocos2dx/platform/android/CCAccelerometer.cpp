@@ -32,20 +32,20 @@ THE SOFTWARE.
 
 namespace cocos2d
 {
-    Accelerometer::Accelerometer() : _function(nullptr)
+    CCAccelerometer::CCAccelerometer() : m_pAccelDelegate(NULL)
     {
     }
 
-    Accelerometer::~Accelerometer() 
+    CCAccelerometer::~CCAccelerometer() 
     {
 
     }
 
-    void Accelerometer::setDelegate(std::function<void(Acceleration*)> function) 
+    void CCAccelerometer::setDelegate(CCAccelerometerDelegate* pDelegate) 
     {
-        _function = function;
+        m_pAccelDelegate = pDelegate;
 
-        if (_function)
+        if (pDelegate)
         {        
             enableAccelerometerJNI();
         }
@@ -55,22 +55,22 @@ namespace cocos2d
         }
     }
 
-    void Accelerometer::setAccelerometerInterval(float interval) 
+    void CCAccelerometer::setAccelerometerInterval(float interval) 
     {
         setAccelerometerIntervalJNI(interval);
     }
 
 
-    void Accelerometer::update(float x, float y, float z, long sensorTimeStamp) 
+    void CCAccelerometer::update(float x, float y, float z, long sensorTimeStamp) 
     {
-        if (_function)
+        if (m_pAccelDelegate)
         {
-            _accelerationValue.x = -((double)x / TG3_GRAVITY_EARTH);
-            _accelerationValue.y = -((double)y / TG3_GRAVITY_EARTH);
-            _accelerationValue.z = -((double)z / TG3_GRAVITY_EARTH);
-            _accelerationValue.timestamp = (double)sensorTimeStamp;
+            m_obAccelerationValue.x = -((double)x / TG3_GRAVITY_EARTH);
+            m_obAccelerationValue.y = -((double)y / TG3_GRAVITY_EARTH);
+            m_obAccelerationValue.z = -((double)z / TG3_GRAVITY_EARTH);
+            m_obAccelerationValue.timestamp = (double)sensorTimeStamp;
 
-            _function(&_accelerationValue);
+            m_pAccelDelegate->didAccelerate(&m_obAccelerationValue);
         }    
     }
 } // end of namespace cococs2d

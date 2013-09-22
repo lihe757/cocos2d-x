@@ -18,21 +18,21 @@ enum
 
 SceneTestLayer1::SceneTestLayer1()
 {
-    MenuItemFont* item1 = MenuItemFont::create( "Test pushScene", CC_CALLBACK_1(SceneTestLayer1::onPushScene, this));
-    MenuItemFont* item2 = MenuItemFont::create( "Test pushScene w/transition", CC_CALLBACK_1(SceneTestLayer1::onPushSceneTran, this));
-    MenuItemFont* item3 = MenuItemFont::create( "Quit", CC_CALLBACK_1(SceneTestLayer1::onQuit, this));
+    CCMenuItemFont* item1 = CCMenuItemFont::create( "Test pushScene", this, menu_selector(SceneTestLayer1::onPushScene) );
+    CCMenuItemFont* item2 = CCMenuItemFont::create( "Test pushScene w/transition", this, menu_selector(SceneTestLayer1::onPushSceneTran) );
+    CCMenuItemFont* item3 = CCMenuItemFont::create( "Quit", this, menu_selector(SceneTestLayer1::onQuit) );
     
-    Menu* menu = Menu::create( item1, item2, item3, NULL );
+    CCMenu* menu = CCMenu::create( item1, item2, item3, NULL );
     menu->alignItemsVertically();
     
     addChild( menu );
     
-    Size s = Director::getInstance()->getWinSize();
-    Sprite* sprite = Sprite::create(s_pathGrossini);
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    CCSprite* sprite = CCSprite::create(s_pPathGrossini);
     addChild(sprite);
-    sprite->setPosition( Point(s.width-40, s.height/2) );
-    ActionInterval* rotate = RotateBy::create(2, 360);
-    Action* repeat = RepeatForever::create(rotate);
+    sprite->setPosition( ccp(s.width-40, s.height/2) );
+    CCActionInterval* rotate = CCRotateBy::create(2, 360);
+    CCAction* repeat = CCRepeatForever::create(rotate);
     sprite->runAction(repeat);
 
     schedule( schedule_selector(SceneTestLayer1::testDealloc) );
@@ -46,13 +46,13 @@ void SceneTestLayer1::testDealloc(float dt)
 void SceneTestLayer1::onEnter()
 {
     CCLOG("SceneTestLayer1#onEnter");
-    Layer::onEnter();
+    CCLayer::onEnter();
 }
 
 void SceneTestLayer1::onEnterTransitionDidFinish()
 {
     CCLOG("SceneTestLayer1#onEnterTransitionDidFinish");
-    Layer::onEnterTransitionDidFinish();
+    CCLayer::onEnterTransitionDidFinish();
 }
 
 SceneTestLayer1::~SceneTestLayer1()
@@ -60,32 +60,32 @@ SceneTestLayer1::~SceneTestLayer1()
     //NSLog(@"SceneTestLayer1 - dealloc");
 }
 
-void SceneTestLayer1::onPushScene(Object* sender)
+void SceneTestLayer1::onPushScene(CCObject* pSender)
 {
-    Scene* scene = new SceneTestScene();
-    Layer* layer = new SceneTestLayer2();
-    scene->addChild( layer, 0 );
-    Director::getInstance()->pushScene( scene );
+    CCScene* scene = new SceneTestScene();
+    CCLayer* pLayer = new SceneTestLayer2();
+    scene->addChild( pLayer, 0 );
+    CCDirector::sharedDirector()->pushScene( scene );
     scene->release();
-    layer->release();
+    pLayer->release();
 }
 
-void SceneTestLayer1::onPushSceneTran(Object* sender)
+void SceneTestLayer1::onPushSceneTran(CCObject* pSender)
 {
-    Scene* scene = new SceneTestScene();
-    Layer* layer = new SceneTestLayer2();
-    scene->addChild( layer, 0 );
+    CCScene* scene = new SceneTestScene();
+    CCLayer* pLayer = new SceneTestLayer2();
+    scene->addChild( pLayer, 0 );
 
-    Director::getInstance()->pushScene( TransitionSlideInT::create(1, scene) );
+    CCDirector::sharedDirector()->pushScene( CCTransitionSlideInT::create(1, scene) );
     scene->release();
-    layer->release();
+    pLayer->release();
 }
 
 
-void SceneTestLayer1::onQuit(Object* sender)
+void SceneTestLayer1::onQuit(CCObject* pSender)
 {
     //getCocosApp()->exit();
-    //CCDirector::getInstance()->poscene();
+    //CCDirector::sharedDirector()->popScene();
 
     //// HA HA... no more terminate on sdk v3.0
     //// http://developer.apple.com/iphone/library/qa/qa2008/qa1561.html
@@ -101,23 +101,23 @@ void SceneTestLayer1::onQuit(Object* sender)
 
 SceneTestLayer2::SceneTestLayer2()
 {
-    _timeCounter = 0;
+    m_timeCounter = 0;
 
-    MenuItemFont* item1 = MenuItemFont::create( "replaceScene", CC_CALLBACK_1(SceneTestLayer2::onReplaceScene, this));
-    MenuItemFont* item2 = MenuItemFont::create( "replaceScene w/transition", CC_CALLBACK_1(SceneTestLayer2::onReplaceSceneTran, this));
-    MenuItemFont* item3 = MenuItemFont::create( "Go Back", CC_CALLBACK_1(SceneTestLayer2::onGoBack, this));
+    CCMenuItemFont* item1 = CCMenuItemFont::create( "replaceScene", this,  menu_selector(SceneTestLayer2::onReplaceScene) );
+    CCMenuItemFont* item2 = CCMenuItemFont::create( "replaceScene w/transition", this, menu_selector(SceneTestLayer2::onReplaceSceneTran) );
+    CCMenuItemFont* item3 = CCMenuItemFont::create( "Go Back", this, menu_selector(SceneTestLayer2::onGoBack) );
     
-    Menu* menu = Menu::create( item1, item2, item3, NULL );
+    CCMenu* menu = CCMenu::create( item1, item2, item3, NULL );
     menu->alignItemsVertically();
     
     addChild( menu );
 
-    Size s = Director::getInstance()->getWinSize();
-    Sprite* sprite = Sprite::create(s_pathGrossini);
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+    CCSprite* sprite = CCSprite::create(s_pPathGrossini);
     addChild(sprite);
-    sprite->setPosition( Point(s.width-40, s.height/2) );
-    ActionInterval* rotate = RotateBy::create(2, 360);
-    Action* repeat = RepeatForever::create(rotate);
+    sprite->setPosition( ccp(s.width-40, s.height/2) );
+    CCActionInterval* rotate = CCRotateBy::create(2, 360);
+    CCAction* repeat = CCRepeatForever::create(rotate);
     sprite->runAction(repeat);
 
     schedule( schedule_selector(SceneTestLayer2::testDealloc) );
@@ -125,33 +125,33 @@ SceneTestLayer2::SceneTestLayer2()
 
 void SceneTestLayer2::testDealloc(float dt)
 {
-    //_timeCounter += dt;
-    //if( _timeCounter > 10 )
+    //m_timeCounter += dt;
+    //if( m_timeCounter > 10 )
     //    onReplaceScene(this);
 }
 
-void SceneTestLayer2::onGoBack(Object* sender)
+void SceneTestLayer2::onGoBack(CCObject* pSender)
 {
-    Director::getInstance()->popScene();
+    CCDirector::sharedDirector()->popScene();
 }
 
-void SceneTestLayer2::onReplaceScene(Object* sender)
+void SceneTestLayer2::onReplaceScene(CCObject* pSender)
 {
-    Scene* scene = new SceneTestScene();
-    Layer* layer = SceneTestLayer3::create();
-    scene->addChild( layer, 0 );
-    Director::getInstance()->replaceScene( scene );
-    scene->release();
+    CCScene* pScene = new SceneTestScene();
+    CCLayer* pLayer = SceneTestLayer3::create();
+    pScene->addChild( pLayer, 0 );
+    CCDirector::sharedDirector()->replaceScene( pScene );
+    pScene->release();
 }
 
 
-void SceneTestLayer2::onReplaceSceneTran(Object* sender)
+void SceneTestLayer2::onReplaceSceneTran(CCObject* pSender)
 {
-    Scene* scene = new SceneTestScene();
-    Layer* layer = SceneTestLayer3::create();
-    scene->addChild( layer, 0 );
-    Director::getInstance()->replaceScene( TransitionFlipX::create(2, scene) );
-    scene->release();
+    CCScene* pScene = new SceneTestScene();
+    CCLayer* pLayer = SceneTestLayer3::create();
+    pScene->addChild( pLayer, 0 );
+    CCDirector::sharedDirector()->replaceScene( CCTransitionFlipX::create(2, pScene) );
+    pScene->release();
 }
 
 //------------------------------------------------------------------
@@ -167,26 +167,26 @@ SceneTestLayer3::SceneTestLayer3()
 
 bool SceneTestLayer3::init()
 {
-    if (LayerColor::initWithColor(Color4B(0,0,255,255)))
+    if (CCLayerColor::initWithColor(ccc4(0,0,255,255)))
     {
-        Size s = Director::getInstance()->getWinSize();
+        CCSize s = CCDirector::sharedDirector()->getWinSize();
 
-        MenuItemFont *item0 = MenuItemFont::create("Touch to pushScene (self)", CC_CALLBACK_1(SceneTestLayer3::item0Clicked, this));
-        MenuItemFont *item1 = MenuItemFont::create("Touch to poscene", CC_CALLBACK_1(SceneTestLayer3::item1Clicked, this));
-        MenuItemFont *item2 = MenuItemFont::create("Touch to popToRootScene", CC_CALLBACK_1(SceneTestLayer3::item2Clicked, this));
-        MenuItemFont *item3 = MenuItemFont::create("Touch to popToSceneStackLevel(2)", CC_CALLBACK_1(SceneTestLayer3::item3Clicked, this));
+        CCMenuItemFont *item0 = CCMenuItemFont::create("Touch to pushScene (self)", this, menu_selector(SceneTestLayer3::item0Clicked));
+        CCMenuItemFont *item1 = CCMenuItemFont::create("Touch to popScene", this, menu_selector(SceneTestLayer3::item1Clicked));
+        CCMenuItemFont *item2 = CCMenuItemFont::create("Touch to popToRootScene", this, menu_selector(SceneTestLayer3::item2Clicked));
+        CCMenuItemFont *item3 = CCMenuItemFont::create("Touch to popToSceneStackLevel(2)", this, menu_selector(SceneTestLayer3::item3Clicked));
 
-        Menu *menu = Menu::create(item0, item1, item2, item3, NULL);
+        CCMenu *menu = CCMenu::create(item0, item1, item2, item3, NULL);
         this->addChild(menu);
         menu->alignItemsVertically();
 
         this->schedule(schedule_selector(SceneTestLayer3::testDealloc));
 
-        Sprite* sprite = Sprite::create(s_pathGrossini);
+        CCSprite* sprite = CCSprite::create(s_pPathGrossini);
         addChild(sprite);
-        sprite->setPosition( Point(s.width/2, 40) );
-        ActionInterval* rotate = RotateBy::create(2, 360);
-        Action* repeat = RepeatForever::create(rotate);
+        sprite->setPosition( ccp(s.width/2, 40) );
+        CCActionInterval* rotate = CCRotateBy::create(2, 360);
+        CCAction* repeat = CCRepeatForever::create(rotate);
         sprite->runAction(repeat);
         return true;
     }
@@ -195,36 +195,36 @@ bool SceneTestLayer3::init()
 
 void SceneTestLayer3::testDealloc(float dt)
 {
-    log("Layer3:testDealloc");
+    CCLog("Layer3:testDealloc");
 }
 
-void SceneTestLayer3::item0Clicked(Object* sender)
+void SceneTestLayer3::item0Clicked(CCObject* pSender)
 {
-    Scene *newScene = Scene::create();
+    CCScene *newScene = CCScene::create();
     newScene->addChild(SceneTestLayer3::create());
-    Director::getInstance()->pushScene(TransitionFade::create(0.5, newScene, Color3B(0,255,255)));
+    CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5, newScene, ccc3(0,255,255)));
 }
 
-void SceneTestLayer3::item1Clicked(Object* sender)
+void SceneTestLayer3::item1Clicked(CCObject* pSender)
 {
-    Director::getInstance()->popScene();
+    CCDirector::sharedDirector()->popScene();
 }
 
-void SceneTestLayer3::item2Clicked(Object* sender)
+void SceneTestLayer3::item2Clicked(CCObject* pSender)
 {
-    Director::getInstance()->popToRootScene();
+    CCDirector::sharedDirector()->popToRootScene();
 }
 
-void SceneTestLayer3::item3Clicked(Object* sender)
+void SceneTestLayer3::item3Clicked(CCObject* pSender)
 {
-    Director::getInstance()->popToSceneStackLevel(2);
+    CCDirector::sharedDirector()->popToSceneStackLevel(2);
 }
 
 void SceneTestScene::runThisTest()
 {
-    Layer* layer = new SceneTestLayer1();
-    addChild(layer);
-    layer->release();
+    CCLayer* pLayer = new SceneTestLayer1();
+    addChild(pLayer);
+    pLayer->release();
 
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }

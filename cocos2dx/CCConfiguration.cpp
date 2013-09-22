@@ -38,57 +38,56 @@ using namespace std;
 NS_CC_BEGIN
 
 
-Configuration* Configuration::s_gSharedConfiguration = NULL;
+CCConfiguration* CCConfiguration::s_gSharedConfiguration = NULL;
 
-Configuration::Configuration(void)
-: _maxTextureSize(0) 
-, _maxModelviewStackDepth(0)
-, _supportsPVRTC(false)
-, _supportsETC(false)
-, _supportsNPOT(false)
-, _supportsBGRA8888(false)
-, _supportsDiscardFramebuffer(false)
-, _supportsShareableVAO(false)
-, _maxSamplesAllowed(0)
-, _maxTextureUnits(0)
-, _glExtensions(NULL)
-, _valueDict(NULL)
+CCConfiguration::CCConfiguration(void)
+: m_nMaxTextureSize(0) 
+, m_nMaxModelviewStackDepth(0)
+, m_bSupportsPVRTC(false)
+, m_bSupportsNPOT(false)
+, m_bSupportsBGRA8888(false)
+, m_bSupportsDiscardFramebuffer(false)
+, m_bSupportsShareableVAO(false)
+, m_nMaxSamplesAllowed(0)
+, m_nMaxTextureUnits(0)
+, m_pGlExtensions(NULL)
+, m_pValueDict(NULL)
 {
 }
 
-bool Configuration::init(void)
+bool CCConfiguration::init(void)
 {
-	_valueDict = Dictionary::create();
-	_valueDict->retain();
+	m_pValueDict = CCDictionary::create();
+	m_pValueDict->retain();
 
-	_valueDict->setObject( String::create( cocos2dVersion() ), "cocos2d.x.version");
+	m_pValueDict->setObject( CCString::create( cocos2dVersion() ), "cocos2d.x.version");
 
 
 #if CC_ENABLE_PROFILERS
-	_valueDict->setObject( Bool::create(true), "cocos2d.x.compiled_with_profiler");
+	m_pValueDict->setObject( CCBool::create(true), "cocos2d.x.compiled_with_profiler");
 #else
-	_valueDict->setObject( Bool::create(false), "cocos2d.x.compiled_with_profiler");
+	m_pValueDict->setObject( CCBool::create(false), "cocos2d.x.compiled_with_profiler");
 #endif
 
 #if CC_ENABLE_GL_STATE_CACHE == 0
-	_valueDict->setObject( Bool::create(false), "cocos2d.x.compiled_with_gl_state_cache");
+	m_pValueDict->setObject( CCBool::create(false), "cocos2d.x.compiled_with_gl_state_cache");
 #else
-	_valueDict->setObject( Bool::create(true), "cocos2d.x.compiled_with_gl_state_cache");
+	m_pValueDict->setObject( CCBool::create(true), "cocos2d.x.compiled_with_gl_state_cache");
 #endif
 
 	return true;
 }
 
-Configuration::~Configuration(void)
+CCConfiguration::~CCConfiguration(void)
 {
-	_valueDict->release();
+	m_pValueDict->release();
 }
 
-void Configuration::dumpInfo(void) const
+void CCConfiguration::dumpInfo(void) const
 {
 	// Dump
-	PrettyPrinter visitor(0);
-	_valueDict->acceptVisitor(visitor);
+	CCPrettyPrinter visitor(0);
+	m_pValueDict->acceptVisitor(visitor);
 
 	CCLOG("%s", visitor.getResult().c_str());
 
@@ -107,82 +106,66 @@ void Configuration::dumpInfo(void) const
 
 }
 
-void Configuration::gatherGPUInfo()
+void CCConfiguration::gatherGPUInfo()
 {
-	_valueDict->setObject( String::create( (const char*)glGetString(GL_VENDOR)), "gl.vendor");
-	_valueDict->setObject( String::create( (const char*)glGetString(GL_RENDERER)), "gl.renderer");
-	_valueDict->setObject( String::create( (const char*)glGetString(GL_VERSION)), "gl.version");
+	m_pValueDict->setObject( CCString::create( (const char*)glGetString(GL_VENDOR)), "gl.vendor");
+	m_pValueDict->setObject( CCString::create( (const char*)glGetString(GL_RENDERER)), "gl.renderer");
+	m_pValueDict->setObject( CCString::create( (const char*)glGetString(GL_VERSION)), "gl.version");
 
-    _glExtensions = (char *)glGetString(GL_EXTENSIONS);
+    m_pGlExtensions = (char *)glGetString(GL_EXTENSIONS);
 
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
-	_valueDict->setObject( Integer::create((int)_maxTextureSize), "gl.max_texture_size");
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_nMaxTextureSize);
+	m_pValueDict->setObject( CCInteger::create((int)m_nMaxTextureSize), "gl.max_texture_size");
 
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
-	_valueDict->setObject( Integer::create((int)_maxTextureUnits), "gl.max_texture_units");
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &m_nMaxTextureUnits);
+	m_pValueDict->setObject( CCInteger::create((int)m_nMaxTextureUnits), "gl.max_texture_units");
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    glGetIntegerv(GL_MAX_SAMPLES_APPLE, &_maxSamplesAllowed);
-	_valueDict->setObject( Integer::create((int)_maxSamplesAllowed), "gl.max_samples_allowed");
+    glGetIntegerv(GL_MAX_SAMPLES_APPLE, &m_nMaxSamplesAllowed);
+	m_pValueDict->setObject( CCInteger::create((int)m_nMaxSamplesAllowed), "gl.max_samples_allowed");
 #endif
-    
-    _supportsETC = checkForGLExtension("GL_OES_compressed_ETC1_RGB8_texture");
-    _valueDict->setObject( Bool::create(_supportsETC), "gl.supports_ETC");
-    
-    _supportsPVRTC = checkForGLExtension("GL_IMG_texture_compression_pvrtc");
-	_valueDict->setObject( Bool::create(_supportsPVRTC), "gl.supports_PVRTC");
 
-    _supportsNPOT = true;
-	_valueDict->setObject( Bool::create(_supportsNPOT), "gl.supports_NPOT");
+    m_bSupportsPVRTC = checkForGLExtension("GL_IMG_texture_compression_pvrtc");
+	m_pValueDict->setObject( CCBool::create(m_bSupportsPVRTC), "gl.supports_PVRTC");
+
+    m_bSupportsNPOT = true;
+	m_pValueDict->setObject( CCBool::create(m_bSupportsNPOT), "gl.supports_NPOT");
 	
-    _supportsBGRA8888 = checkForGLExtension("GL_IMG_texture_format_BGRA888");
-	_valueDict->setObject( Bool::create(_supportsBGRA8888), "gl.supports_BGRA8888");
+    m_bSupportsBGRA8888 = checkForGLExtension("GL_IMG_texture_format_BGRA888");
+	m_pValueDict->setObject( CCBool::create(m_bSupportsBGRA8888), "gl.supports_BGRA8888");
 
-    _supportsDiscardFramebuffer = checkForGLExtension("GL_EXT_discard_framebuffer");
-	_valueDict->setObject( Bool::create(_supportsDiscardFramebuffer), "gl.supports_discard_framebuffer");
+    m_bSupportsDiscardFramebuffer = checkForGLExtension("GL_EXT_discard_framebuffer");
+	m_pValueDict->setObject( CCBool::create(m_bSupportsDiscardFramebuffer), "gl.supports_discard_framebuffer");
 
-    _supportsShareableVAO = checkForGLExtension("vertex_array_object");
-	_valueDict->setObject( Bool::create(_supportsShareableVAO), "gl.supports_vertex_array_object");
+    m_bSupportsShareableVAO = checkForGLExtension("vertex_array_object");
+	m_pValueDict->setObject( CCBool::create(m_bSupportsShareableVAO), "gl.supports_vertex_array_object");
     
     CHECK_GL_ERROR_DEBUG();
 }
 
-Configuration* Configuration::getInstance()
+CCConfiguration* CCConfiguration::sharedConfiguration(void)
 {
     if (! s_gSharedConfiguration)
     {
-        s_gSharedConfiguration = new Configuration();
+        s_gSharedConfiguration = new CCConfiguration();
         s_gSharedConfiguration->init();
     }
     
     return s_gSharedConfiguration;
 }
 
-void Configuration::destroyInstance()
+void CCConfiguration::purgeConfiguration(void)
 {
     CC_SAFE_RELEASE_NULL(s_gSharedConfiguration);
 }
 
-// XXX: deprecated
-Configuration* Configuration::sharedConfiguration(void)
-{
-    return Configuration::getInstance();
-}
-
-// XXX: deprecated
-void Configuration::purgeConfiguration(void)
-{
-    Configuration::destroyInstance();
-}
-
-
-bool Configuration::checkForGLExtension(const string &searchName) const
+bool CCConfiguration::checkForGLExtension(const string &searchName) const
 {
     bool bRet = false;
     const char *kSearchName = searchName.c_str();
     
-    if (_glExtensions && 
-        strstr(_glExtensions, kSearchName))
+    if (m_pGlExtensions && 
+        strstr(m_pGlExtensions, kSearchName))
     {
         bRet = true;
     }
@@ -194,67 +177,57 @@ bool Configuration::checkForGLExtension(const string &searchName) const
 // getters for specific variables.
 // Mantained for backward compatiblity reasons only.
 //
-int Configuration::getMaxTextureSize(void) const
+int CCConfiguration::getMaxTextureSize(void) const
 {
-	return _maxTextureSize;
+	return m_nMaxTextureSize;
 }
 
-int Configuration::getMaxModelviewStackDepth(void) const
+int CCConfiguration::getMaxModelviewStackDepth(void) const
 {
-	return _maxModelviewStackDepth;
+	return m_nMaxModelviewStackDepth;
 }
 
-int Configuration::getMaxTextureUnits(void) const
+int CCConfiguration::getMaxTextureUnits(void) const
 {
-	return _maxTextureUnits;
+	return m_nMaxTextureUnits;
 }
 
-bool Configuration::supportsNPOT(void) const
+bool CCConfiguration::supportsNPOT(void) const
 {
-	return _supportsNPOT;
+	return m_bSupportsNPOT;
 }
 
-bool Configuration::supportsPVRTC(void) const
+bool CCConfiguration::supportsPVRTC(void) const
 {
-	return _supportsPVRTC;
+	return m_bSupportsPVRTC;
 }
 
-bool Configuration::supportsETC() const
+bool CCConfiguration::supportsBGRA8888(void) const
 {
-    //GL_ETC1_RGB8_OES is not defined in old opengl version
-#ifdef GL_ETC1_RGB8_OES
-    return _supportsETC;
-#else
-    return false;
-#endif
+	return m_bSupportsBGRA8888;
 }
 
-bool Configuration::supportsBGRA8888(void) const
+bool CCConfiguration::supportsDiscardFramebuffer(void) const
 {
-	return _supportsBGRA8888;
+	return m_bSupportsDiscardFramebuffer;
 }
 
-bool Configuration::supportsDiscardFramebuffer(void) const
+bool CCConfiguration::supportsShareableVAO(void) const
 {
-	return _supportsDiscardFramebuffer;
-}
-
-bool Configuration::supportsShareableVAO(void) const
-{
-	return _supportsShareableVAO;
+	return m_bSupportsShareableVAO;
 }
 
 //
 // generic getters for properties
 //
-const char *Configuration::getCString( const char *key, const char *default_value ) const
+const char *CCConfiguration::getCString( const char *key, const char *default_value ) const
 {
-	Object *ret = _valueDict->objectForKey(key);
+	CCObject *ret = m_pValueDict->objectForKey(key);
 	if( ret ) {
-		if( String *str=dynamic_cast<String*>(ret) )
+		if( CCString *str=dynamic_cast<CCString*>(ret) )
 			return str->getCString();
 
-		CCASSERT(false, "Key found, but from different type");
+		CCAssert(false, "Key found, but from different type");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -262,15 +235,15 @@ const char *Configuration::getCString( const char *key, const char *default_valu
 }
 
 /** returns the value of a given key as a boolean */
-bool Configuration::getBool( const char *key, bool default_value ) const
+bool CCConfiguration::getBool( const char *key, bool default_value ) const
 {
-	Object *ret = _valueDict->objectForKey(key);
+	CCObject *ret = m_pValueDict->objectForKey(key);
 	if( ret ) {
-		if( Bool *boolobj=dynamic_cast<Bool*>(ret) )
+		if( CCBool *boolobj=dynamic_cast<CCBool*>(ret) )
 			return boolobj->getValue();
-		if( String *strobj=dynamic_cast<String*>(ret) )
+		if( CCString *strobj=dynamic_cast<CCString*>(ret) )
 			return strobj->boolValue();
-		CCASSERT(false, "Key found, but from different type");
+		CCAssert(false, "Key found, but from different type");
 	}
 
 	// XXX: Should it throw an exception ?
@@ -278,54 +251,54 @@ bool Configuration::getBool( const char *key, bool default_value ) const
 }
 
 /** returns the value of a given key as a double */
-double Configuration::getNumber( const char *key, double default_value ) const
+double CCConfiguration::getNumber( const char *key, double default_value ) const
 {
-	Object *ret = _valueDict->objectForKey(key);
+	CCObject *ret = m_pValueDict->objectForKey(key);
 	if( ret ) {
-		if( Double *obj=dynamic_cast<Double*>(ret) )
+		if( CCDouble *obj=dynamic_cast<CCDouble*>(ret) )
 			return obj->getValue();
 
-		if( Integer *obj=dynamic_cast<Integer*>(ret) )
+		if( CCInteger *obj=dynamic_cast<CCInteger*>(ret) )
 			return obj->getValue();
 
-		if( String *strobj=dynamic_cast<String*>(ret) )
+		if( CCString *strobj=dynamic_cast<CCString*>(ret) )
 			return strobj->doubleValue();
 
-		CCASSERT(false, "Key found, but from different type");
+		CCAssert(false, "Key found, but from different type");
 	}
 
 	// XXX: Should it throw an exception ?
 	return default_value;
 }
 
-Object * Configuration::getObject( const char *key ) const
+CCObject * CCConfiguration::getObject( const char *key ) const
 {
-	return _valueDict->objectForKey(key);
+	return m_pValueDict->objectForKey(key);
 }
 
-void Configuration::setObject( const char *key, Object *value )
+void CCConfiguration::setObject( const char *key, CCObject *value )
 {
-	_valueDict->setObject(value, key);
+	m_pValueDict->setObject(value, key);
 }
 
 
 //
 // load file
 //
-void Configuration::loadConfigFile( const char *filename )
+void CCConfiguration::loadConfigFile( const char *filename )
 {
-	Dictionary *dict = Dictionary::createWithContentsOfFile(filename);
-	CCASSERT(dict, "cannot create dictionary");
+	CCDictionary *dict = CCDictionary::createWithContentsOfFile(filename);
+	CCAssert(dict, "cannot create dictionary");
 
 	// search for metadata
 	bool metadata_ok = false;
-	Object *metadata = dict->objectForKey("metadata");
-	if( metadata && dynamic_cast<Dictionary*>(metadata) ) {
-		Object *format_o = static_cast<Dictionary*>(metadata)->objectForKey("format");
+	CCObject *metadata = dict->objectForKey("metadata");
+	if( metadata && dynamic_cast<CCDictionary*>(metadata) ) {
+		CCObject *format_o = static_cast<CCDictionary*>(metadata)->objectForKey("format");
 
-		// XXX: cocos2d-x returns Strings when importing from .plist. This bug will be addressed in cocos2d-x v3.x
-		if( format_o && dynamic_cast<String*>(format_o) ) {
-			int format = static_cast<String*>(format_o)->intValue();
+		// XXX: cocos2d-x returns CCStrings when importing from .plist. This bug will be addressed in cocos2d-x v3.x
+		if( format_o && dynamic_cast<CCString*>(format_o) ) {
+			int format = static_cast<CCString*>(format_o)->intValue();
 
 			// Support format: 1
 			if( format == 1 ) {
@@ -339,19 +312,19 @@ void Configuration::loadConfigFile( const char *filename )
 		return;
 	}
 
-	Object *data = dict->objectForKey("data");
-	if( !data || !dynamic_cast<Dictionary*>(data) ) {
+	CCObject *data = dict->objectForKey("data");
+	if( !data || !dynamic_cast<CCDictionary*>(data) ) {
 		CCLOG("Expected 'data' dict, but not found. Config file: %s", filename);
 		return;
 	}
 
 	// Add all keys in the existing dictionary
-	Dictionary *data_dict = static_cast<Dictionary*>(data);
-    DictElement* element;
+	CCDictionary *data_dict = static_cast<CCDictionary*>(data);
+    CCDictElement* element;
     CCDICT_FOREACH(data_dict, element)
     {
-		if( ! _valueDict->objectForKey( element->getStrKey() ) )
-			_valueDict->setObject(element->getObject(), element->getStrKey() );
+		if( ! m_pValueDict->objectForKey( element->getStrKey() ) )
+			m_pValueDict->setObject(element->getObject(), element->getStrKey() );
 		else
 			CCLOG("Key already present. Ignoring '%s'", element->getStrKey() );
     }

@@ -40,23 +40,23 @@ NS_CC_BEGIN
 typedef struct _hashElement
 {
     struct _ccArray             *actions;
-    Object                    *target;
+    CCObject                    *target;
     unsigned int                actionIndex;
-    Action                    *currentAction;
+    CCAction                    *currentAction;
     bool                        currentActionSalvaged;
     bool                        paused;
     UT_hash_handle                hh;
 } tHashElement;
 
-ActionManager::ActionManager(void)
-: _targets(NULL), 
-  _currentTarget(NULL),
-  _currentTargetSalvaged(false)
+CCActionManager::CCActionManager(void)
+: m_pTargets(NULL), 
+  m_pCurrentTarget(NULL),
+  m_bCurrentTargetSalvaged(false)
 {
 
 }
 
-ActionManager::~ActionManager(void)
+CCActionManager::~CCActionManager(void)
 {
     CCLOGINFO("cocos2d: deallocing %p", this);
 
@@ -65,15 +65,15 @@ ActionManager::~ActionManager(void)
 
 // private
 
-void ActionManager::deleteHashElement(tHashElement *pElement)
+void CCActionManager::deleteHashElement(tHashElement *pElement)
 {
     ccArrayFree(pElement->actions);
-    HASH_DEL(_targets, pElement);
+    HASH_DEL(m_pTargets, pElement);
     pElement->target->release();
     free(pElement);
 }
 
-void ActionManager::actionAllocWithHashElement(tHashElement *pElement)
+void CCActionManager::actionAllocWithHashElement(tHashElement *pElement)
 {
     // 4 actions per Node by default
     if (pElement->actions == NULL)
@@ -87,9 +87,9 @@ void ActionManager::actionAllocWithHashElement(tHashElement *pElement)
 
 }
 
-void ActionManager::removeActionAtIndex(unsigned int uIndex, tHashElement *pElement)
+void CCActionManager::removeActionAtIndex(unsigned int uIndex, tHashElement *pElement)
 {
-    Action *pAction = (Action*)pElement->actions->arr[uIndex];
+    CCAction *pAction = (CCAction*)pElement->actions->arr[uIndex];
 
     if (pAction == pElement->currentAction && (! pElement->currentActionSalvaged))
     {
@@ -107,9 +107,9 @@ void ActionManager::removeActionAtIndex(unsigned int uIndex, tHashElement *pElem
 
     if (pElement->actions->num == 0)
     {
-        if (_currentTarget == pElement)
+        if (m_pCurrentTarget == pElement)
         {
-            _currentTargetSalvaged = true;
+            m_bCurrentTargetSalvaged = true;
         }
         else
         {
@@ -120,32 +120,32 @@ void ActionManager::removeActionAtIndex(unsigned int uIndex, tHashElement *pElem
 
 // pause / resume
 
-void ActionManager::pauseTarget(Object *target)
+void CCActionManager::pauseTarget(CCObject *pTarget)
 {
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
     if (pElement)
     {
         pElement->paused = true;
     }
 }
 
-void ActionManager::resumeTarget(Object *target)
+void CCActionManager::resumeTarget(CCObject *pTarget)
 {
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
     if (pElement)
     {
         pElement->paused = false;
     }
 }
 
-Set* ActionManager::pauseAllRunningActions()
+CCSet* CCActionManager::pauseAllRunningActions()
 {
-    Set *idsWithActions = new Set();
+    CCSet *idsWithActions = new CCSet();
     idsWithActions->autorelease();
     
-    for (tHashElement *element=_targets; element != NULL; element = (tHashElement *)element->hh.next) 
+    for (tHashElement *element=m_pTargets; element != NULL; element = (tHashElement *)element->hh.next) 
     {
         if (! element->paused) 
         {
@@ -157,9 +157,9 @@ Set* ActionManager::pauseAllRunningActions()
     return idsWithActions;
 }
 
-void ActionManager::resumeTargets(cocos2d::Set *targetsToResume)
+void CCActionManager::resumeTargets(cocos2d::CCSet *targetsToResume)
 {    
-    SetIterator iter;
+    CCSetIterator iter;
     for (iter = targetsToResume->begin(); iter != targetsToResume->end(); ++iter)
     {
         resumeTarget(*iter);
@@ -168,54 +168,54 @@ void ActionManager::resumeTargets(cocos2d::Set *targetsToResume)
 
 // run
 
-void ActionManager::addAction(Action *pAction, Node *target, bool paused)
+void CCActionManager::addAction(CCAction *pAction, CCNode *pTarget, bool paused)
 {
-    CCASSERT(pAction != NULL, "");
-    CCASSERT(target != NULL, "");
+    CCAssert(pAction != NULL, "");
+    CCAssert(pTarget != NULL, "");
 
     tHashElement *pElement = NULL;
-    // we should convert it to Object*, because we save it as Object*
-    Object *tmp = target;
-    HASH_FIND_INT(_targets, &tmp, pElement);
+    // we should convert it to CCObject*, because we save it as CCObject*
+    CCObject *tmp = pTarget;
+    HASH_FIND_INT(m_pTargets, &tmp, pElement);
     if (! pElement)
     {
         pElement = (tHashElement*)calloc(sizeof(*pElement), 1);
         pElement->paused = paused;
-        target->retain();
-        pElement->target = target;
-        HASH_ADD_INT(_targets, target, pElement);
+        pTarget->retain();
+        pElement->target = pTarget;
+        HASH_ADD_INT(m_pTargets, target, pElement);
     }
 
      actionAllocWithHashElement(pElement);
  
-     CCASSERT(! ccArrayContainsObject(pElement->actions, pAction), "");
+     CCAssert(! ccArrayContainsObject(pElement->actions, pAction), "");
      ccArrayAppendObject(pElement->actions, pAction);
  
-     pAction->startWithTarget(target);
+     pAction->startWithTarget(pTarget);
 }
 
 // remove
 
-void ActionManager::removeAllActions(void)
+void CCActionManager::removeAllActions(void)
 {
-    for (tHashElement *pElement = _targets; pElement != NULL; )
+    for (tHashElement *pElement = m_pTargets; pElement != NULL; )
     {
-        Object *target = pElement->target;
+        CCObject *pTarget = pElement->target;
         pElement = (tHashElement*)pElement->hh.next;
-        removeAllActionsFromTarget(target);
+        removeAllActionsFromTarget(pTarget);
     }
 }
 
-void ActionManager::removeAllActionsFromTarget(Object *target)
+void CCActionManager::removeAllActionsFromTarget(CCObject *pTarget)
 {
     // explicit null handling
-    if (target == NULL)
+    if (pTarget == NULL)
     {
         return;
     }
 
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
     if (pElement)
     {
         if (ccArrayContainsObject(pElement->actions, pElement->currentAction) && (! pElement->currentActionSalvaged))
@@ -225,9 +225,9 @@ void ActionManager::removeAllActionsFromTarget(Object *target)
         }
 
         ccArrayRemoveAllObjects(pElement->actions);
-        if (_currentTarget == pElement)
+        if (m_pCurrentTarget == pElement)
         {
-            _currentTargetSalvaged = true;
+            m_bCurrentTargetSalvaged = true;
         }
         else
         {
@@ -240,7 +240,7 @@ void ActionManager::removeAllActionsFromTarget(Object *target)
     }
 }
 
-void ActionManager::removeAction(Action *pAction)
+void CCActionManager::removeAction(CCAction *pAction)
 {
     // explicit null handling
     if (pAction == NULL)
@@ -249,8 +249,8 @@ void ActionManager::removeAction(Action *pAction)
     }
 
     tHashElement *pElement = NULL;
-    Object *target = pAction->getOriginalTarget();
-    HASH_FIND_INT(_targets, &target, pElement);
+    CCObject *pTarget = pAction->getOriginalTarget();
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
     if (pElement)
     {
         unsigned int i = ccArrayGetIndexOfObject(pElement->actions, pAction);
@@ -265,22 +265,22 @@ void ActionManager::removeAction(Action *pAction)
     }
 }
 
-void ActionManager::removeActionByTag(unsigned int tag, Object *target)
+void CCActionManager::removeActionByTag(unsigned int tag, CCObject *pTarget)
 {
-    CCASSERT((int)tag != kActionTagInvalid, "");
-    CCASSERT(target != NULL, "");
+    CCAssert((int)tag != kCCActionTagInvalid, "");
+    CCAssert(pTarget != NULL, "");
 
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
 
     if (pElement)
     {
         unsigned int limit = pElement->actions->num;
         for (unsigned int i = 0; i < limit; ++i)
         {
-            Action *pAction = (Action*)pElement->actions->arr[i];
+            CCAction *pAction = (CCAction*)pElement->actions->arr[i];
 
-            if (pAction->getTag() == (int)tag && pAction->getOriginalTarget() == target)
+            if (pAction->getTag() == (int)tag && pAction->getOriginalTarget() == pTarget)
             {
                 removeActionAtIndex(i, pElement);
                 break;
@@ -291,14 +291,12 @@ void ActionManager::removeActionByTag(unsigned int tag, Object *target)
 
 // get
 
-// XXX: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
-// and, it is not possible to get the address of a reference
-Action* ActionManager::getActionByTag(unsigned int tag, const Object *target) const
+CCAction* CCActionManager::getActionByTag(unsigned int tag, CCObject *pTarget)
 {
-    CCASSERT((int)tag != kActionTagInvalid, "");
+    CCAssert((int)tag != kCCActionTagInvalid, "");
 
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
 
     if (pElement)
     {
@@ -307,7 +305,7 @@ Action* ActionManager::getActionByTag(unsigned int tag, const Object *target) co
             unsigned int limit = pElement->actions->num;
             for (unsigned int i = 0; i < limit; ++i)
             {
-                Action *pAction = (Action*)pElement->actions->arr[i];
+                CCAction *pAction = (CCAction*)pElement->actions->arr[i];
 
                 if (pAction->getTag() == (int)tag)
                 {
@@ -325,12 +323,10 @@ Action* ActionManager::getActionByTag(unsigned int tag, const Object *target) co
     return NULL;
 }
 
-// XXX: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
-// and, it is not possible to get the address of a reference
-unsigned int ActionManager::getNumberOfRunningActionsInTarget(const Object *target) const
+unsigned int CCActionManager::numberOfRunningActionsInTarget(CCObject *pTarget)
 {
     tHashElement *pElement = NULL;
-    HASH_FIND_INT(_targets, &target, pElement);
+    HASH_FIND_INT(m_pTargets, &pTarget, pElement);
     if (pElement)
     {
         return pElement->actions ? pElement->actions->num : 0;
@@ -340,47 +336,47 @@ unsigned int ActionManager::getNumberOfRunningActionsInTarget(const Object *targ
 }
 
 // main loop
-void ActionManager::update(float dt)
+void CCActionManager::update(float dt)
 {
-    for (tHashElement *elt = _targets; elt != NULL; )
+    for (tHashElement *elt = m_pTargets; elt != NULL; )
     {
-        _currentTarget = elt;
-        _currentTargetSalvaged = false;
+        m_pCurrentTarget = elt;
+        m_bCurrentTargetSalvaged = false;
 
-        if (! _currentTarget->paused)
+        if (! m_pCurrentTarget->paused)
         {
-            // The 'actions' MutableArray may change while inside this loop.
-            for (_currentTarget->actionIndex = 0; _currentTarget->actionIndex < _currentTarget->actions->num;
-                _currentTarget->actionIndex++)
+            // The 'actions' CCMutableArray may change while inside this loop.
+            for (m_pCurrentTarget->actionIndex = 0; m_pCurrentTarget->actionIndex < m_pCurrentTarget->actions->num;
+                m_pCurrentTarget->actionIndex++)
             {
-                _currentTarget->currentAction = (Action*)_currentTarget->actions->arr[_currentTarget->actionIndex];
-                if (_currentTarget->currentAction == NULL)
+                m_pCurrentTarget->currentAction = (CCAction*)m_pCurrentTarget->actions->arr[m_pCurrentTarget->actionIndex];
+                if (m_pCurrentTarget->currentAction == NULL)
                 {
                     continue;
                 }
 
-                _currentTarget->currentActionSalvaged = false;
+                m_pCurrentTarget->currentActionSalvaged = false;
 
-                _currentTarget->currentAction->step(dt);
+                m_pCurrentTarget->currentAction->step(dt);
 
-                if (_currentTarget->currentActionSalvaged)
+                if (m_pCurrentTarget->currentActionSalvaged)
                 {
                     // The currentAction told the node to remove it. To prevent the action from
                     // accidentally deallocating itself before finishing its step, we retained
                     // it. Now that step is done, it's safe to release it.
-                    _currentTarget->currentAction->release();
+                    m_pCurrentTarget->currentAction->release();
                 } else
-                if (_currentTarget->currentAction->isDone())
+                if (m_pCurrentTarget->currentAction->isDone())
                 {
-                    _currentTarget->currentAction->stop();
+                    m_pCurrentTarget->currentAction->stop();
 
-                    Action *pAction = _currentTarget->currentAction;
+                    CCAction *pAction = m_pCurrentTarget->currentAction;
                     // Make currentAction nil to prevent removeAction from salvaging it.
-                    _currentTarget->currentAction = NULL;
+                    m_pCurrentTarget->currentAction = NULL;
                     removeAction(pAction);
                 }
 
-                _currentTarget->currentAction = NULL;
+                m_pCurrentTarget->currentAction = NULL;
             }
         }
 
@@ -389,14 +385,14 @@ void ActionManager::update(float dt)
         elt = (tHashElement*)(elt->hh.next);
 
         // only delete currentTarget if no actions were scheduled during the cycle (issue #481)
-        if (_currentTargetSalvaged && _currentTarget->actions->num == 0)
+        if (m_bCurrentTargetSalvaged && m_pCurrentTarget->actions->num == 0)
         {
-            deleteHashElement(_currentTarget);
+            deleteHashElement(m_pCurrentTarget);
         }
     }
 
     // issue #635
-    _currentTarget = NULL;
+    m_pCurrentTarget = NULL;
 }
 
 NS_CC_END

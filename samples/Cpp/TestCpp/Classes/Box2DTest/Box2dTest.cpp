@@ -10,7 +10,7 @@ enum {
 };
 
 Box2DTestLayer::Box2DTestLayer()
-: _spriteTexture(NULL)
+: m_pSpriteTexture(NULL)
 , world(NULL)
 {
 #if CC_ENABLE_BOX2D_INTEGRATION
@@ -25,32 +25,32 @@ Box2DTestLayer::Box2DTestLayer()
     //Set up sprite
 #if 1
     // Use batch node. Faster
-    SpriteBatchNode *parent = SpriteBatchNode::create("Images/blocks.png", 100);
-    _spriteTexture = parent->getTexture();
+    CCSpriteBatchNode *parent = CCSpriteBatchNode::create("Images/blocks.png", 100);
+    m_pSpriteTexture = parent->getTexture();
 #else
     // doesn't use batch node. Slower
-    _spriteTexture = TextureCache::getInstance()->addImage("Images/blocks.png");
-    Node *parent = Node::create();
+    m_pSpriteTexture = CCTextureCache::sharedTextureCache()->addImage("Images/blocks.png");
+    CCNode *parent = CCNode::create();
 #endif
     addChild(parent, 0, kTagParentNode);
 
 
     addNewSpriteAtPosition(VisibleRect::center());
 
-    LabelTTF *label = LabelTTF::create("Tap screen", "Marker Felt", 32);
+    CCLabelTTF *label = CCLabelTTF::create("Tap screen", "Marker Felt", 32);
     addChild(label, 0);
-    label->setColor(Color3B(0,0,255));
-    label->setPosition(Point( VisibleRect::center().x, VisibleRect::top().y-50));
+    label->setColor(ccc3(0,0,255));
+    label->setPosition(ccp( VisibleRect::center().x, VisibleRect::top().y-50));
     
     scheduleUpdate();
 #else
-    LabelTTF *label = LabelTTF::create("Should define CC_ENABLE_BOX2D_INTEGRATION=1\n to run this test case",
+    CCLabelTTF *pLabel = CCLabelTTF::create("Should define CC_ENABLE_BOX2D_INTEGRATION=1\n to run this test case",
                                             "Arial",
                                             18);
-    Size size = Director::getInstance()->getWinSize();
-    label->setPosition(Point(size.width/2, size.height/2));
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
+    pLabel->setPosition(ccp(size.width/2, size.height/2));
     
-    addChild(label);
+    addChild(pLabel);
 #endif
 }
 
@@ -58,7 +58,7 @@ Box2DTestLayer::~Box2DTestLayer()
 {
     CC_SAFE_DELETE(world);
     
-    //delete _debugDraw;
+    //delete m_debugDraw;
 }
 
 void Box2DTestLayer::initPhysics()
@@ -72,8 +72,8 @@ void Box2DTestLayer::initPhysics()
 
     world->SetContinuousPhysics(true);
 
-//     _debugDraw = new GLESDebugDraw( PTM_RATIO );
-//     world->SetDebugDraw(_debugDraw);
+//     m_debugDraw = new GLESDebugDraw( PTM_RATIO );
+//     world->SetDebugDraw(m_debugDraw);
 
     uint32 flags = 0;
     flags += b2Draw::e_shapeBit;
@@ -81,7 +81,7 @@ void Box2DTestLayer::initPhysics()
     //        flags += b2Draw::e_aabbBit;
     //        flags += b2Draw::e_pairBit;
     //        flags += b2Draw::e_centerOfMassBit;
-    //_debugDraw->SetFlags(flags);
+    //m_debugDraw->SetFlags(flags);
 
 
     // Define the ground body.
@@ -115,20 +115,23 @@ void Box2DTestLayer::initPhysics()
 
 void Box2DTestLayer::createResetButton()
 {
-    MenuItemImage *reset = MenuItemImage::create("Images/r1.png", "Images/r2.png", [](Object *sender) {
-		Scene* s = new Box2DTestScene();
-		Box2DTestLayer* child = new Box2DTestLayer();
-		s->addChild(child);
-		child->release();
-		Director::getInstance()->replaceScene(s);
-		s->release();
-	});
+    CCMenuItemImage *reset = CCMenuItemImage::create("Images/r1.png", "Images/r2.png", this, menu_selector(Box2DTestLayer::reset));
 
-    Menu *menu = Menu::create(reset, NULL);
+    CCMenu *menu = CCMenu::create(reset, NULL);
 
-    menu->setPosition(Point(VisibleRect::bottom().x, VisibleRect::bottom().y + 30));
+    menu->setPosition(ccp(VisibleRect::bottom().x, VisibleRect::bottom().y + 30));
     this->addChild(menu, -1);
 
+}
+
+void Box2DTestLayer::reset(CCObject* sender)
+{
+    CCScene* s = new Box2DTestScene();
+    Box2DTestLayer* child = new Box2DTestLayer();
+    s->addChild(child);
+    child->release();
+    CCDirector::sharedDirector()->replaceScene(s);
+    s->release();
 }
 
 void Box2DTestLayer::draw()
@@ -138,10 +141,10 @@ void Box2DTestLayer::draw()
     // This is only for debug purposes
     // It is recommend to disable it
     //
-    Layer::draw();
+    CCLayer::draw();
 
 #if CC_ENABLE_BOX2D_INTEGRATION
-    GL::enableVertexAttribs( cocos2d::GL::VERTEX_ATTRIB_FLAG_POSITION );
+    ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position );
 
     kmGLPushMatrix();
 
@@ -151,7 +154,7 @@ void Box2DTestLayer::draw()
 #endif
 }
 
-void Box2DTestLayer::addNewSpriteAtPosition(Point p)
+void Box2DTestLayer::addNewSpriteAtPosition(CCPoint p)
 {
     CCLOG("Add sprite %0.2f x %02.f",p.x,p.y);
     
@@ -175,17 +178,17 @@ void Box2DTestLayer::addNewSpriteAtPosition(Point p)
     body->CreateFixture(&fixtureDef);    
     
 #if CC_ENABLE_BOX2D_INTEGRATION
-    Node *parent = this->getChildByTag(kTagParentNode);
+    CCNode *parent = this->getChildByTag(kTagParentNode);
     
     //We have a 64x64 sprite sheet with 4 different 32x32 images.  The following code is
     //just randomly picking one of the images
     int idx = (CCRANDOM_0_1() > .5 ? 0:1);
     int idy = (CCRANDOM_0_1() > .5 ? 0:1);
-    PhysicsSprite *sprite = PhysicsSprite::createWithTexture(_spriteTexture,Rect(32 * idx,32 * idy,32,32));
+    CCPhysicsSprite *sprite = CCPhysicsSprite::createWithTexture(m_pSpriteTexture,CCRectMake(32 * idx,32 * idy,32,32));
     parent->addChild(sprite);
     sprite->setB2Body(body);
     sprite->setPTMRatio(PTM_RATIO);
-    sprite->setPosition( Point( p.x, p.y) );
+    sprite->setPosition( ccp( p.x, p.y) );
 #endif
 }
 
@@ -205,27 +208,27 @@ void Box2DTestLayer::update(float dt)
     world->Step(dt, velocityIterations, positionIterations);
 }
 
-void Box2DTestLayer::ccTouchesEnded(Set* touches, Event* event)
+void Box2DTestLayer::ccTouchesEnded(CCSet* touches, CCEvent* event)
 {
     //Add a new body/atlas sprite at the touched location
-    SetIterator it;
-    Touch* touch;
+    CCSetIterator it;
+    CCTouch* touch;
 
     for( it = touches->begin(); it != touches->end(); it++) 
     {
-        touch = static_cast<Touch*>(*it);
+        touch = (CCTouch*)(*it);
 
         if(!touch)
             break;
 
-        Point location = touch->getLocation();
+        CCPoint location = touch->getLocation();
     
         addNewSpriteAtPosition( location );
     }
 }
 
 /*
-void Box2DTestLayer::accelerometer(UIAccelerometer* accelerometer, Acceleration* acceleration)
+void Box2DTestLayer::accelerometer(UIAccelerometer* accelerometer, CCAcceleration* acceleration)
 {    
     static float prevX=0, prevY=0;
 
@@ -248,10 +251,10 @@ void Box2DTestLayer::accelerometer(UIAccelerometer* accelerometer, Acceleration*
 
 void Box2DTestScene::runThisTest()
 {
-    Layer* layer = new Box2DTestLayer();
-    addChild(layer);
-    layer->release();
+    CCLayer* pLayer = new Box2DTestLayer();
+    addChild(pLayer);
+    pLayer->release();
 
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }
  

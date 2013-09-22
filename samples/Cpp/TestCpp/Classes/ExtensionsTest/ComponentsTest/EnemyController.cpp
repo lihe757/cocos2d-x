@@ -5,7 +5,7 @@ using namespace cocos2d;
 
 EnemyController::EnemyController(void)
 {
-    _name = "EnemyController";
+    m_strName = "EnemyController";
 }
 
 EnemyController::~EnemyController(void)
@@ -20,7 +20,7 @@ bool EnemyController::init()
 void EnemyController::onEnter()
 {
    // Determine where to spawn the target along the Y axis
-	Size winSize = Director::getInstance()->getVisibleSize();
+	CCSize winSize = CCDirector::sharedDirector()->getVisibleSize();
 	float minY = getOwner()->getContentSize().height/2;
 	float maxY = winSize.height -  getOwner()->getContentSize().height/2;
 	int rangeY = (int)(maxY - minY);
@@ -29,25 +29,24 @@ void EnemyController::onEnter()
 
 	// Create the target slightly off-screen along the right edge,
 	// and along a random position along the Y axis as calculated
-	_owner->setPosition(
-		Point(winSize.width + (getOwner()->getContentSize().width/2), 
-            Director::getInstance()->getVisibleOrigin().y + actualY) );
+	m_pOwner->setPosition(
+		ccp(winSize.width + (getOwner()->getContentSize().width/2), 
+            CCDirector::sharedDirector()->getVisibleOrigin().y + actualY) );
 	
 
 	// Determine speed of the target
-	int minDuration = 2;
-	int maxDuration = 4;
+	int minDuration = (int)2.0;
+	int maxDuration = (int)4.0;
 	int rangeDuration = maxDuration - minDuration;
 	// srand( TimGetTicks() );
 	int actualDuration = ( rand() % rangeDuration ) + minDuration;
 
 	// Create the actions
-	FiniteTimeAction* actionMove = MoveTo::create( actualDuration,
-                                            Point(0 - getOwner()->getContentSize().width/2, actualY) );
-	FiniteTimeAction* actionMoveDone = CallFuncN::create(
-                                         CC_CALLBACK_1(SceneController::spriteMoveFinished, static_cast<SceneController*>( getOwner()->getParent()->getComponent("SceneController") )));
-
-	_owner->runAction( Sequence::create(actionMove, actionMoveDone, NULL) );
+	CCFiniteTimeAction* actionMove = CCMoveTo::create( (float)actualDuration,
+                                            ccp(0 - getOwner()->getContentSize().width/2, actualY) );
+	CCFiniteTimeAction* actionMoveDone = CCCallFuncN::create(getOwner()->getParent()->getComponent("SceneController"),
+                                            callfuncN_selector(SceneController::spriteMoveFinished));
+	m_pOwner->runAction( CCSequence::create(actionMove, actionMoveDone, NULL) );
 }
 
 void EnemyController::onExit()
@@ -75,10 +74,10 @@ EnemyController* EnemyController::create(void)
 
 void EnemyController::die()
 {
-    Component *com = _owner->getParent()->getComponent("SceneController");
-    cocos2d::Array *_targets = ((SceneController*)com)->getTargets();
-    _targets->removeObject(_owner);
-    _owner->removeFromParentAndCleanup(true);
+    CCComponent *com = m_pOwner->getParent()->getComponent("SceneController");
+    cocos2d::CCArray *_targets = ((SceneController*)com)->getTargets();
+    _targets->removeObject(m_pOwner);
+    m_pOwner->removeFromParentAndCleanup(true);
     ((SceneController*)com)->increaseKillCount();
 }
 

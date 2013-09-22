@@ -25,76 +25,76 @@ THE SOFTWARE.
 #include "CCGeometry.h"
 #include "ccMacros.h"
 
-// implementation of Point
+// implementation of CCPoint
 NS_CC_BEGIN
 
-Point::Point(void) : x(0), y(0)
+CCPoint::CCPoint(void) : x(0), y(0)
 {
 }
 
-Point::Point(float xx, float yy) : x(xx), y(yy)
+CCPoint::CCPoint(float x, float y) : x(x), y(y)
 {
 }
 
-Point::Point(const Point& other) : x(other.x), y(other.y)
+CCPoint::CCPoint(const CCPoint& other) : x(other.x), y(other.y)
 {
 }
 
-Point::Point(const Size& size) : x(size.width), y(size.height)
+CCPoint::CCPoint(const CCSize& size) : x(size.width), y(size.height)
 {
 }
 
-Point& Point::operator= (const Point& other)
+CCPoint& CCPoint::operator= (const CCPoint& other)
 {
     setPoint(other.x, other.y);
     return *this;
 }
 
-Point& Point::operator= (const Size& size)
+CCPoint& CCPoint::operator= (const CCSize& size)
 {
     setPoint(size.width, size.height);
     return *this;
 }
 
-Point Point::operator+(const Point& right) const
+CCPoint CCPoint::operator+(const CCPoint& right) const
 {
-    return Point(this->x + right.x, this->y + right.y);
+    return CCPoint(this->x + right.x, this->y + right.y);
 }
 
-Point Point::operator-(const Point& right) const
+CCPoint CCPoint::operator-(const CCPoint& right) const
 {
-    return Point(this->x - right.x, this->y - right.y);
+    return CCPoint(this->x - right.x, this->y - right.y);
 }
 
-Point Point::operator-() const
+CCPoint CCPoint::operator-() const
 {
-	return Point(-x, -y);
+	return CCPoint(-x, -y);
 }
 
-Point Point::operator*(float a) const
+CCPoint CCPoint::operator*(float a) const
 {
-    return Point(this->x * a, this->y * a);
+    return CCPoint(this->x * a, this->y * a);
 }
 
-Point Point::operator/(float a) const
+CCPoint CCPoint::operator/(float a) const
 {
-	CCASSERT(a!=0, "CCPoint division by 0.");
-    return Point(this->x / a, this->y / a);
+	CCAssert(a, "CCPoint division by 0.");
+    return CCPoint(this->x / a, this->y / a);
 }
 
-void Point::setPoint(float xx, float yy)
+void CCPoint::setPoint(float x, float y)
 {
-    this->x = xx;
-    this->y = yy;
+    this->x = x;
+    this->y = y;
 }
 
-bool Point::equals(const Point& target) const
+bool CCPoint::equals(const CCPoint& target) const
 {
     return (fabs(this->x - target.x) < FLT_EPSILON)
         && (fabs(this->y - target.y) < FLT_EPSILON);
 }
 
-bool Point::fuzzyEquals(const Point& b, float var) const
+bool CCPoint::fuzzyEquals(const CCPoint& b, float var) const
 {
     if(x - var <= b.x && b.x <= x + var)
         if(y - var <= b.y && b.y <= y + var)
@@ -102,186 +102,110 @@ bool Point::fuzzyEquals(const Point& b, float var) const
     return false;
 }
 
-float Point::getAngle(const Point& other) const
+float CCPoint::getAngle(const CCPoint& other) const
 {
-    Point a2 = normalize();
-    Point b2 = other.normalize();
+    CCPoint a2 = normalize();
+    CCPoint b2 = other.normalize();
     float angle = atan2f(a2.cross(b2), a2.dot(b2));
     if( fabs(angle) < FLT_EPSILON ) return 0.f;
     return angle;
 }
 
-Point Point::rotateByAngle(const Point& pivot, float angle) const
+CCPoint CCPoint::rotateByAngle(const CCPoint& pivot, float angle) const
 {
-    return pivot + (*this - pivot).rotate(Point::forAngle(angle));
+    return pivot + (*this - pivot).rotate(CCPoint::forAngle(angle));
 }
 
-bool Point::isLineIntersect(const Point& A, const Point& B,
-                            const Point& C, const Point& D,
-                            float *S, float *T)
-{
-    // FAIL: Line undefined
-    if ( (A.x==B.x && A.y==B.y) || (C.x==D.x && C.y==D.y) )
-    {
-        return false;
-    }
-    const float BAx = B.x - A.x;
-    const float BAy = B.y - A.y;
-    const float DCx = D.x - C.x;
-    const float DCy = D.y - C.y;
-    const float ACx = A.x - C.x;
-    const float ACy = A.y - C.y;
-    
-    const float denom = DCy*BAx - DCx*BAy;
-    
-    *S = DCx*ACy - DCy*ACx;
-    *T = BAx*ACy - BAy*ACx;
-    
-    if (denom == 0)
-    {
-        if (*S == 0 || *T == 0)
-        {
-            // Lines incident
-            return true;
-        }
-        // Lines parallel and not incident
-        return false;
-    }
-    
-    *S = *S / denom;
-    *T = *T / denom;
-    
-    // Point of intersection
-    // CGPoint P;
-    // P.x = A.x + *S * (B.x - A.x);
-    // P.y = A.y + *S * (B.y - A.y);
-    
-    return true;
-}
+// implementation of CCSize
 
-bool Point::isSegmentIntersect(const Point& A, const Point& B, const Point& C, const Point& D)
-{
-    float S, T;
-    
-    if (isLineIntersect(A, B, C, D, &S, &T )&&
-       (S >= 0.0f && S <= 1.0f && T >= 0.0f && T <= 1.0f))
-    {
-        return true;
-    }  
-    
-    return false;
-}
-
-Point Point::getIntersectPoint(const Point& A, const Point& B, const Point& C, const Point& D)
-{
-    float S, T;
-    
-    if (isLineIntersect(A, B, C, D, &S, &T))
-    {
-        // Point of intersection
-        Point P;
-        P.x = A.x + S * (B.x - A.x);
-        P.y = A.y + S * (B.y - A.y);
-        return P;
-    }
-    
-    return Point::ZERO;
-}
-
-const Point Point::ZERO = Point(0, 0);
-
-// implementation of Size
-
-Size::Size(void) : width(0), height(0)
+CCSize::CCSize(void) : width(0), height(0)
 {
 }
 
-Size::Size(float w, float h) : width(w), height(h)
+CCSize::CCSize(float width, float height) : width(width), height(height)
 {
 }
 
-Size::Size(const Size& other) : width(other.width), height(other.height)
+CCSize::CCSize(const CCSize& other) : width(other.width), height(other.height)
 {
 }
 
-Size::Size(const Point& point) : width(point.x), height(point.y)
+CCSize::CCSize(const CCPoint& point) : width(point.x), height(point.y)
 {
 }
 
-Size& Size::operator= (const Size& other)
+CCSize& CCSize::operator= (const CCSize& other)
 {
     setSize(other.width, other.height);
     return *this;
 }
 
-Size& Size::operator= (const Point& point)
+CCSize& CCSize::operator= (const CCPoint& point)
 {
     setSize(point.x, point.y);
     return *this;
 }
 
-Size Size::operator+(const Size& right) const
+CCSize CCSize::operator+(const CCSize& right) const
 {
-    return Size(this->width + right.width, this->height + right.height);
+    return CCSize(this->width + right.width, this->height + right.height);
 }
 
-Size Size::operator-(const Size& right) const
+CCSize CCSize::operator-(const CCSize& right) const
 {
-    return Size(this->width - right.width, this->height - right.height);
+    return CCSize(this->width - right.width, this->height - right.height);
 }
 
-Size Size::operator*(float a) const
+CCSize CCSize::operator*(float a) const
 {
-    return Size(this->width * a, this->height * a);
+    return CCSize(this->width * a, this->height * a);
 }
 
-Size Size::operator/(float a) const
+CCSize CCSize::operator/(float a) const
 {
-	CCASSERT(a!=0, "CCSize division by 0.");
-    return Size(this->width / a, this->height / a);
+	CCAssert(a, "CCSize division by 0.");
+    return CCSize(this->width / a, this->height / a);
 }
 
-void Size::setSize(float w, float h)
+void CCSize::setSize(float width, float height)
 {
-    this->width = w;
-    this->height = h;
+    this->width = width;
+    this->height = height;
 }
 
-bool Size::equals(const Size& target) const
+bool CCSize::equals(const CCSize& target) const
 {
     return (fabs(this->width  - target.width)  < FLT_EPSILON)
         && (fabs(this->height - target.height) < FLT_EPSILON);
 }
 
-const Size Size::ZERO = Size(0, 0);
+// implementation of CCRect
 
-// implementation of Rect
-
-Rect::Rect(void)
+CCRect::CCRect(void)
 {
     setRect(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-Rect::Rect(float x, float y, float width, float height)
+CCRect::CCRect(float x, float y, float width, float height)
 {
     setRect(x, y, width, height);
 }
 
-Rect::Rect(const Rect& other)
+CCRect::CCRect(const CCRect& other)
 {
     setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
 }
 
-Rect& Rect::operator= (const Rect& other)
+CCRect& CCRect::operator= (const CCRect& other)
 {
     setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
     return *this;
 }
 
-void Rect::setRect(float x, float y, float width, float height)
+void CCRect::setRect(float x, float y, float width, float height)
 {
     // CGRect can support width<0 or height<0
-    // CCASSERT(width >= 0.0f && height >= 0.0f, "width and height of Rect must not less than 0.");
+    // CCAssert(width >= 0.0f && height >= 0.0f, "width and height of Rect must not less than 0.");
 
     origin.x = x;
     origin.y = y;
@@ -290,43 +214,43 @@ void Rect::setRect(float x, float y, float width, float height)
     size.height = height;
 }
 
-bool Rect::equals(const Rect& rect) const
+bool CCRect::equals(const CCRect& rect) const
 {
     return (origin.equals(rect.origin) && 
             size.equals(rect.size));
 }
 
-float Rect::getMaxX() const
+float CCRect::getMaxX() const
 {
     return (float)(origin.x + size.width);
 }
 
-float Rect::getMidX() const
+float CCRect::getMidX() const
 {
     return (float)(origin.x + size.width / 2.0);
 }
 
-float Rect::getMinX() const
+float CCRect::getMinX() const
 {
     return origin.x;
 }
 
-float Rect::getMaxY() const
+float CCRect::getMaxY() const
 {
     return origin.y + size.height;
 }
 
-float Rect::getMidY() const
+float CCRect::getMidY() const
 {
     return (float)(origin.y + size.height / 2.0);
 }
 
-float Rect::getMinY() const
+float CCRect::getMinY() const
 {
     return origin.y;
 }
 
-bool Rect::containsPoint(const Point& point) const
+bool CCRect::containsPoint(const CCPoint& point) const
 {
     bool bRet = false;
 
@@ -339,54 +263,12 @@ bool Rect::containsPoint(const Point& point) const
     return bRet;
 }
 
-bool Rect::intersectsRect(const Rect& rect) const
+bool CCRect::intersectsRect(const CCRect& rect) const
 {
     return !(     getMaxX() < rect.getMinX() ||
              rect.getMaxX() <      getMinX() ||
                   getMaxY() < rect.getMinY() ||
              rect.getMaxY() <      getMinY());
 }
-
-Rect Rect::unionWithRect(const Rect & rect) const
-{
-    float thisLeftX = origin.x;
-    float thisRightX = origin.x + size.width;
-    float thisTopY = origin.y + size.height;
-    float thisBottomY = origin.y;
-    
-    if (thisRightX < thisLeftX)
-    {
-        std::swap(thisRightX, thisLeftX);   // This rect has negative width
-    }
-    
-    if (thisTopY < thisBottomY)
-    {
-        std::swap(thisTopY, thisBottomY);   // This rect has negative height
-    }
-    
-    float otherLeftX = rect.origin.x;
-    float otherRightX = rect.origin.x + rect.size.width;
-    float otherTopY = rect.origin.y + rect.size.height;
-    float otherBottomY = rect.origin.y;
-    
-    if (otherRightX < otherLeftX)
-    {
-        std::swap(otherRightX, otherLeftX);   // Other rect has negative width
-    }
-    
-    if (otherTopY < otherBottomY)
-    {
-        std::swap(otherTopY, otherBottomY);   // Other rect has negative height
-    }
-    
-    float combinedLeftX = std::min(thisLeftX, otherLeftX);
-    float combinedRightX = std::max(thisRightX, otherRightX);
-    float combinedTopY = std::max(thisTopY, otherTopY);
-    float combinedBottomY = std::min(thisBottomY, otherBottomY);
-    
-    return Rect(combinedLeftX, combinedBottomY, combinedRightX - combinedLeftX, combinedTopY - combinedBottomY);
-}
-
-const Rect Rect::ZERO = Rect(0, 0, 0, 0);
 
 NS_CC_END

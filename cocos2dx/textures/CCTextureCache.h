@@ -27,17 +27,11 @@ THE SOFTWARE.
 #ifndef __CCTEXTURE_CACHE_H__
 #define __CCTEXTURE_CACHE_H__
 
-#include <string>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
-#include <queue>
-#include <string>
-
 #include "cocoa/CCObject.h"
 #include "cocoa/CCDictionary.h"
 #include "textures/CCTexture2D.h"
-#include "platform/CCImage.h"
+#include <string>
+
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     #include "platform/CCImage.h"
@@ -45,6 +39,9 @@ THE SOFTWARE.
 #endif
 
 NS_CC_BEGIN
+
+class CCLock;
+class CCImage;
 
 /**
  * @addtogroup textures
@@ -55,66 +52,72 @@ NS_CC_BEGIN
 * Once the texture is loaded, the next time it will return
 * a reference of the previously loaded texture reducing GPU & CPU memory
 */
-class CC_DLL TextureCache : public Object
+class CC_DLL CCTextureCache : public CCObject
 {
-public:
-    /** Returns the shared instance of the cache */
-    static TextureCache * getInstance();
+protected:
+    CCDictionary* m_pTextures;
+    //pthread_mutex_t                *m_pDictLock;
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static TextureCache * sharedTextureCache() { return TextureCache::getInstance(); }
+
+private:
+    /// todo: void addImageWithAsyncObject(CCAsyncObject* async);
+    void addImageAsyncCallBack(float dt);
+
+public:
+
+    CCTextureCache();
+    virtual ~CCTextureCache();
+
+    const char* description(void);
+
+    CCDictionary* snapshotTextures();
+
+    /** Returns the shared instance of the cache */
+    static CCTextureCache * sharedTextureCache();
 
     /** purges the cache. It releases the retained instance.
-     @since v0.99.0
-     */
-    static void destroyInstance();
-
-    /** @deprecated Use destroyInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static void purgeSharedTextureCache() { return TextureCache::destroyInstance(); }
-
-    /** Reload all textures
-     It's only useful when the value of CC_ENABLE_CACHE_TEXTURE_DATA is 1
-     */
-    static void reloadAllTextures();
-
-public:
-    TextureCache();
-    virtual ~TextureCache();
-
-    const char* description(void) const;
-
-    Dictionary* snapshotTextures();
+    @since v0.99.0
+    */
+    static void purgeSharedTextureCache();
 
     /** Returns a Texture2D object given an file image
-    * If the file image was not previously loaded, it will create a new Texture2D
+    * If the file image was not previously loaded, it will create a new CCTexture2D
     *  object and it will return it. It will use the filename as a key.
     * Otherwise it will return a reference of a previously loaded image.
     * Supported image extensions: .png, .bmp, .tiff, .jpeg, .pvr, .gif
     */
-    Texture2D* addImage(const char* fileimage);
+    CCTexture2D* addImage(const char* fileimage);
 
     /* Returns a Texture2D object given a file image
-    * If the file image was not previously loaded, it will create a new Texture2D object and it will return it.
+    * If the file image was not previously loaded, it will create a new CCTexture2D object and it will return it.
     * Otherwise it will load a texture in a new thread, and when the image is loaded, the callback will be called with the Texture2D as a parameter.
     * The callback will be called from the main thread, so it is safe to create any cocos2d object from the callback.
     * Supported image extensions: .png, .jpg
     * @since v0.8
     */
-    virtual void addImageAsync(const char *path, Object *target, SEL_CallFuncO selector);
+    
+    void addImageAsync(const char *path, CCObject *target, SEL_CallFuncO selector);
 
+    /* Returns a Texture2D object given an CGImageRef image
+    * If the image was not previously loaded, it will create a new CCTexture2D object and it will return it.
+    * Otherwise it will return a reference of a previously loaded image
+    * The "key" parameter will be used as the "key" for the cache.
+    * If "key" is nil, then a new texture will be created each time.
+    * @since v0.8
+    */
+    // todo: CGImageRef CCTexture2D* addCGImage(CGImageRef image, string &  key);
     /** Returns a Texture2D object given an UIImage image
-    * If the image was not previously loaded, it will create a new Texture2D object and it will return it.
+    * If the image was not previously loaded, it will create a new CCTexture2D object and it will return it.
     * Otherwise it will return a reference of a previously loaded image
     * The "key" parameter will be used as the "key" for the cache.
     * If "key" is nil, then a new texture will be created each time.
     */
-    Texture2D* addUIImage(Image *image, const char *key);
+    CCTexture2D* addUIImage(CCImage *image, const char *key);
 
     /** Returns an already created texture. Returns nil if the texture doesn't exist.
     @since v0.99.5
     */
-    Texture2D* textureForKey(const char* key);
-
+    CCTexture2D* textureForKey(const char* key);
     /** Purges the dictionary of loaded textures.
     * Call this method if you receive the "Memory Warning"
     * In the short term: it will free some resources preventing your app from being killed
@@ -132,113 +135,94 @@ public:
 
     /** Deletes a texture from the cache given a texture
     */
-    void removeTexture(Texture2D* texture);
+    void removeTexture(CCTexture2D* texture);
 
     /** Deletes a texture from the cache given a its key name
     @since v0.99.4
     */
     void removeTextureForKey(const char *textureKeyName);
 
-    /** Output to CCLOG the current contents of this TextureCache
+    /** Output to CCLOG the current contents of this CCTextureCache
     * This will attempt to calculate the size of each texture, and the total texture memory in use
     *
     * @since v1.0
     */
     void dumpCachedTextureInfo();
-
-private:
-    void addImageAsyncCallBack(float dt);
-    void loadImage();
-
-public:
-    struct AsyncStruct
-    {
-    public:
-        AsyncStruct(const std::string& fn, Object *t, SEL_CallFuncO s) : filename(fn), target(t), selector(s) {}
-
-        std::string            filename;
-        Object    *target;
-        SEL_CallFuncO        selector;
-    };
-
-protected:
-    typedef struct _ImageInfo
-    {
-        AsyncStruct *asyncStruct;
-        Image        *image;
-    } ImageInfo;
     
-    std::thread* _loadingThread;
+    /** Returns a Texture2D object given an PVR filename
+    * If the file image was not previously loaded, it will create a new CCTexture2D
+    *  object and it will return it. Otherwise it will return a reference of a previously loaded image
+    */
+    CCTexture2D* addPVRImage(const char* filename);
+    
+    /** Returns a Texture2D object given an ETC filename
+     * If the file image was not previously loaded, it will create a new CCTexture2D
+     *  object and it will return it. Otherwise it will return a reference of a previously loaded image
+     */
+    CCTexture2D* addETCImage(const char* filename);
 
-    std::queue<AsyncStruct*>* _asyncStructQueue;
-    std::queue<ImageInfo*>* _imageInfoQueue;
-
-    std::mutex _asyncStructQueueMutex;
-    std::mutex _imageInfoMutex;
-
-    std::mutex _sleepMutex;
-    std::condition_variable _sleepCondition;
-
-    bool _needQuit;
-
-    int _asyncRefCount;
-
-    Dictionary* _textures;
-
-    static TextureCache *_sharedTextureCache;
+    /** Reload all textures
+    It's only useful when the value of CC_ENABLE_CACHE_TEXTURE_DATA is 1
+    */
+    static void reloadAllTextures();
 };
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
 
 class VolatileTexture
 {
-    typedef enum {
-        kInvalid = 0,
-        kImageFile,
-        kImageData,
-        kString,
-        kImage,
-    }ccCachedImageType;
+typedef enum {
+    kInvalid = 0,
+    kImageFile,
+    kImageData,
+    kString,
+    kImage,
+}ccCachedImageType;
 
 public:
-    VolatileTexture(Texture2D *t);
+    VolatileTexture(CCTexture2D *t);
     ~VolatileTexture();
 
-    static void addImageTexture(Texture2D *tt, const char* imageFileName);
-    static void addStringTexture(Texture2D *tt, const char* text, const FontDefinition& fontDefinition);
-    static void addDataTexture(Texture2D *tt, void* data, int dataLen, Texture2D::PixelFormat pixelFormat, const Size& contentSize);
-    static void addImage(Texture2D *tt, Image *image);
+    static void addImageTexture(CCTexture2D *tt, const char* imageFileName, CCImage::EImageFormat format);
+    static void addStringTexture(CCTexture2D *tt, const char* text, const CCSize& dimensions, CCTextAlignment alignment, 
+                                 CCVerticalTextAlignment vAlignment, const char *fontName, float fontSize);
+    static void addDataTexture(CCTexture2D *tt, void* data, CCTexture2DPixelFormat pixelFormat, const CCSize& contentSize);
+    static void addCCImage(CCTexture2D *tt, CCImage *image);
 
-    static void setTexParameters(Texture2D *t, const ccTexParams &texParams);
-    static void removeTexture(Texture2D *t);
+    static void setTexParameters(CCTexture2D *t, ccTexParams *texParams);
+    static void removeTexture(CCTexture2D *t);
     static void reloadAllTextures();
 
 public:
-    static std::list<VolatileTexture*> _textures;
-    static bool _isReloading;
+    static std::list<VolatileTexture*> textures;
+    static bool isReloading;
     
 private:
-    // find VolatileTexture by Texture2D*
+    // find VolatileTexture by CCTexture2D*
     // if not found, create a new one
-    static VolatileTexture* findVolotileTexture(Texture2D *tt);
+    static VolatileTexture* findVolotileTexture(CCTexture2D *tt);
 
 protected:
-    Texture2D *_texture;
+    CCTexture2D *texture;
     
-    Image *_uiImage;
+    CCImage *uiImage;
 
-    ccCachedImageType _cashedImageType;
+    ccCachedImageType m_eCashedImageType;
 
-    void *_textureData;
-    int  _dataLen;
-    Size _textureSize;
-    Texture2D::PixelFormat _pixelFormat;
+    void *m_pTextureData;
+    CCSize m_TextureSize;
+    CCTexture2DPixelFormat m_PixelFormat;
 
-    std::string _fileName;
+    std::string m_strFileName;
+    CCImage::EImageFormat m_FmtImage;
 
-    ccTexParams      _texParams;
-    std::string      _text;
-    FontDefinition   _fontDefinition;
+    ccTexParams     m_texParams;
+    CCSize          m_size;
+    CCTextAlignment m_alignment;
+    CCVerticalTextAlignment m_vAlignment;
+    std::string     m_strFontName;
+    std::string     m_strText;
+    float           m_fFontSize;
 };
 
 #endif

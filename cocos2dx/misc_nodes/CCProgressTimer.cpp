@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "ccMacros.h"
 #include "textures/CCTextureCache.h"
+#include "support/CCPointExtension.h"
 #include "shaders/CCGLProgram.h"
 #include "shaders/CCShaderCache.h"
 #include "shaders/ccGLStateCache.h"
@@ -41,23 +42,23 @@ NS_CC_BEGIN
 
 #define kProgressTextureCoordsCount 4
 //  kProgressTextureCoords holds points {0,1} {0,0} {1,0} {1,1} we can represent it as bits
-const char kProgressTextureCoords = 0x4b;
+const char kCCProgressTextureCoords = 0x4b;
 
 
-ProgressTimer::ProgressTimer()
-:_type(Type::RADIAL)
-,_midpoint(0,0)
-,_barChangeRate(0,0)
-,_percentage(0.0f)
-,_sprite(NULL)
-,_vertexDataCount(0)
-,_vertexData(NULL)
-,_reverseDirection(false)
+CCProgressTimer::CCProgressTimer()
+:m_eType(kCCProgressTimerTypeRadial)
+,m_fPercentage(0.0f)
+,m_pSprite(NULL)
+,m_nVertexDataCount(0)
+,m_pVertexData(NULL)
+,m_tMidpoint(0,0)
+,m_tBarChangeRate(0,0)
+,m_bReverseDirection(false)
 {}
 
-ProgressTimer* ProgressTimer::create(Sprite* sp)
+CCProgressTimer* CCProgressTimer::create(CCSprite* sp)
 {
-    ProgressTimer *pProgressTimer = new ProgressTimer();
+    CCProgressTimer *pProgressTimer = new CCProgressTimer();
     if (pProgressTimer->initWithSprite(sp))
     {
         pProgressTimer->autorelease();
@@ -71,103 +72,91 @@ ProgressTimer* ProgressTimer::create(Sprite* sp)
     return pProgressTimer;
 }
 
-bool ProgressTimer::initWithSprite(Sprite* sp)
+bool CCProgressTimer::initWithSprite(CCSprite* sp)
 {
     setPercentage(0.0f);
-    _vertexData = NULL;
-    _vertexDataCount = 0;
+    m_pVertexData = NULL;
+    m_nVertexDataCount = 0;
 
-    setAnchorPoint(Point(0.5f,0.5f));
-    _type = Type::RADIAL;
-    _reverseDirection = false;
-    setMidpoint(Point(0.5f, 0.5f));
-    setBarChangeRate(Point(1,1));
+    setAnchorPoint(ccp(0.5f,0.5f));
+    m_eType = kCCProgressTimerTypeRadial;
+    m_bReverseDirection = false;
+    setMidpoint(ccp(0.5f, 0.5f));
+    setBarChangeRate(ccp(1,1));
     setSprite(sp);
     // shader program
-    setShaderProgram(ShaderCache::getInstance()->programForKey(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR));
+    setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
     return true;
 }
 
-ProgressTimer::~ProgressTimer(void)
+CCProgressTimer::~CCProgressTimer(void)
 {
-    CC_SAFE_FREE(_vertexData);
-    CC_SAFE_RELEASE(_sprite);
+    CC_SAFE_FREE(m_pVertexData);
+    CC_SAFE_RELEASE(m_pSprite);
 }
 
-void ProgressTimer::setPercentage(float fPercentage)
+void CCProgressTimer::setPercentage(float fPercentage)
 {
-    if (_percentage != fPercentage)
+    if (m_fPercentage != fPercentage)
     {
-        _percentage = clampf(fPercentage, 0, 100);
+        m_fPercentage = clampf(fPercentage, 0, 100);
         updateProgress();
     }
 }
 
-void ProgressTimer::setSprite(Sprite *pSprite)
+void CCProgressTimer::setSprite(CCSprite *pSprite)
 {
-    if (_sprite != pSprite)
+    if (m_pSprite != pSprite)
     {
         CC_SAFE_RETAIN(pSprite);
-        CC_SAFE_RELEASE(_sprite);
-        _sprite = pSprite;
-        setContentSize(_sprite->getContentSize());
+        CC_SAFE_RELEASE(m_pSprite);
+        m_pSprite = pSprite;
+        setContentSize(m_pSprite->getContentSize());
 
         //    Every time we set a new sprite, we free the current vertex data
-        if (_vertexData)
+        if (m_pVertexData)
         {
-            CC_SAFE_FREE(_vertexData);
-            _vertexDataCount = 0;
+            CC_SAFE_FREE(m_pVertexData);
+            m_nVertexDataCount = 0;
         }
     }        
 }
 
-void ProgressTimer::setType(Type type)
+void CCProgressTimer::setType(CCProgressTimerType type)
 {
-    if (type != _type)
+    if (type != m_eType)
     {
         //    release all previous information
-        if (_vertexData)
+        if (m_pVertexData)
         {
-            CC_SAFE_FREE(_vertexData);
-            _vertexData = NULL;
-            _vertexDataCount = 0;
+            CC_SAFE_FREE(m_pVertexData);
+            m_pVertexData = NULL;
+            m_nVertexDataCount = 0;
         }
 
-        _type = type;
+        m_eType = type;
     }
 }
 
-void ProgressTimer::setReverseProgress(bool reverse)
+void CCProgressTimer::setReverseProgress(bool reverse)
 {
-    if( _reverseDirection != reverse ) {
-        _reverseDirection = reverse;
+    if( m_bReverseDirection != reverse ) {
+        m_bReverseDirection = reverse;
 
         //    release all previous information
-        CC_SAFE_FREE(_vertexData);
-        _vertexDataCount = 0;
+        CC_SAFE_FREE(m_pVertexData);
+        m_nVertexDataCount = 0;
     }
 }
 
-void ProgressTimer::setColor(const Color3B& color)
+void CCProgressTimer::setOpacityModifyRGB(bool bValue)
 {
-    _sprite->setColor(color);
-    updateColor();
+    CC_UNUSED_PARAM(bValue);
 }
 
-const Color3B& ProgressTimer::getColor() const
+bool CCProgressTimer::isOpacityModifyRGB(void)
 {
-    return _sprite->getColor();
-}
-
-void ProgressTimer::setOpacity(GLubyte opacity)
-{
-    _sprite->setOpacity(opacity);
-    updateColor();
-}
-
-GLubyte ProgressTimer::getOpacity() const
-{
-    return _sprite->getOpacity();
+    return false;
 }
 
 // Interval
@@ -175,60 +164,60 @@ GLubyte ProgressTimer::getOpacity() const
 ///
 //    @returns the vertex position from the texture coordinate
 ///
-Tex2F ProgressTimer::textureCoordFromAlphaPoint(Point alpha)
+ccTex2F CCProgressTimer::textureCoordFromAlphaPoint(CCPoint alpha)
 {
-    Tex2F ret(0.0f, 0.0f);
-    if (!_sprite) {
+    ccTex2F ret = {0.0f, 0.0f};
+    if (!m_pSprite) {
         return ret;
     }
-    V3F_C4B_T2F_Quad quad = _sprite->getQuad();
-    Point min = Point(quad.bl.texCoords.u,quad.bl.texCoords.v);
-    Point max = Point(quad.tr.texCoords.u,quad.tr.texCoords.v);
+    ccV3F_C4B_T2F_Quad quad = m_pSprite->getQuad();
+    CCPoint min = ccp(quad.bl.texCoords.u,quad.bl.texCoords.v);
+    CCPoint max = ccp(quad.tr.texCoords.u,quad.tr.texCoords.v);
     //  Fix bug #1303 so that progress timer handles sprite frame texture rotation
-    if (_sprite->isTextureRectRotated()) {
+    if (m_pSprite->isTextureRectRotated()) {
         CC_SWAP(alpha.x, alpha.y, float);
     }
-    return Tex2F(min.x * (1.f - alpha.x) + max.x * alpha.x, min.y * (1.f - alpha.y) + max.y * alpha.y);
+    return tex2(min.x * (1.f - alpha.x) + max.x * alpha.x, min.y * (1.f - alpha.y) + max.y * alpha.y);
 }
 
-Vertex2F ProgressTimer::vertexFromAlphaPoint(Point alpha)
+ccVertex2F CCProgressTimer::vertexFromAlphaPoint(CCPoint alpha)
 {
-    Vertex2F ret(0.0f, 0.0f);
-    if (!_sprite) {
+    ccVertex2F ret = {0.0f, 0.0f};
+    if (!m_pSprite) {
         return ret;
     }
-    V3F_C4B_T2F_Quad quad = _sprite->getQuad();
-    Point min = Point(quad.bl.vertices.x,quad.bl.vertices.y);
-    Point max = Point(quad.tr.vertices.x,quad.tr.vertices.y);
+    ccV3F_C4B_T2F_Quad quad = m_pSprite->getQuad();
+    CCPoint min = ccp(quad.bl.vertices.x,quad.bl.vertices.y);
+    CCPoint max = ccp(quad.tr.vertices.x,quad.tr.vertices.y);
     ret.x = min.x * (1.f - alpha.x) + max.x * alpha.x;
     ret.y = min.y * (1.f - alpha.y) + max.y * alpha.y;
     return ret;
 }
 
-void ProgressTimer::updateColor(void)
+void CCProgressTimer::updateColor(void)
 {
-    if (!_sprite) {
+    if (!m_pSprite) {
         return;
     }
 
-    if (_vertexData)
+    if (m_pVertexData)
     {
-        Color4B sc = _sprite->getQuad().tl.colors;
-        for (int i = 0; i < _vertexDataCount; ++i)
+        ccColor4B sc = m_pSprite->getQuad().tl.colors;
+        for (int i = 0; i < m_nVertexDataCount; ++i)
         {
-            _vertexData[i].colors = sc;
+            m_pVertexData[i].colors = sc;
         }            
     }
 }
 
-void ProgressTimer::updateProgress(void)
+void CCProgressTimer::updateProgress(void)
 {
-    switch (_type)
+    switch (m_eType)
     {
-    case Type::RADIAL:
+    case kCCProgressTimerTypeRadial:
         updateRadial();
         break;
-    case Type::BAR:
+    case kCCProgressTimerTypeBar:
         updateBar();
         break;
     default:
@@ -236,19 +225,19 @@ void ProgressTimer::updateProgress(void)
     }
 }
 
-void ProgressTimer::setAnchorPoint(const Point& anchorPoint)
+void CCProgressTimer::setAnchorPoint(CCPoint anchorPoint)
 {
-    Node::setAnchorPoint(anchorPoint);
+    CCNode::setAnchorPoint(anchorPoint);
 }
 
-Point ProgressTimer::getMidpoint() const
+CCPoint CCProgressTimer::getMidpoint(void)
 {
-    return _midpoint;
+    return m_tMidpoint;
 }
 
-void ProgressTimer::setMidpoint(const Point& midPoint)
+void CCProgressTimer::setMidpoint(CCPoint midPoint)
 {
-    _midpoint = midPoint.getClampPoint(Point::ZERO, Point(1, 1));
+    m_tMidpoint = ccpClamp(midPoint, CCPointZero, ccp(1,1));
 }
 
 ///
@@ -260,24 +249,24 @@ void ProgressTimer::setMidpoint(const Point& midPoint)
 //    It now deals with flipped texture. If you run into this problem, just use the
 //    sprite property and enable the methods flipX, flipY.
 ///
-void ProgressTimer::updateRadial(void)
+void CCProgressTimer::updateRadial(void)
 {
-    if (!_sprite) {
+    if (!m_pSprite) {
         return;
     }
-    float alpha = _percentage / 100.f;
+    float alpha = m_fPercentage / 100.f;
 
-    float angle = 2.f*((float)M_PI) * ( _reverseDirection ? alpha : 1.0f - alpha);
+    float angle = 2.f*((float)M_PI) * ( m_bReverseDirection ? alpha : 1.0f - alpha);
 
     //    We find the vector to do a hit detection based on the percentage
     //    We know the first vector is the one @ 12 o'clock (top,mid) so we rotate
-    //    from that by the progress angle around the _midpoint pivot
-    Point topMid = Point(_midpoint.x, 1.f);
-    Point percentagePt = topMid.rotateByAngle(_midpoint, angle);
+    //    from that by the progress angle around the m_tMidpoint pivot
+    CCPoint topMid = ccp(m_tMidpoint.x, 1.f);
+    CCPoint percentagePt = ccpRotateByAngle(topMid, m_tMidpoint, angle);
 
 
     int index = 0;
-    Point hit = Point::ZERO;
+    CCPoint hit = CCPointZero;
 
     if (alpha == 0.f) {
         //    More efficient since we don't always need to check intersection
@@ -299,20 +288,20 @@ void ProgressTimer::updateRadial(void)
         for (int i = 0; i <= kProgressTextureCoordsCount; ++i) {
             int pIndex = (i + (kProgressTextureCoordsCount - 1))%kProgressTextureCoordsCount;
 
-            Point edgePtA = boundaryTexCoord(i % kProgressTextureCoordsCount);
-            Point edgePtB = boundaryTexCoord(pIndex);
+            CCPoint edgePtA = boundaryTexCoord(i % kProgressTextureCoordsCount);
+            CCPoint edgePtB = boundaryTexCoord(pIndex);
 
             //    Remember that the top edge is split in half for the 12 o'clock position
             //    Let's deal with that here by finding the correct endpoints
             if(i == 0){
-                edgePtB = edgePtA.lerp(edgePtB, 1-_midpoint.x);
+                edgePtB = ccpLerp(edgePtA, edgePtB, 1-m_tMidpoint.x);
             } else if(i == 4){
-                edgePtA = edgePtA.lerp(edgePtB, 1-_midpoint.x);
+                edgePtA = ccpLerp(edgePtA, edgePtB, 1-m_tMidpoint.x);
             }
 
             //    s and t are returned by ccpLineIntersect
             float s = 0, t = 0;
-            if(Point::isLineIntersect(edgePtA, edgePtB, _midpoint, percentagePt, &s, &t))
+            if(ccpLineIntersect(edgePtA, edgePtB, m_tMidpoint, percentagePt, &s, &t))
             {
 
                 //    Since our hit test is on rays we have to deal with the top edge
@@ -324,7 +313,7 @@ void ProgressTimer::updateRadial(void)
                     }
                 }
                 //    As long as our t isn't negative we are at least finding a
-                //    correct hitpoint from _midpoint to percentagePt.
+                //    correct hitpoint from m_tMidpoint to percentagePt.
                 if (t >= 0.f) {
                     //    Because the percentage line and all the texture edges are
                     //    rays we should only account for the shortest intersection
@@ -337,49 +326,49 @@ void ProgressTimer::updateRadial(void)
         }
 
         //    Now that we have the minimum magnitude we can use that to find our intersection
-        hit = _midpoint+ ((percentagePt - _midpoint) * min_t);
+        hit = ccpAdd(m_tMidpoint, ccpMult(ccpSub(percentagePt, m_tMidpoint),min_t));
 
     }
 
 
     //    The size of the vertex data is the index from the hitpoint
-    //    the 3 is for the _midpoint, 12 o'clock point and hitpoint position.
+    //    the 3 is for the m_tMidpoint, 12 o'clock point and hitpoint position.
 
     bool sameIndexCount = true;
-    if(_vertexDataCount != index + 3){
+    if(m_nVertexDataCount != index + 3){
         sameIndexCount = false;
-        CC_SAFE_FREE(_vertexData);
-        _vertexDataCount = 0;
+        CC_SAFE_FREE(m_pVertexData);
+        m_nVertexDataCount = 0;
     }
 
 
-    if(!_vertexData) {
-        _vertexDataCount = index + 3;
-        _vertexData = (V2F_C4B_T2F*)malloc(_vertexDataCount * sizeof(V2F_C4B_T2F));
-        CCASSERT( _vertexData, "CCProgressTimer. Not enough memory");
+    if(!m_pVertexData) {
+        m_nVertexDataCount = index + 3;
+        m_pVertexData = (ccV2F_C4B_T2F*)malloc(m_nVertexDataCount * sizeof(ccV2F_C4B_T2F));
+        CCAssert( m_pVertexData, "CCProgressTimer. Not enough memory");
     }
     updateColor();
 
     if (!sameIndexCount) {
 
-        //    First we populate the array with the _midpoint, then all
+        //    First we populate the array with the m_tMidpoint, then all
         //    vertices/texcoords/colors of the 12 'o clock start and edges and the hitpoint
-        _vertexData[0].texCoords = textureCoordFromAlphaPoint(_midpoint);
-        _vertexData[0].vertices = vertexFromAlphaPoint(_midpoint);
+        m_pVertexData[0].texCoords = textureCoordFromAlphaPoint(m_tMidpoint);
+        m_pVertexData[0].vertices = vertexFromAlphaPoint(m_tMidpoint);
 
-        _vertexData[1].texCoords = textureCoordFromAlphaPoint(topMid);
-        _vertexData[1].vertices = vertexFromAlphaPoint(topMid);
+        m_pVertexData[1].texCoords = textureCoordFromAlphaPoint(topMid);
+        m_pVertexData[1].vertices = vertexFromAlphaPoint(topMid);
 
         for(int i = 0; i < index; ++i){
-            Point alphaPoint = boundaryTexCoord(i);
-            _vertexData[i+2].texCoords = textureCoordFromAlphaPoint(alphaPoint);
-            _vertexData[i+2].vertices = vertexFromAlphaPoint(alphaPoint);
+            CCPoint alphaPoint = boundaryTexCoord(i);
+            m_pVertexData[i+2].texCoords = textureCoordFromAlphaPoint(alphaPoint);
+            m_pVertexData[i+2].vertices = vertexFromAlphaPoint(alphaPoint);
         }
     }
 
     //    hitpoint will go last
-    _vertexData[_vertexDataCount - 1].texCoords = textureCoordFromAlphaPoint(hit);
-    _vertexData[_vertexDataCount - 1].vertices = vertexFromAlphaPoint(hit);
+    m_pVertexData[m_nVertexDataCount - 1].texCoords = textureCoordFromAlphaPoint(hit);
+    m_pVertexData[m_nVertexDataCount - 1].vertices = vertexFromAlphaPoint(hit);
 
 }
 
@@ -392,15 +381,15 @@ void ProgressTimer::updateRadial(void)
 //    It now deals with flipped texture. If you run into this problem, just use the
 //    sprite property and enable the methods flipX, flipY.
 ///
-void ProgressTimer::updateBar(void)
+void CCProgressTimer::updateBar(void)
 {
-    if (!_sprite) {
+    if (!m_pSprite) {
         return;
     }
-    float alpha = _percentage / 100.0f;
-    Point alphaOffset = Point(1.0f * (1.0f - _barChangeRate.x) + alpha * _barChangeRate.x, 1.0f * (1.0f - _barChangeRate.y) + alpha * _barChangeRate.y) * 0.5f;
-    Point min = _midpoint - alphaOffset;
-    Point max = _midpoint + alphaOffset;
+    float alpha = m_fPercentage / 100.0f;
+    CCPoint alphaOffset = ccpMult(ccp(1.0f * (1.0f - m_tBarChangeRate.x) + alpha * m_tBarChangeRate.x, 1.0f * (1.0f - m_tBarChangeRate.y) + alpha * m_tBarChangeRate.y), 0.5f);
+    CCPoint min = ccpSub(m_tMidpoint, alphaOffset);
+    CCPoint max = ccpAdd(m_tMidpoint, alphaOffset);
 
     if (min.x < 0.f) {
         max.x += -min.x;
@@ -423,124 +412,124 @@ void ProgressTimer::updateBar(void)
     }
 
 
-    if (!_reverseDirection) {
-        if(!_vertexData) {
-            _vertexDataCount = 4;
-            _vertexData = (V2F_C4B_T2F*)malloc(_vertexDataCount * sizeof(V2F_C4B_T2F));
-            CCASSERT( _vertexData, "CCProgressTimer. Not enough memory");
+    if (!m_bReverseDirection) {
+        if(!m_pVertexData) {
+            m_nVertexDataCount = 4;
+            m_pVertexData = (ccV2F_C4B_T2F*)malloc(m_nVertexDataCount * sizeof(ccV2F_C4B_T2F));
+            CCAssert( m_pVertexData, "CCProgressTimer. Not enough memory");
         }
         //    TOPLEFT
-        _vertexData[0].texCoords = textureCoordFromAlphaPoint(Point(min.x,max.y));
-        _vertexData[0].vertices = vertexFromAlphaPoint(Point(min.x,max.y));
+        m_pVertexData[0].texCoords = textureCoordFromAlphaPoint(ccp(min.x,max.y));
+        m_pVertexData[0].vertices = vertexFromAlphaPoint(ccp(min.x,max.y));
 
         //    BOTLEFT
-        _vertexData[1].texCoords = textureCoordFromAlphaPoint(Point(min.x,min.y));
-        _vertexData[1].vertices = vertexFromAlphaPoint(Point(min.x,min.y));
+        m_pVertexData[1].texCoords = textureCoordFromAlphaPoint(ccp(min.x,min.y));
+        m_pVertexData[1].vertices = vertexFromAlphaPoint(ccp(min.x,min.y));
 
         //    TOPRIGHT
-        _vertexData[2].texCoords = textureCoordFromAlphaPoint(Point(max.x,max.y));
-        _vertexData[2].vertices = vertexFromAlphaPoint(Point(max.x,max.y));
+        m_pVertexData[2].texCoords = textureCoordFromAlphaPoint(ccp(max.x,max.y));
+        m_pVertexData[2].vertices = vertexFromAlphaPoint(ccp(max.x,max.y));
 
         //    BOTRIGHT
-        _vertexData[3].texCoords = textureCoordFromAlphaPoint(Point(max.x,min.y));
-        _vertexData[3].vertices = vertexFromAlphaPoint(Point(max.x,min.y));
+        m_pVertexData[3].texCoords = textureCoordFromAlphaPoint(ccp(max.x,min.y));
+        m_pVertexData[3].vertices = vertexFromAlphaPoint(ccp(max.x,min.y));
     } else {
-        if(!_vertexData) {
-            _vertexDataCount = 8;
-            _vertexData = (V2F_C4B_T2F*)malloc(_vertexDataCount * sizeof(V2F_C4B_T2F));
-            CCASSERT( _vertexData, "CCProgressTimer. Not enough memory");
+        if(!m_pVertexData) {
+            m_nVertexDataCount = 8;
+            m_pVertexData = (ccV2F_C4B_T2F*)malloc(m_nVertexDataCount * sizeof(ccV2F_C4B_T2F));
+            CCAssert( m_pVertexData, "CCProgressTimer. Not enough memory");
             //    TOPLEFT 1
-            _vertexData[0].texCoords = textureCoordFromAlphaPoint(Point(0,1));
-            _vertexData[0].vertices = vertexFromAlphaPoint(Point(0,1));
+            m_pVertexData[0].texCoords = textureCoordFromAlphaPoint(ccp(0,1));
+            m_pVertexData[0].vertices = vertexFromAlphaPoint(ccp(0,1));
 
             //    BOTLEFT 1
-            _vertexData[1].texCoords = textureCoordFromAlphaPoint(Point(0,0));
-            _vertexData[1].vertices = vertexFromAlphaPoint(Point(0,0));
+            m_pVertexData[1].texCoords = textureCoordFromAlphaPoint(ccp(0,0));
+            m_pVertexData[1].vertices = vertexFromAlphaPoint(ccp(0,0));
 
             //    TOPRIGHT 2
-            _vertexData[6].texCoords = textureCoordFromAlphaPoint(Point(1,1));
-            _vertexData[6].vertices = vertexFromAlphaPoint(Point(1,1));
+            m_pVertexData[6].texCoords = textureCoordFromAlphaPoint(ccp(1,1));
+            m_pVertexData[6].vertices = vertexFromAlphaPoint(ccp(1,1));
 
             //    BOTRIGHT 2
-            _vertexData[7].texCoords = textureCoordFromAlphaPoint(Point(1,0));
-            _vertexData[7].vertices = vertexFromAlphaPoint(Point(1,0));
+            m_pVertexData[7].texCoords = textureCoordFromAlphaPoint(ccp(1,0));
+            m_pVertexData[7].vertices = vertexFromAlphaPoint(ccp(1,0));
         }
 
         //    TOPRIGHT 1
-        _vertexData[2].texCoords = textureCoordFromAlphaPoint(Point(min.x,max.y));
-        _vertexData[2].vertices = vertexFromAlphaPoint(Point(min.x,max.y));
+        m_pVertexData[2].texCoords = textureCoordFromAlphaPoint(ccp(min.x,max.y));
+        m_pVertexData[2].vertices = vertexFromAlphaPoint(ccp(min.x,max.y));
 
         //    BOTRIGHT 1
-        _vertexData[3].texCoords = textureCoordFromAlphaPoint(Point(min.x,min.y));
-        _vertexData[3].vertices = vertexFromAlphaPoint(Point(min.x,min.y));
+        m_pVertexData[3].texCoords = textureCoordFromAlphaPoint(ccp(min.x,min.y));
+        m_pVertexData[3].vertices = vertexFromAlphaPoint(ccp(min.x,min.y));
 
         //    TOPLEFT 2
-        _vertexData[4].texCoords = textureCoordFromAlphaPoint(Point(max.x,max.y));
-        _vertexData[4].vertices = vertexFromAlphaPoint(Point(max.x,max.y));
+        m_pVertexData[4].texCoords = textureCoordFromAlphaPoint(ccp(max.x,max.y));
+        m_pVertexData[4].vertices = vertexFromAlphaPoint(ccp(max.x,max.y));
 
         //    BOTLEFT 2
-        _vertexData[5].texCoords = textureCoordFromAlphaPoint(Point(max.x,min.y));
-        _vertexData[5].vertices = vertexFromAlphaPoint(Point(max.x,min.y));
+        m_pVertexData[5].texCoords = textureCoordFromAlphaPoint(ccp(max.x,min.y));
+        m_pVertexData[5].vertices = vertexFromAlphaPoint(ccp(max.x,min.y));
     }
     updateColor();
 }
 
-Point ProgressTimer::boundaryTexCoord(char index)
+CCPoint CCProgressTimer::boundaryTexCoord(char index)
 {
     if (index < kProgressTextureCoordsCount) {
-        if (_reverseDirection) {
-            return Point((kProgressTextureCoords>>(7-(index<<1)))&1,(kProgressTextureCoords>>(7-((index<<1)+1)))&1);
+        if (m_bReverseDirection) {
+            return ccp((kCCProgressTextureCoords>>(7-(index<<1)))&1,(kCCProgressTextureCoords>>(7-((index<<1)+1)))&1);
         } else {
-            return Point((kProgressTextureCoords>>((index<<1)+1))&1,(kProgressTextureCoords>>(index<<1))&1);
+            return ccp((kCCProgressTextureCoords>>((index<<1)+1))&1,(kCCProgressTextureCoords>>(index<<1))&1);
         }
     }
-    return Point::ZERO;
+    return CCPointZero;
 }
 
-void ProgressTimer::draw(void)
+void CCProgressTimer::draw(void)
 {
-    if( ! _vertexData || ! _sprite)
+    if( ! m_pVertexData || ! m_pSprite)
         return;
 
     CC_NODE_DRAW_SETUP();
 
-    GL::blendFunc( _sprite->getBlendFunc().src, _sprite->getBlendFunc().dst );
+    ccGLBlendFunc( m_pSprite->getBlendFunc().src, m_pSprite->getBlendFunc().dst );
 
-    GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POS_COLOR_TEX );
+    ccGLEnableVertexAttribs(kCCVertexAttribFlag_PosColorTex );
 
-    GL::bindTexture2D( _sprite->getTexture()->getName() );
+    ccGLBindTexture2D( m_pSprite->getTexture()->getName() );
 
 #ifdef EMSCRIPTEN
-    setGLBufferData((void*) _vertexData, (_vertexDataCount * sizeof(V2F_C4B_T2F)), 0);
+    setGLBufferData((void*) m_pVertexData, (m_nVertexDataCount * sizeof(ccV2F_C4B_T2F)), 0);
 
     int offset = 0;
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(V2F_C4B_T2F), (GLvoid*)offset);
+    glVertexAttribPointer( kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(ccV2F_C4B_T2F), (GLvoid*)offset);
 
-    offset += sizeof(Vertex2F);
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(V2F_C4B_T2F), (GLvoid*)offset);
+    offset += sizeof(ccVertex2F);
+    glVertexAttribPointer( kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ccV2F_C4B_T2F), (GLvoid*)offset);
 
-    offset += sizeof(Color4B);
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, sizeof(V2F_C4B_T2F), (GLvoid*)offset);
+    offset += sizeof(ccColor4B);
+    glVertexAttribPointer( kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, sizeof(ccV2F_C4B_T2F), (GLvoid*)offset);
 #else
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(_vertexData[0]) , &_vertexData[0].vertices);
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, sizeof(_vertexData[0]), &_vertexData[0].texCoords);
-    glVertexAttribPointer( GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(_vertexData[0]), &_vertexData[0].colors);
+    glVertexAttribPointer( kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(m_pVertexData[0]) , &m_pVertexData[0].vertices);
+    glVertexAttribPointer( kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, sizeof(m_pVertexData[0]), &m_pVertexData[0].texCoords);
+    glVertexAttribPointer( kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(m_pVertexData[0]), &m_pVertexData[0].colors);
 #endif // EMSCRIPTEN
 
-    if(_type == Type::RADIAL)
+    if(m_eType == kCCProgressTimerTypeRadial)
     {
-        glDrawArrays(GL_TRIANGLE_FAN, 0, _vertexDataCount);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, m_nVertexDataCount);
     } 
-    else if (_type == Type::BAR)
+    else if (m_eType == kCCProgressTimerTypeBar)
     {
-        if (!_reverseDirection) 
+        if (!m_bReverseDirection) 
         {
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexDataCount);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, m_nVertexDataCount);
         } 
         else 
         {
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexDataCount/2);
-            glDrawArrays(GL_TRIANGLE_STRIP, 4, _vertexDataCount/2);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, m_nVertexDataCount/2);
+            glDrawArrays(GL_TRIANGLE_STRIP, 4, m_nVertexDataCount/2);
             // 2 draw calls
             CC_INCREMENT_GL_DRAWS(1);
         }

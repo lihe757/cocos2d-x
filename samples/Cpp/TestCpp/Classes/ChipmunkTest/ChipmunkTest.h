@@ -11,7 +11,7 @@
 
 USING_NS_CC_EXT;
 
-class ChipmunkTestLayer : public Layer
+class ChipmunkTestLayer : public CCLayer
 {
 public:
     ChipmunkTestLayer();
@@ -19,21 +19,21 @@ public:
     void onEnter();
     void initPhysics();
     void createResetButton();
-    void reset(Object* sender);
+    void reset(CCObject* sender);
 
-    void addNewSpriteAtPosition(Point p);
+    void addNewSpriteAtPosition(CCPoint p);
     void update(float dt);
-    void toggleDebugCallback(Object* sender);
-    virtual void ccTouchesEnded(Set* touches, Event* event);
-    virtual void didAccelerate(Acceleration* pAccelerationValue);
+    void toggleDebugCallback(CCObject* pSender);
+    virtual void ccTouchesEnded(CCSet* touches, CCEvent* event);
+    virtual void didAccelerate(CCAcceleration* pAccelerationValue);
 
 private:
-    Texture2D* _spriteTexture; // weak ref
+    CCTexture2D* m_pSpriteTexture; // weak ref
 #if CC_ENABLE_CHIPMUNK_INTEGRATION    
-    PhysicsDebugNode* _debugLayer; // weak ref
+    CCPhysicsDebugNode* m_pDebugLayer; // weak ref
 #endif
-    cpSpace* _space; // strong ref
-    cpShape* _walls[4];
+    cpSpace* m_pSpace; // strong ref
+    cpShape* m_pWalls[4];
 };
 
 class ChipmunkAccelTouchTestScene : public TestScene

@@ -30,15 +30,15 @@ THE SOFTWARE.
 #include "../physics/CCPhysicsWorld.h"
 
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-static ArmatureDataManager *s_sharedArmatureDataManager = NULL;
+static CCArmatureDataManager *s_sharedArmatureDataManager = NULL;
 
-ArmatureDataManager *ArmatureDataManager::sharedArmatureDataManager()
+CCArmatureDataManager *CCArmatureDataManager::sharedArmatureDataManager()
 {
     if (s_sharedArmatureDataManager == NULL)
     {
-        s_sharedArmatureDataManager = new ArmatureDataManager();
+        s_sharedArmatureDataManager = new CCArmatureDataManager();
         if (!s_sharedArmatureDataManager || !s_sharedArmatureDataManager->init())
         {
             CC_SAFE_DELETE(s_sharedArmatureDataManager);
@@ -47,47 +47,47 @@ ArmatureDataManager *ArmatureDataManager::sharedArmatureDataManager()
     return s_sharedArmatureDataManager;
 }
 
-ArmatureDataManager::ArmatureDataManager(void)
+CCArmatureDataManager::CCArmatureDataManager(void)
 {
-	_armarureDatas = NULL;
-    _animationDatas = NULL;
-    _textureDatas = NULL;
+	m_pArmarureDatas = NULL;
+    m_pAnimationDatas = NULL;
+    m_pTextureDatas = NULL;
 }
 
 
-ArmatureDataManager::~ArmatureDataManager(void)
+CCArmatureDataManager::~CCArmatureDataManager(void)
 {
     removeAll();
 
-    CC_SAFE_DELETE(_animationDatas);
-    CC_SAFE_DELETE(_armarureDatas);
-    CC_SAFE_DELETE(_textureDatas);
+    CC_SAFE_DELETE(m_pAnimationDatas);
+    CC_SAFE_DELETE(m_pArmarureDatas);
+    CC_SAFE_DELETE(m_pTextureDatas);
 }
 
-void ArmatureDataManager::purgeArmatureSystem()
+void CCArmatureDataManager::purgeArmatureSystem()
 {
-    SpriteFrameCacheHelper::purgeSpriteFrameCacheHelper();
-    PhysicsWorld::purgePhysicsWorld();
+    CCSpriteFrameCacheHelper::purgeSpriteFrameCacheHelper();
+    CCPhysicsWorld::purgePhysicsWorld();
 
     CC_SAFE_RELEASE_NULL(s_sharedArmatureDataManager);
 }
 
-bool ArmatureDataManager::init()
+bool CCArmatureDataManager::init()
 {
     bool bRet = false;
     do
     {
-        _armarureDatas = Dictionary::create();
-        CCASSERT(_armarureDatas, "create ArmatureDataManager::_armarureDatas fail!");
-        _armarureDatas->retain();
+        m_pArmarureDatas = CCDictionary::create();
+        CCAssert(m_pArmarureDatas, "create CCArmatureDataManager::m_pArmarureDatas fail!");
+        m_pArmarureDatas->retain();
 
-        _animationDatas = Dictionary::create();
-        CCASSERT(_animationDatas, "create ArmatureDataManager::_animationDatas fail!");
-        _animationDatas->retain();
+        m_pAnimationDatas = CCDictionary::create();
+        CCAssert(m_pAnimationDatas, "create CCArmatureDataManager::m_pAnimationDatas fail!");
+        m_pAnimationDatas->retain();
 
-        _textureDatas = Dictionary::create();
-        CCASSERT(_textureDatas, "create ArmatureDataManager::_textureDatas fail!");
-        _textureDatas->retain();
+        m_pTextureDatas = CCDictionary::create();
+        CCAssert(m_pTextureDatas, "create CCArmatureDataManager::m_pTextureDatas fail!");
+        m_pTextureDatas->retain();
 
         bRet = true;
     }
@@ -96,105 +96,105 @@ bool ArmatureDataManager::init()
     return bRet;
 }
 
-void ArmatureDataManager::addArmatureData(const char *id, ArmatureData *armatureData)
+void CCArmatureDataManager::addArmatureData(const char *id, CCArmatureData *armatureData)
 {
-    if(_armarureDatas)
+    if(m_pArmarureDatas)
     {
-        _armarureDatas->setObject(armatureData, id);
+        m_pArmarureDatas->setObject(armatureData, id);
     }
 }
 
-ArmatureData *ArmatureDataManager::getArmatureData(const char *id)
+CCArmatureData *CCArmatureDataManager::getArmatureData(const char *id)
 {
-    ArmatureData *armatureData = NULL;
-    if (_armarureDatas)
+    CCArmatureData *armatureData = NULL;
+    if (m_pArmarureDatas)
     {
-        armatureData = (ArmatureData *)_armarureDatas->objectForKey(id);
+        armatureData = (CCArmatureData *)m_pArmarureDatas->objectForKey(id);
     }
     return armatureData;
 }
 
-void ArmatureDataManager::addAnimationData(const char *id, AnimationData *animationData)
+void CCArmatureDataManager::addAnimationData(const char *id, CCAnimationData *animationData)
 {
-    if(_animationDatas)
+    if(m_pAnimationDatas)
     {
-        _animationDatas->setObject(animationData, id);
+        m_pAnimationDatas->setObject(animationData, id);
     }
 }
 
-void ArmatureDataManager::addTextureData(const char *id, TextureData *textureData)
+void CCArmatureDataManager::addTextureData(const char *id, CCTextureData *textureData)
 {
-    if(_textureDatas)
+    if(m_pTextureDatas)
     {
-        _textureDatas->setObject(textureData, id);
+        m_pTextureDatas->setObject(textureData, id);
     }
 }
 
-AnimationData *ArmatureDataManager::getAnimationData(const char *id)
+CCAnimationData *CCArmatureDataManager::getAnimationData(const char *id)
 {
-    AnimationData *animationData = NULL;
-    if (_animationDatas)
+    CCAnimationData *animationData = NULL;
+    if (m_pAnimationDatas)
     {
-        animationData = (AnimationData *)_animationDatas->objectForKey(id);
+        animationData = (CCAnimationData *)m_pAnimationDatas->objectForKey(id);
     }
     return animationData;
 }
 
-TextureData *ArmatureDataManager::getTextureData(const char *id)
+CCTextureData *CCArmatureDataManager::getTextureData(const char *id)
 {
-    TextureData *textureData = NULL;
-    if (_textureDatas)
+    CCTextureData *textureData = NULL;
+    if (m_pTextureDatas)
     {
-        textureData = (TextureData *)_textureDatas->objectForKey(id);
+        textureData = (CCTextureData *)m_pTextureDatas->objectForKey(id);
     }
     return textureData;
 }
 
 
 
-void ArmatureDataManager::addArmatureFileInfo(const char *armatureName, const char *useExistFileInfo, const char *imagePath, const char *plistPath, const char *configFilePath)
+void CCArmatureDataManager::addArmatureFileInfo(const char *armatureName, const char *useExistFileInfo, const char *imagePath, const char *plistPath, const char *configFilePath)
 {
     addArmatureFileInfo(imagePath, plistPath, configFilePath);
 }
 
-void ArmatureDataManager::addArmatureFileInfo(const char *imagePath, const char *plistPath, const char *configFilePath)
+void CCArmatureDataManager::addArmatureFileInfo(const char *imagePath, const char *plistPath, const char *configFilePath)
 {
 
-    DataReaderHelper::addDataFromFile(configFilePath);
+    CCDataReaderHelper::addDataFromFile(configFilePath);
     addSpriteFrameFromFile(plistPath, imagePath);
 }
 
-void ArmatureDataManager::addSpriteFrameFromFile(const char *plistPath, const char *imagePath)
+void CCArmatureDataManager::addSpriteFrameFromFile(const char *plistPath, const char *imagePath)
 {
     //	if(Game::sharedGame()->isUsePackage())
     //	{
-    //		SpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromPak(plistPath, imagePath);
+    //		CCSpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromPak(plistPath, imagePath);
     //	}
     //    else
     //	{
-    //		SpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromFile(plistPath, imagePath);
+    //		CCSpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromFile(plistPath, imagePath);
     //	}
-    SpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromFile(plistPath, imagePath);
+    CCSpriteFrameCacheHelper::sharedSpriteFrameCacheHelper()->addSpriteFrameFromFile(plistPath, imagePath);
 }
 
 
-void ArmatureDataManager::removeAll()
+void CCArmatureDataManager::removeAll()
 {
-    if( _animationDatas )
+    if( m_pAnimationDatas )
     {
-        _animationDatas->removeAllObjects();
+        m_pAnimationDatas->removeAllObjects();
     }
-    if( _armarureDatas )
+    if( m_pArmarureDatas )
     {
-        _armarureDatas->removeAllObjects();
-    }
-
-    if( _textureDatas )
-    {
-        _textureDatas->removeAllObjects();
+        m_pArmarureDatas->removeAllObjects();
     }
 
-    DataReaderHelper::clear();
+    if( m_pTextureDatas )
+    {
+        m_pTextureDatas->removeAllObjects();
+    }
+
+    CCDataReaderHelper::clear();
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

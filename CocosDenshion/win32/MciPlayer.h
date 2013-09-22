@@ -59,11 +59,11 @@ private:
 
     void _SendGenericCommand(int nCommand);
 
-    HWND        _wnd;
-    MCIDEVICEID _dev;
-    UINT        _soundID;
-    UINT        _times;
-    bool        _playing;
+    HWND        m_hWnd;
+    MCIDEVICEID m_hDev;
+    UINT        m_nSoundID;
+    UINT        m_uTimes;
+    bool        m_bPlaying;
 };
 
 } // end of namespace CocosDenshion

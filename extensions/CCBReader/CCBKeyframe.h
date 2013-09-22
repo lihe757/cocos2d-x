@@ -6,52 +6,29 @@
 
 NS_CC_EXT_BEGIN
 
-class CCBKeyframe : public Object
+class CCBKeyframe : public CCObject
 {
-public:
-    enum class EasingType
-    {
-        INSTANT,
-        
-        LINEAR,
-        
-        CUBIC_IN,
-        CUBIC_OUT,
-        CUBIC_INOUT,
-        
-        ELASTIC_IN,
-        ELASTIC_OUT,
-        ELASTIC_INOUT,
-        
-        BOUNCE_IN,
-        BOUNCE_OUT,
-        BOUNCE_INOUT,
-        
-        BACK_IN,
-        BACK_OUT,
-        BACK_INOUT,
-    };
+private:
+    CCObject *mValue;
+    float mTime;
+    int mEasingType;
+    float mEasingOpt;
     
+public:
     CCBKeyframe();
     ~CCBKeyframe();
     
-    Object* getValue();
-    void setValue(Object *pValue); // retain
+    CCObject* getValue();
+    void setValue(CCObject *pValue); // retain
     
     float getTime();
     void setTime(float fTime);
     
-    EasingType getEasingType();
-    void setEasingType(EasingType easingType);
+    int getEasingType();
+    void setEasingType(int nEasingType);
     
     float getEasingOpt();
     void setEasingOpt(float fEasingOpt);
-    
-private:
-    Object *_value;
-    float _time;
-    EasingType _easingType;
-    float _easingOpt;
 };
 
 NS_CC_EXT_END

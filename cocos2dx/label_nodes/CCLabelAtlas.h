@@ -37,51 +37,51 @@ NS_CC_BEGIN
  * @{
  */
 
-/** @brief LabelAtlas is a subclass of AtlasNode.
+/** @brief CCLabelAtlas is a subclass of CCAtlasNode.
 
-It can be as a replacement of Label since it is MUCH faster.
+It can be as a replacement of CCLabel since it is MUCH faster.
 
-LabelAtlas versus Label:
-- LabelAtlas is MUCH faster than Label
-- LabelAtlas "characters" have a fixed height and width
-- LabelAtlas "characters" can be anything you want since they are taken from an image file
+CCLabelAtlas versus CCLabel:
+- CCLabelAtlas is MUCH faster than CCLabel
+- CCLabelAtlas "characters" have a fixed height and width
+- CCLabelAtlas "characters" can be anything you want since they are taken from an image file
 
-A more flexible class is LabelBMFont. It supports variable width characters and it also has a nice editor.
+A more flexible class is CCLabelBMFont. It supports variable width characters and it also has a nice editor.
 */
-class CC_DLL LabelAtlas : public AtlasNode, public LabelProtocol
+class CC_DLL CCLabelAtlas : public CCAtlasNode, public CCLabelProtocol
 {
 public:
-    LabelAtlas()
-        :_string("")
+    CCLabelAtlas()
+        :m_sString("")
     {}
-    virtual ~LabelAtlas()
+    virtual ~CCLabelAtlas()
     { 
-        _string.clear(); 
+        m_sString.clear(); 
     }
 
-    /** creates the LabelAtlas with a string, a char map file(the atlas), the width and height of each element and the starting char of the atlas */
-    static LabelAtlas * create(const char *string, const char *charMapFile, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap);
+    /** creates the CCLabelAtlas with a string, a char map file(the atlas), the width and height of each element and the starting char of the atlas */
+    static CCLabelAtlas * create(const char *string, const char *charMapFile, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap);
     
-    /** creates the LabelAtlas with a string and a configuration file
+    /** creates the CCLabelAtlas with a string and a configuration file
      @since v2.0
      */
-    static LabelAtlas* create(const char *string, const char *fntFile);
+    static CCLabelAtlas* create(const char *string, const char *fntFile);
 
-    /** initializes the LabelAtlas with a string, a char map file(the atlas), the width and height of each element and the starting char of the atlas */
+    /** initializes the CCLabelAtlas with a string, a char map file(the atlas), the width and height of each element and the starting char of the atlas */
     bool initWithString(const char *string, const char *charMapFile, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap);
     
-    /** initializes the LabelAtlas with a string and a configuration file
+    /** initializes the CCLabelAtlas with a string and a configuration file
      @since v2.0
      */
     bool initWithString(const char *string, const char *fntFile);
     
-    /** initializes the LabelAtlas with a string, a texture, the width and height in points of each element and the starting char of the atlas */
-    bool initWithString(const char* string, Texture2D* texture, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap);
+    /** initializes the CCLabelAtlas with a string, a texture, the width and height in points of each element and the starting char of the atlas */
+    bool initWithString(const char* string, CCTexture2D* texture, unsigned int itemWidth, unsigned int itemHeight, unsigned int startCharMap);
     
     // super methods
     virtual void updateAtlasValues();
     virtual void setString(const char *label);
-    virtual const char* getString(void) const;
+    virtual const char* getString(void);
     
 #if CC_LABELATLAS_DEBUG_DRAW
     virtual void draw();
@@ -89,9 +89,9 @@ public:
 
 protected:
     // string to render
-    std::string _string;
+    std::string m_sString;
     // the first char in the charmap
-    unsigned int _mapStartChar;
+    unsigned int m_uMapStartChar;
 };
 
 // end of GUI group

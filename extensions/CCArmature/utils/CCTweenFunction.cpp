@@ -25,9 +25,9 @@ THE SOFTWARE.
 #include "CCTweenFunction.h"
 #include "CCUtilMath.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
-float TweenFunction::tweenTo(float from, float change, float time, float duration, TweenType tweenType)
+float CCTweenFunction::tweenTo(float from, float change, float time, float duration, CCTweenType tweenType)
 {
     float delta = 0;
 
@@ -146,22 +146,22 @@ float TweenFunction::tweenTo(float from, float change, float time, float duratio
     return delta;
 }
 
-float TweenFunction::linear(float t, float b, float c, float d)
+float CCTweenFunction::linear(float t, float b, float c, float d)
 {
     return c * t / d + b;
 }
 
-float TweenFunction::quadEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::quadEaseIn(float t, float b, float c, float d)
 {
 	t /= d;
     return c * t * t + b;
 }
-float TweenFunction::quadEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::quadEaseOut(float t, float b, float c, float d)
 {
 	t /= d;
     return -c * t * (t - 2) + b;
 }
-float TweenFunction::quadEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::quadEaseInOut(float t, float b, float c, float d)
 {
 	t /= d;
     if ((t / 2) < 1)
@@ -170,17 +170,17 @@ float TweenFunction::quadEaseInOut(float t, float b, float c, float d)
     return -c / 2 * (t * (t - 2) - 1) + b;
 }
 
-float TweenFunction::cubicEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::cubicEaseIn(float t, float b, float c, float d)
 {
 	t /= d;
     return c * t * t * t + b;
 }
-float TweenFunction::cubicEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::cubicEaseOut(float t, float b, float c, float d)
 {
 	t = t / d - 1;
     return c * (t * t * t + 1) + b;
 }
-float TweenFunction::cubicEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::cubicEaseInOut(float t, float b, float c, float d)
 {
 	t /= d;
     if ((t / 2) < 1)
@@ -189,17 +189,17 @@ float TweenFunction::cubicEaseInOut(float t, float b, float c, float d)
 	return c / 2 * (t * t * t + 2) + b;
 }
 
-float TweenFunction::quartEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::quartEaseIn(float t, float b, float c, float d)
 {
 	t /= d;
     return c * t * t * t * t + b;
 }
-float TweenFunction::quartEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::quartEaseOut(float t, float b, float c, float d)
 {
 	 t = t / d - 1;
     return -c * (t * t * t * t - 1) + b;
 }
-float TweenFunction::quartEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::quartEaseInOut(float t, float b, float c, float d)
 {
 	t /= d;
     if ((t / 2) < 1)
@@ -208,17 +208,17 @@ float TweenFunction::quartEaseInOut(float t, float b, float c, float d)
 	return -c / 2 * (t * t * t * t - 2) + b;
 }
 
-float TweenFunction::quintEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::quintEaseIn(float t, float b, float c, float d)
 {
 	t /= d;
     return c * t * t * t * t * t + b;
 }
-float TweenFunction::quintEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::quintEaseOut(float t, float b, float c, float d)
 {
 	t = t / d - 1;
     return c * (t * t * t * t * t + 1) + b;
 }
-float TweenFunction::quintEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::quintEaseInOut(float t, float b, float c, float d)
 {
 	t /= d;
     if ((t / 2) < 1)
@@ -227,28 +227,28 @@ float TweenFunction::quintEaseInOut(float t, float b, float c, float d)
     return c / 2 * (t * t * t * t * t + 2) + b;
 }
 
-float TweenFunction::sineEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::sineEaseIn(float t, float b, float c, float d)
 {
     return -c * cos(t / d * (M_PI / 2)) + c + b;
 }
-float TweenFunction::sineEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::sineEaseOut(float t, float b, float c, float d)
 {
     return c * sin(t / d * (M_PI / 2)) + b;
 }
-float TweenFunction::sineEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::sineEaseInOut(float t, float b, float c, float d)
 {
     return -c / 2 * (cos(M_PI * t / d) - 1) + b;
 }
 
-float TweenFunction::expoEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::expoEaseIn(float t, float b, float c, float d)
 {
     return (t == 0) ? b : c * pow(2, 10 * (t / d - 1)) + b;
 }
-float TweenFunction::expoEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::expoEaseOut(float t, float b, float c, float d)
 {
     return (t == d) ? b + c : c * (-pow(2, -10 * t / d) + 1) + b;
 }
-float TweenFunction::expoEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::expoEaseInOut(float t, float b, float c, float d)
 {
     if (t == 0)
         return b;
@@ -260,17 +260,17 @@ float TweenFunction::expoEaseInOut(float t, float b, float c, float d)
     return c / 2 * (-pow(2, -10 * t) + 2) + b;
 }
 
-float TweenFunction::circEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::circEaseIn(float t, float b, float c, float d)
 {
 	t /= d;
     return -c * (sqrt(1 - t * t) - 1) + b;
 }
-float TweenFunction::circEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::circEaseOut(float t, float b, float c, float d)
 {
 	t = t / d - 1;
     return c * sqrt(1 - t * t) + b;
 }
-float TweenFunction::circEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::circEaseInOut(float t, float b, float c, float d)
 {
 	t /= d;
     if ((t / 2) < 1)
@@ -279,7 +279,7 @@ float TweenFunction::circEaseInOut(float t, float b, float c, float d)
     return c / 2 * (sqrt(1 - t * t) + 1) + b;
 }
 
-float TweenFunction::elasticEaseIn(float t, float b, float c, float d, float a, float p)
+float CCTweenFunction::elasticEaseIn(float t, float b, float c, float d, float a, float p)
 {
     float s = 0;
     if (t == 0)
@@ -299,7 +299,7 @@ float TweenFunction::elasticEaseIn(float t, float b, float c, float d, float a, 
 	t -= 1;
     return -(a * pow(2, 10 * t) * sin((t * d - s) * (2 * M_PI) / p)) + b;
 }
-float TweenFunction::elasticEaseOut(float t, float b, float c, float d, float a, float p)
+float CCTweenFunction::elasticEaseOut(float t, float b, float c, float d, float a, float p)
 {
     float s = 0;
     if (t == 0)
@@ -318,7 +318,7 @@ float TweenFunction::elasticEaseOut(float t, float b, float c, float d, float a,
         s = p / (2 * M_PI) * asin(c / a);
     return (a * pow(2, -10 * t) * sin((t * d - s) * (2 * M_PI) / p) + c + b);
 }
-float TweenFunction::elasticEaseInOut(float t, float b, float c, float d, float a, float p)
+float CCTweenFunction::elasticEaseInOut(float t, float b, float c, float d, float a, float p)
 {
     float s = 0;
     if (t == 0)
@@ -344,21 +344,21 @@ float TweenFunction::elasticEaseInOut(float t, float b, float c, float d, float 
     return a * pow(2, -10 * t) * sin((t * d - s) * (2 * M_PI) / p) * .5 + c + b;
 }
 
-float TweenFunction::backEaseIn(float t, float b, float c, float d, float s)
+float CCTweenFunction::backEaseIn(float t, float b, float c, float d, float s)
 {
     if (s == 0)
         s = 1.70158f;
     t /= d;
 	return c * t * t * ((s + 1) * t - s) + b;
 }
-float TweenFunction::backEaseOut(float t, float b, float c, float d, float s)
+float CCTweenFunction::backEaseOut(float t, float b, float c, float d, float s)
 {
     if (s == 0)
         s = 1.70158f;
 	t = t / d - 1;
     return c * (t * t * ((s + 1) * t + s) + 1) + b;
 }
-float TweenFunction::backEaseInOut(float t, float b, float c, float d, float s)
+float CCTweenFunction::backEaseInOut(float t, float b, float c, float d, float s)
 {
     if (s == 0)
         s = 1.70158f;
@@ -373,12 +373,12 @@ float TweenFunction::backEaseInOut(float t, float b, float c, float d, float s)
     return c / 2 * (t * t * ((s + 1) * t + s) + 2) + b;
 }
 
-float TweenFunction::bounceEaseIn(float t, float b, float c, float d)
+float CCTweenFunction::bounceEaseIn(float t, float b, float c, float d)
 {
     return c - bounceEaseOut(d - t, 0, c, d) + b;
 }
 
-float TweenFunction::bounceEaseOut(float t, float b, float c, float d)
+float CCTweenFunction::bounceEaseOut(float t, float b, float c, float d)
 {
 	t /= d;
     if (t < (1 / 2.75f))
@@ -402,7 +402,7 @@ float TweenFunction::bounceEaseOut(float t, float b, float c, float d)
     }
 }
 
-float TweenFunction::bounceEaseInOut(float t, float b, float c, float d)
+float CCTweenFunction::bounceEaseInOut(float t, float b, float c, float d)
 {
     if (t < d / 2)
         return bounceEaseIn(t * 2, 0, c, d) * .5 + b;
@@ -411,4 +411,4 @@ float TweenFunction::bounceEaseInOut(float t, float b, float c, float d)
 }
 
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

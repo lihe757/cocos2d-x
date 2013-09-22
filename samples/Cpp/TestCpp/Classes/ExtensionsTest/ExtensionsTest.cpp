@@ -3,23 +3,20 @@
 #include "NotificationCenterTest/NotificationCenterTest.h"
 #include "ControlExtensionTest/CCControlSceneManager.h"
 #include "CocosBuilderTest/CocosBuilderTest.h"
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_EMSCRIPTEN) && (CC_TARGET_PLATFORM != CC_PLATFORM_NACL)
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_EMSCRIPTEN)
 #include "NetworkTest/HttpClientTest.h"
 #endif
 #include "TableViewTest/TableViewTestScene.h"
-#include "ComponentsTest/ComponentsTestScene.h"
 #include "ArmatureTest/ArmatureScene.h"
+#include "ComponentsTest/ComponentsTestScene.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 #include "NetworkTest/WebSocketTest.h"
-#include "NetworkTest/SocketIOTest.h"
 #endif
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN)
 #include "EditBoxTest/EditBoxTest.h"
 #endif
-
-#include "Scale9SpriteTest/Scale9SpriteTest.h"
 
 enum
 {
@@ -27,121 +24,183 @@ enum
     kItemTagBasic = 1000,
 };
 
-static struct {
-	const char *name;
-	std::function<void(Object* sender)> callback;
-} g_extensionsTests[] = {
-	{ "NotificationCenterTest", [](Object* sender) { runNotificationCenterTest(); }
-	},
-    { "Scale9SpriteTest", [](Object* sender) {
-            S9SpriteTestScene* scene = new S9SpriteTestScene();
-            if (scene)
-            {
-                scene->runThisTest();
-                scene->release();
-            }
-        }
-	},
-	{ "CCControlButtonTest", [](Object *sender){
-		ControlSceneManager* pManager = ControlSceneManager::sharedControlSceneManager();
-		Scene* scene = pManager->currentControlScene();
-		Director::getInstance()->replaceScene(scene);
-	}},
-	{ "CocosBuilderTest", [](Object *sender) {
-		TestScene* scene = new CocosBuilderTestScene();
-		if (scene)
-		{
-			scene->runThisTest();
-			scene->release();
-		}
-	}},
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_EMSCRIPTEN) && (CC_TARGET_PLATFORM != CC_PLATFORM_NACL)
-	{ "HttpClientTest", [](Object *sender){ runHttpClientTest();}
-	},
-#endif
+enum
+{
+    TEST_NOTIFICATIONCENTER = 0,
+    TEST_CCCONTROLBUTTON,
+    TEST_COCOSBUILDER,
+    TEST_HTTPCLIENT,
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-	{ "WebSocketTest", [](Object *sender){ runWebSocketTest();}
-	},
-	{ "SocketIOTest", [](Object *sender){ runSocketIOTest();}
-	},
+    TEST_WEBSOCKET,
 #endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN)
-	{ "EditBoxTest", [](Object *sender){ runEditBoxTest();}
-	},
+    TEST_EDITBOX,
 #endif
-	{ "TableViewTest", [](Object *sender){ runTableViewTest();}
-	},
-    { "CommponentTest", [](Object *sender) { runComponentsTestLayerTest(); }
-    },
-    { "ArmatureTest", [](Object *sender) { ArmatureTestScene *scene = new ArmatureTestScene();
-                                             scene->runThisTest();
-                                             scene->release();
-                                        }
-    },
+	TEST_TABLEVIEW,
+	TEST_COMPONENTS,
+	TEST_ARMATURE,
+    TEST_MAX_COUNT,
 };
 
-static const int g_maxTests = sizeof(g_extensionsTests) / sizeof(g_extensionsTests[0]);
-
-static Point s_tCurPos = Point::ZERO;
+static const std::string testsName[TEST_MAX_COUNT] = 
+{
+    "NotificationCenterTest",
+    "CCControlButtonTest",
+    "CocosBuilderTest",
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_EMSCRIPTEN)
+    "HttpClientTest",
+#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+    "WebSocketTest",
+#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN)
+    "EditBoxTest",
+#endif
+	"TableViewTest",
+    "ComponentsTest",
+	"ArmatureTest"
+};
 
 ////////////////////////////////////////////////////////
 //
 // ExtensionsMainLayer
 //
 ////////////////////////////////////////////////////////
+
+static CCPoint s_tCurPos = CCPointZero;
+
 void ExtensionsMainLayer::onEnter()
 {
-    Layer::onEnter();
-    
-    Size s = Director::getInstance()->getWinSize();
-    
-    _itemMenu = Menu::create();
-    _itemMenu->setPosition( Point::ZERO );
-    MenuItemFont::setFontName("Arial");
-    MenuItemFont::setFontSize(24);
-    for (int i = 0; i < g_maxTests; ++i)
+    CCLayer::onEnter();
+
+    CCSize s = CCDirector::sharedDirector()->getWinSize();
+
+    m_pItemMenu = CCMenu::create();
+    m_pItemMenu->setPosition( CCPointZero );
+    CCMenuItemFont::setFontName("Arial");
+    CCMenuItemFont::setFontSize(24);
+    for (int i = 0; i < TEST_MAX_COUNT; ++i)
     {
-        MenuItemFont* pItem = MenuItemFont::create(g_extensionsTests[i].name, g_extensionsTests[i].callback);
-        pItem->setPosition(Point(s.width / 2, s.height - (i + 1) * LINE_SPACE));
-        _itemMenu->addChild(pItem, kItemTagBasic + i);
+        CCMenuItemFont* pItem = CCMenuItemFont::create(testsName[i].c_str(), this,
+                                                    menu_selector(ExtensionsMainLayer::menuCallback));
+        pItem->setPosition(ccp(s.width / 2, s.height - (i + 1) * LINE_SPACE));
+        m_pItemMenu->addChild(pItem, kItemTagBasic + i);
     }
-
-	setTouchEnabled(true);
-    
-    addChild(_itemMenu);
+    setTouchEnabled(true);
+    addChild(m_pItemMenu);
 }
 
-void ExtensionsMainLayer::ccTouchesBegan(Set  *touches, Event  *event)
+void ExtensionsMainLayer::menuCallback(CCObject* pSender)
 {
-    Touch* touch = static_cast<Touch*>(touches->anyObject());
+    CCMenuItemFont* pItem = (CCMenuItemFont*)pSender;
+    int nIndex = pItem->getZOrder() - kItemTagBasic;
 
-    _beginPos = touch->getLocation();    
+    switch (nIndex)
+    {
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_MARMALADE)	// MARMALADE CHANGE: Not yet avaiable on Marmalade
+    case TEST_NOTIFICATIONCENTER:
+        {
+            runNotificationCenterTest();
+        }
+        break;
+#endif
+    case TEST_CCCONTROLBUTTON:
+        {
+            CCControlSceneManager* pManager = CCControlSceneManager::sharedControlSceneManager();
+            CCScene* pScene = pManager->currentControlScene();
+            CCDirector::sharedDirector()->replaceScene(pScene);
+        }
+        break;
+    case TEST_COCOSBUILDER:
+        {
+            TestScene* pScene = new CocosBuilderTestScene();
+            if (pScene)
+            {
+                pScene->runThisTest();
+                pScene->release();
+            }
+        }
+        break;
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_MARMALADE && CC_TARGET_PLATFORM != CC_PLATFORM_NACL && CC_TARGET_PLATFORM != CC_PLATFORM_EMSCRIPTEN)
+    case TEST_HTTPCLIENT:
+        {
+            runHttpClientTest();
+        }
+        break;
+#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+        case TEST_WEBSOCKET:
+        {
+            runWebSocketTest();
+        }
+        break;
+#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_TIZEN)
+    case TEST_EDITBOX:
+        {
+            runEditBoxTest();
+        }
+        break;
+#endif
+	case TEST_TABLEVIEW:
+		{
+			runTableViewTest();
+		}
+		break;
+    case TEST_COMPONENTS:
+        {
+            runComponentsTestLayerTest();
+        }
+        break;
+	case TEST_ARMATURE:
+		{
+			ArmatureTestScene *pScene = new ArmatureTestScene();
+			if (pScene)
+			{
+				pScene->runThisTest();
+				pScene->release();
+			}
+		}
+		break;
+    default:
+        break;
+    }
 }
 
-void ExtensionsMainLayer::ccTouchesMoved(Set  *touches, Event  *event)
+
+void ExtensionsMainLayer::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
 {
-    Touch* touch = static_cast<Touch*>(touches->anyObject());
+    CCSetIterator it = pTouches->begin();
+    CCTouch* touch = (CCTouch*)(*it);
 
-    Point touchLocation = touch->getLocation();    
-    float nMoveY = touchLocation.y - _beginPos.y;
+    m_tBeginPos = touch->getLocation();    
+}
 
-    Point curPos  = _itemMenu->getPosition();
-    Point nextPos = Point(curPos.x, curPos.y + nMoveY);
+void ExtensionsMainLayer::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
+{
+    CCSetIterator it = pTouches->begin();
+    CCTouch* touch = (CCTouch*)(*it);
+
+    CCPoint touchLocation = touch->getLocation();    
+    float nMoveY = touchLocation.y - m_tBeginPos.y;
+
+    CCPoint curPos  = m_pItemMenu->getPosition();
+    CCPoint nextPos = ccp(curPos.x, curPos.y + nMoveY);
 
     if (nextPos.y < 0.0f)
     {
-        _itemMenu->setPosition(Point::ZERO);
+        m_pItemMenu->setPosition(CCPointZero);
         return;
     }
 
-    if (nextPos.y > ((g_maxTests + 1)* LINE_SPACE - VisibleRect::getVisibleRect().size.height))
+    if (nextPos.y > ((TEST_MAX_COUNT + 1)* LINE_SPACE - VisibleRect::getVisibleRect().size.height))
     {
-        _itemMenu->setPosition(Point(0, ((g_maxTests + 1)* LINE_SPACE - VisibleRect::getVisibleRect().size.height)));
+        m_pItemMenu->setPosition(ccp(0, ((TEST_MAX_COUNT + 1)* LINE_SPACE - VisibleRect::getVisibleRect().size.height)));
         return;
     }
 
-    _itemMenu->setPosition(nextPos);
-    _beginPos = touchLocation;
+    m_pItemMenu->setPosition(nextPos);
+    m_tBeginPos = touchLocation;
     s_tCurPos   = nextPos;
 }
 
@@ -153,11 +212,9 @@ void ExtensionsMainLayer::ccTouchesMoved(Set  *touches, Event  *event)
 
 void ExtensionsTestScene::runThisTest()
 {
-    Layer* layer = new ExtensionsMainLayer();
-    addChild(layer);
-    layer->release();
-    
-    Director::getInstance()->replaceScene(this);
+    CCLayer* pLayer = new ExtensionsMainLayer();
+    addChild(pLayer);
+    pLayer->release();
+
+    CCDirector::sharedDirector()->replaceScene(this);
 }
-
-

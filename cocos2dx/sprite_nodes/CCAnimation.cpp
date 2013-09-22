@@ -28,18 +28,19 @@ THE SOFTWARE.
 #include "textures/CCTexture2D.h"
 #include "ccMacros.h"
 #include "sprite_nodes/CCSpriteFrame.h"
+#include "cocoa/CCZone.h"
 
 NS_CC_BEGIN
 
-AnimationFrame::AnimationFrame()
-: _spriteFrame(NULL)
-, _delayUnits(0.0f)
-, _userInfo(NULL)
+CCAnimationFrame::CCAnimationFrame()
+: m_pSpriteFrame(NULL)
+, m_fDelayUnits(0.0f)
+, m_pUserInfo(NULL)
 {
 
 }
 
-bool AnimationFrame::initWithSpriteFrame(SpriteFrame* spriteFrame, float delayUnits, Dictionary* userInfo)
+bool CCAnimationFrame::initWithSpriteFrame(CCSpriteFrame* spriteFrame, float delayUnits, CCDictionary* userInfo)
 {
     setSpriteFrame(spriteFrame);
     setDelayUnits(delayUnits);
@@ -48,160 +49,182 @@ bool AnimationFrame::initWithSpriteFrame(SpriteFrame* spriteFrame, float delayUn
     return true;
 }
 
-AnimationFrame::~AnimationFrame()
+CCAnimationFrame::~CCAnimationFrame()
 {    
-    CCLOGINFO( "cocos2d: deallocing %p", this);
+    CCLOGINFO( "cocos2d: deallocing %s", this);
 
-    CC_SAFE_RELEASE(_spriteFrame);
-    CC_SAFE_RELEASE(_userInfo);
+    CC_SAFE_RELEASE(m_pSpriteFrame);
+    CC_SAFE_RELEASE(m_pUserInfo);
 }
 
-AnimationFrame* AnimationFrame::clone() const
+CCObject* CCAnimationFrame::copyWithZone(CCZone* pZone)
 {
-	// no copy constructor
-	auto frame = new AnimationFrame();
-    frame->initWithSpriteFrame(_spriteFrame->clone(),
-							   _delayUnits,
-							   _userInfo != NULL ? _userInfo->clone() : NULL);
+    CCZone* pNewZone = NULL;
+    CCAnimationFrame* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCAnimationFrame*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCAnimationFrame();
+        pNewZone = new CCZone(pCopy);
+    }
 
-	frame->autorelease();
-	return frame;
+    pCopy->initWithSpriteFrame((CCSpriteFrame*)m_pSpriteFrame->copy()->autorelease(),
+        m_fDelayUnits, m_pUserInfo != NULL ? (CCDictionary*)m_pUserInfo->copy()->autorelease() : NULL);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-// implementation of Animation
+// implementation of CCAnimation
 
-Animation* Animation::create(void)
+CCAnimation* CCAnimation::create(void)
 {
-    Animation *pAnimation = new Animation();
+    CCAnimation *pAnimation = new CCAnimation();
     pAnimation->init();
     pAnimation->autorelease();
 
     return pAnimation;
 } 
 
-Animation* Animation::createWithSpriteFrames(Array *frames, float delay/* = 0.0f*/)
+CCAnimation* CCAnimation::createWithSpriteFrames(CCArray *frames, float delay/* = 0.0f*/)
 {
-    Animation *pAnimation = new Animation();
+    CCAnimation *pAnimation = new CCAnimation();
     pAnimation->initWithSpriteFrames(frames, delay);
     pAnimation->autorelease();
 
     return pAnimation;
 }
 
-Animation* Animation::create(Array* arrayOfAnimationFrameNames, float delayPerUnit, unsigned int loops /* = 1 */)
+CCAnimation* CCAnimation::create(CCArray* arrayOfAnimationFrameNames, float delayPerUnit, unsigned int loops)
 {
-    Animation *pAnimation = new Animation();
+    CCAnimation *pAnimation = new CCAnimation();
     pAnimation->initWithAnimationFrames(arrayOfAnimationFrameNames, delayPerUnit, loops);
     pAnimation->autorelease();
     return pAnimation;
 }
 
-bool Animation::init()
+bool CCAnimation::init()
 {
     return initWithSpriteFrames(NULL, 0.0f);
 }
 
-bool Animation::initWithSpriteFrames(Array *pFrames, float delay/* = 0.0f*/)
+bool CCAnimation::initWithSpriteFrames(CCArray *pFrames, float delay/* = 0.0f*/)
 {
-    CCARRAY_VERIFY_TYPE(pFrames, SpriteFrame*);
+    CCARRAY_VERIFY_TYPE(pFrames, CCSpriteFrame*);
 
-    _loops = 1;
-    _delayPerUnit = delay;
-    Array* pTmpFrames = Array::create();
+    m_uLoops = 1;
+    m_fDelayPerUnit = delay;
+    CCArray* pTmpFrames = CCArray::create();
     setFrames(pTmpFrames);
 
     if (pFrames != NULL)
     {
-        Object* pObj = NULL;
+        CCObject* pObj = NULL;
         CCARRAY_FOREACH(pFrames, pObj)
         {
-            SpriteFrame* frame = static_cast<SpriteFrame*>(pObj);
-            AnimationFrame *animFrame = new AnimationFrame();
+            CCSpriteFrame* frame = (CCSpriteFrame*)pObj;
+            CCAnimationFrame *animFrame = new CCAnimationFrame();
             animFrame->initWithSpriteFrame(frame, 1, NULL);
-            _frames->addObject(animFrame);
+            m_pFrames->addObject(animFrame);
             animFrame->release();
 
-            _totalDelayUnits++;
+            m_fTotalDelayUnits++;
         }
     }
 
     return true;
 }
 
-bool Animation::initWithAnimationFrames(Array* arrayOfAnimationFrames, float delayPerUnit, unsigned int loops)
+bool CCAnimation::initWithAnimationFrames(CCArray* arrayOfAnimationFrames, float delayPerUnit, unsigned int loops)
 {
-    CCARRAY_VERIFY_TYPE(arrayOfAnimationFrames, AnimationFrame*);
+    CCARRAY_VERIFY_TYPE(arrayOfAnimationFrames, CCAnimationFrame*);
 
-    _delayPerUnit = delayPerUnit;
-    _loops = loops;
+    m_fDelayPerUnit = delayPerUnit;
+    m_uLoops = loops;
 
-    setFrames(Array::createWithArray(arrayOfAnimationFrames));
+    setFrames(CCArray::createWithArray(arrayOfAnimationFrames));
 
-    Object* pObj = NULL;
-    CCARRAY_FOREACH(_frames, pObj)
+    CCObject* pObj = NULL;
+    CCARRAY_FOREACH(m_pFrames, pObj)
     {
-        AnimationFrame* animFrame = static_cast<AnimationFrame*>(pObj);
-        _totalDelayUnits += animFrame->getDelayUnits();
+        CCAnimationFrame* animFrame = (CCAnimationFrame*)pObj;
+        m_fTotalDelayUnits += animFrame->getDelayUnits();
     }
     return true;
 }
 
-Animation::Animation()
-: _totalDelayUnits(0.0f)
-, _delayPerUnit(0.0f)
-, _duration(0.0f)
-, _frames(NULL)
-, _restoreOriginalFrame(false)
-, _loops(0)
+CCAnimation::CCAnimation()
+: m_fTotalDelayUnits(0.0f)
+, m_fDelayPerUnit(0.0f)
+, m_fDuration(0.0f)
+, m_pFrames(NULL)
+, m_bRestoreOriginalFrame(false)
+, m_uLoops(0)
 {
 
 }
 
-Animation::~Animation(void)
+CCAnimation::~CCAnimation(void)
 {
     CCLOGINFO("cocos2d, deallocing %p", this);
-    CC_SAFE_RELEASE(_frames);
+    CC_SAFE_RELEASE(m_pFrames);
 }
 
-void Animation::addSpriteFrame(SpriteFrame *pFrame)
+void CCAnimation::addSpriteFrame(CCSpriteFrame *pFrame)
 {
-    AnimationFrame *animFrame = new AnimationFrame();
+    CCAnimationFrame *animFrame = new CCAnimationFrame();
     animFrame->initWithSpriteFrame(pFrame, 1.0f, NULL);
-    _frames->addObject(animFrame);
+    m_pFrames->addObject(animFrame);
     animFrame->release();
 
     // update duration
-    _totalDelayUnits++;
+    m_fTotalDelayUnits++;
 }
 
-void Animation::addSpriteFrameWithFileName(const char *filename)
+void CCAnimation::addSpriteFrameWithFileName(const char *pszFileName)
 {
-    Texture2D *texture = TextureCache::getInstance()->addImage(filename);
-    Rect rect = Rect::ZERO;
-    rect.size = texture->getContentSize();
-    SpriteFrame *pFrame = SpriteFrame::createWithTexture(texture, rect);
+    CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage(pszFileName);
+    CCRect rect = CCRectZero;
+    rect.size = pTexture->getContentSize();
+    CCSpriteFrame *pFrame = CCSpriteFrame::createWithTexture(pTexture, rect);
     addSpriteFrame(pFrame);
 }
 
-void Animation::addSpriteFrameWithTexture(Texture2D *pobTexture, const Rect& rect)
+void CCAnimation::addSpriteFrameWithTexture(CCTexture2D *pobTexture, const CCRect& rect)
 {
-    SpriteFrame *pFrame = SpriteFrame::createWithTexture(pobTexture, rect);
+    CCSpriteFrame *pFrame = CCSpriteFrame::createWithTexture(pobTexture, rect);
     addSpriteFrame(pFrame);
 }
 
-float Animation::getDuration(void) const
+float CCAnimation::getDuration(void)
 {
-    return _totalDelayUnits * _delayPerUnit;
+    return m_fTotalDelayUnits * m_fDelayPerUnit;
 }
 
-Animation* Animation::clone() const
+CCObject* CCAnimation::copyWithZone(CCZone* pZone)
 {
-	// no copy constructor	
-	auto a = new Animation();
-    a->initWithAnimationFrames(_frames, _delayPerUnit, _loops);
-    a->setRestoreOriginalFrame(_restoreOriginalFrame);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCAnimation* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCAnimation*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCAnimation();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAnimationFrames(m_pFrames, m_fDelayPerUnit, m_uLoops);
+    pCopy->setRestoreOriginalFrame(m_bRestoreOriginalFrame);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
 NS_CC_END

@@ -7,20 +7,20 @@ USING_NS_CC;
 class VisibleRect
 {
 public:
-    static Rect getVisibleRect();
+    static CCRect getVisibleRect();
 
-    static Point left();
-    static Point right();
-    static Point top();
-    static Point bottom();
-    static Point center();
-    static Point leftTop();
-    static Point rightTop();
-    static Point leftBottom();
-    static Point rightBottom();
+    static CCPoint left();
+    static CCPoint right();
+    static CCPoint top();
+    static CCPoint bottom();
+    static CCPoint center();
+    static CCPoint leftTop();
+    static CCPoint rightTop();
+    static CCPoint leftBottom();
+    static CCPoint rightBottom();
 private:
     static void lazyInit();
-    static Rect s_visibleRect;
+    static CCRect s_visibleRect;
 };
 
 #endif /* __VISIBLERECT_H__ */

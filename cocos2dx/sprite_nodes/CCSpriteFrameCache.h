@@ -42,9 +42,9 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Dictionary;
-class Array;
-class Sprite;
+class CCDictionary;
+class CCArray;
+class CCSprite;
 
 /**
  * @addtogroup sprite_nodes
@@ -55,35 +55,25 @@ class Sprite;
  It saves in a cache the sprite frames.
  @since v0.9
  */
-class CC_DLL SpriteFrameCache : public Object
+class CC_DLL CCSpriteFrameCache : public CCObject
 {
-public:
-    /** Returns the shared instance of the Sprite Frame cache */
-    static SpriteFrameCache* getInstance(void);
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static SpriteFrameCache* sharedSpriteFrameCache() { return SpriteFrameCache::getInstance(); }
-
-    /** Destroys the cache. It releases all the Sprite Frames and the retained instance. */
-    static void destroyInstance();
-
-    /** @deprecated Use destroyInstance() instead  */
-    CC_DEPRECATED_ATTRIBUTE static void purgeSharedSpriteFrameCache() { return SpriteFrameCache::destroyInstance(); }
-
 protected:
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful
-    SpriteFrameCache() : _spriteFrames(NULL), _spriteFramesAliases(NULL){}
-
+    CCSpriteFrameCache(void) : m_pSpriteFrames(NULL), m_pSpriteFramesAliases(NULL){}
 public:
-    virtual ~SpriteFrameCache();
     bool init(void);
+    ~CCSpriteFrameCache(void);
 
+private:
+    /*Adds multiple Sprite Frames with a dictionary. The texture will be associated with the created sprite frames.
+     */
+    void addSpriteFramesWithDictionary(CCDictionary* pobDictionary, CCTexture2D *pobTexture);
 public:
     /** Adds multiple Sprite Frames from a plist file.
      * A texture will be loaded automatically. The texture name will composed by replacing the .plist suffix with .png
-     * If you want to use another texture, you should use the addSpriteFramesWithFile(const char *plist, const char *textureFileName) method.
+     * If you want to use another texture, you should use the addSpriteFramesWithFile:texture method.
      */
-    void addSpriteFramesWithFile(const char *plist);
+    void addSpriteFramesWithFile(const char *pszPlist);
 
     /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames.
     @since v0.99.5
@@ -91,12 +81,12 @@ public:
     void addSpriteFramesWithFile(const char* plist, const char* textureFileName);
 
     /** Adds multiple Sprite Frames from a plist file. The texture will be associated with the created sprite frames. */
-    void addSpriteFramesWithFile(const char *plist, Texture2D *texture);
+    void addSpriteFramesWithFile(const char *pszPlist, CCTexture2D *pobTexture);
 
     /** Adds an sprite frame with a given name.
      If the name already exists, then the contents of the old name will be replaced with the new one.
      */
-    void addSpriteFrame(SpriteFrame *frame, const char *frameName);
+    void addSpriteFrame(CCSpriteFrame *pobFrame, const char *pszFrameName);
 
     /** Purges the dictionary of loaded sprite frames.
      * Call this method if you receive the "Memory Warning".
@@ -113,7 +103,7 @@ public:
     void removeUnusedSpriteFrames(void);
 
     /** Deletes an sprite frame from the sprite frame cache. */
-    void removeSpriteFrameByName(const char *name);
+    void removeSpriteFrameByName(const char *pszName);
 
     /** Removes multiple Sprite Frames from a plist file.
     * Sprite Frames stored in this file will be removed.
@@ -122,35 +112,38 @@ public:
     */
     void removeSpriteFramesFromFile(const char* plist);
 
+private:
+    /** Removes multiple Sprite Frames from CCDictionary.
+    * @since v0.99.5
+    */
+    void removeSpriteFramesFromDictionary(CCDictionary* dictionary);
+public:
     /** Removes all Sprite Frames associated with the specified textures.
-     * It is convenient to call this method when a specific texture needs to be removed.
-     * @since v0.995.
-     */
-    void removeSpriteFramesFromTexture(Texture2D* texture);
+    * It is convenient to call this method when a specific texture needs to be removed.
+    * @since v0.995.
+    */
+    void removeSpriteFramesFromTexture(CCTexture2D* texture);
 
     /** Returns an Sprite Frame that was previously added.
      If the name is not found it will return nil.
      You should retain the returned copy if you are going to use it.
      */
-    SpriteFrame* getSpriteFrameByName(const char *name);
+    CCSpriteFrame* spriteFrameByName(const char *pszName);
 
-    /** @deprecated use getSpriteFrameByName() instead */
-    CC_DEPRECATED_ATTRIBUTE SpriteFrame* spriteFrameByName(const char *name) { return getSpriteFrameByName(name); }
+public:
+    /** Returns the shared instance of the Sprite Frame cache */
+    static CCSpriteFrameCache* sharedSpriteFrameCache(void);
+
+    /** Purges the cache. It releases all the Sprite Frames and the retained instance. */
+    static void purgeSharedSpriteFrameCache(void);
 
 private:
-    /*Adds multiple Sprite Frames with a dictionary. The texture will be associated with the created sprite frames.
-     */
-    void addSpriteFramesWithDictionary(Dictionary* dictionary, Texture2D *texture);
-
-    /** Removes multiple Sprite Frames from Dictionary.
-    * @since v0.99.5
-    */
-    void removeSpriteFramesFromDictionary(Dictionary* dictionary);
-
+    // MARMALADE: Made this protected not private, as deriving from this class is pretty useful
+//    CCSpriteFrameCache(void) : m_pSpriteFrames(NULL), m_pSpriteFramesAliases(NULL){}
 protected:
-    Dictionary* _spriteFrames;
-    Dictionary* _spriteFramesAliases;
-    std::set<std::string>*  _loadedFileNames;
+    CCDictionary* m_pSpriteFrames;
+    CCDictionary* m_pSpriteFramesAliases;
+    std::set<std::string>*  m_pLoadedFileNames;
 };
 
 // end of sprite_nodes group

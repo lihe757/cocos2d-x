@@ -26,15 +26,15 @@
 
 NS_CC_BEGIN
 
-lua_State *LuaBridge::s_luaState = NULL;
-int        LuaBridge::s_newFunctionId = 0;
+lua_State *CCLuaBridge::s_luaState = NULL;
+int        CCLuaBridge::s_newFunctionId = 0;
 
-LuaStack *LuaBridge::getStack(void)
+CCLuaStack *CCLuaBridge::getStack(void)
 {
-    return LuaEngine::getInstance()->getLuaStack();
+    return CCLuaEngine::defaultEngine()->getLuaStack();
 }
 
-int LuaBridge::pushLuaFunctionById(int functionId)
+int CCLuaBridge::pushLuaFunctionById(int functionId)
 {
     lua_State *L = s_luaState;
     int top = lua_gettop(L);
@@ -62,7 +62,7 @@ int LuaBridge::pushLuaFunctionById(int functionId)
     return 0;
 }
 
-int LuaBridge::retainLuaFunctionById(int functionId)
+int CCLuaBridge::retainLuaFunctionById(int functionId)
 {
     lua_State *L = s_luaState;
     
@@ -98,7 +98,7 @@ int LuaBridge::retainLuaFunctionById(int functionId)
     
 }
 
-int LuaBridge::releaseLuaFunctionById(int functionId)
+int CCLuaBridge::releaseLuaFunctionById(int functionId)
 {
     lua_State *L = s_luaState;
     /* L: */
@@ -169,7 +169,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
     return 0;
 }
 
-int LuaBridge::retainLuaFunction(lua_State *L, int functionIndex, int *retainCountReturn)
+int CCLuaBridge::retainLuaFunction(lua_State *L, int functionIndex, int *retainCountReturn)
 {
     /* L: f ... */
     lua_pushstring(L, LUA_BRIDGE_REGISTRY_FUNCTION);            /* L: f ... key */

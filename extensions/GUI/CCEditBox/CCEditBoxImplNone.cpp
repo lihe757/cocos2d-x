@@ -4,7 +4,7 @@
 
 NS_CC_EXT_BEGIN
 
-EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
+CCEditBoxImpl* __createSystemEditBox(CCEditBox* pEditBox)
 {
     return NULL;
 }

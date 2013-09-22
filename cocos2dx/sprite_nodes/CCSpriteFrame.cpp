@@ -29,157 +29,158 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-// implementation of SpriteFrame
+// implementation of CCSpriteFrame
 
-SpriteFrame* SpriteFrame::create(const char* filename, const Rect& rect)
+CCSpriteFrame* CCSpriteFrame::create(const char* filename, const CCRect& rect)
 {
-    SpriteFrame *pSpriteFrame = new SpriteFrame();;
+    CCSpriteFrame *pSpriteFrame = new CCSpriteFrame();;
     pSpriteFrame->initWithTextureFilename(filename, rect);
     pSpriteFrame->autorelease();
 
     return pSpriteFrame;
 }
 
-SpriteFrame* SpriteFrame::createWithTexture(Texture2D *pobTexture, const Rect& rect)
+CCSpriteFrame* CCSpriteFrame::createWithTexture(CCTexture2D *pobTexture, const CCRect& rect)
 {
-    SpriteFrame *pSpriteFrame = new SpriteFrame();;
+    CCSpriteFrame *pSpriteFrame = new CCSpriteFrame();;
     pSpriteFrame->initWithTexture(pobTexture, rect);
     pSpriteFrame->autorelease();
     
     return pSpriteFrame;
 }
 
-SpriteFrame* SpriteFrame::createWithTexture(Texture2D* pobTexture, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize)
+CCSpriteFrame* CCSpriteFrame::createWithTexture(CCTexture2D* pobTexture, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize)
 {
-    SpriteFrame *pSpriteFrame = new SpriteFrame();;
+    CCSpriteFrame *pSpriteFrame = new CCSpriteFrame();;
     pSpriteFrame->initWithTexture(pobTexture, rect, rotated, offset, originalSize);
     pSpriteFrame->autorelease();
 
     return pSpriteFrame;
 }
 
-SpriteFrame* SpriteFrame::create(const char* filename, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize)
+CCSpriteFrame* CCSpriteFrame::create(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize)
 {
-    SpriteFrame *pSpriteFrame = new SpriteFrame();;
+    CCSpriteFrame *pSpriteFrame = new CCSpriteFrame();;
     pSpriteFrame->initWithTextureFilename(filename, rect, rotated, offset, originalSize);
     pSpriteFrame->autorelease();
 
     return pSpriteFrame;
 }
 
-bool SpriteFrame::initWithTexture(Texture2D* pobTexture, const Rect& rect)
+bool CCSpriteFrame::initWithTexture(CCTexture2D* pobTexture, const CCRect& rect)
 {
-    Rect rectInPixels = CC_RECT_POINTS_TO_PIXELS(rect);
-    return initWithTexture(pobTexture, rectInPixels, false, Point::ZERO, rectInPixels.size);
+    CCRect rectInPixels = CC_RECT_POINTS_TO_PIXELS(rect);
+    return initWithTexture(pobTexture, rectInPixels, false, CCPointZero, rectInPixels.size);
 }
 
-bool SpriteFrame::initWithTextureFilename(const char* filename, const Rect& rect)
+bool CCSpriteFrame::initWithTextureFilename(const char* filename, const CCRect& rect)
 {
-    Rect rectInPixels = CC_RECT_POINTS_TO_PIXELS( rect );
-    return initWithTextureFilename(filename, rectInPixels, false, Point::ZERO, rectInPixels.size);
+    CCRect rectInPixels = CC_RECT_POINTS_TO_PIXELS( rect );
+    return initWithTextureFilename(filename, rectInPixels, false, CCPointZero, rectInPixels.size);
 }
 
-bool SpriteFrame::initWithTexture(Texture2D* pobTexture, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize)
+bool CCSpriteFrame::initWithTexture(CCTexture2D* pobTexture, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize)
 {
-    _texture = pobTexture;
+    m_pobTexture = pobTexture;
 
     if (pobTexture)
     {
         pobTexture->retain();
     }
 
-    _rectInPixels = rect;
-    _rect = CC_RECT_PIXELS_TO_POINTS(rect);
-    _offsetInPixels = offset;
-    _offset = CC_POINT_PIXELS_TO_POINTS( _offsetInPixels );
-    _originalSizeInPixels = originalSize;
-    _originalSize = CC_SIZE_PIXELS_TO_POINTS( _originalSizeInPixels );
-    _rotated = rotated;
+    m_obRectInPixels = rect;
+    m_obRect = CC_RECT_PIXELS_TO_POINTS(rect);
+    m_obOffsetInPixels = offset;
+    m_obOffset = CC_POINT_PIXELS_TO_POINTS( m_obOffsetInPixels );
+    m_obOriginalSizeInPixels = originalSize;
+    m_obOriginalSize = CC_SIZE_PIXELS_TO_POINTS( m_obOriginalSizeInPixels );
+    m_bRotated = rotated;
 
     return true;
 }
 
-bool SpriteFrame::initWithTextureFilename(const char* filename, const Rect& rect, bool rotated, const Point& offset, const Size& originalSize)
+bool CCSpriteFrame::initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize)
 {
-    _texture = NULL;
-    _textureFilename = filename;
-    _rectInPixels = rect;
-    _rect = CC_RECT_PIXELS_TO_POINTS( rect );
-    _offsetInPixels = offset;
-    _offset = CC_POINT_PIXELS_TO_POINTS( _offsetInPixels );
-    _originalSizeInPixels = originalSize;
-    _originalSize = CC_SIZE_PIXELS_TO_POINTS( _originalSizeInPixels );
-    _rotated = rotated;
+    m_pobTexture = NULL;
+    m_strTextureFilename = filename;
+    m_obRectInPixels = rect;
+    m_obRect = CC_RECT_PIXELS_TO_POINTS( rect );
+    m_obOffsetInPixels = offset;
+    m_obOffset = CC_POINT_PIXELS_TO_POINTS( m_obOffsetInPixels );
+    m_obOriginalSizeInPixels = originalSize;
+    m_obOriginalSize = CC_SIZE_PIXELS_TO_POINTS( m_obOriginalSizeInPixels );
+    m_bRotated = rotated;
 
     return true;
 }
 
-SpriteFrame::~SpriteFrame(void)
+CCSpriteFrame::~CCSpriteFrame(void)
 {
     CCLOGINFO("cocos2d: deallocing %p", this);
-    CC_SAFE_RELEASE(_texture);
+    CC_SAFE_RELEASE(m_pobTexture);
 }
 
-SpriteFrame* SpriteFrame::clone() const
+CCObject* CCSpriteFrame::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor	
-    SpriteFrame *copy = new SpriteFrame();
-    copy->initWithTextureFilename(_textureFilename.c_str(), _rectInPixels, _rotated, _offsetInPixels, _originalSizeInPixels);
-    copy->setTexture(_texture);
-    return copy;
+    CC_UNUSED_PARAM(pZone);
+    CCSpriteFrame *pCopy = new CCSpriteFrame();
+    
+    pCopy->initWithTextureFilename(m_strTextureFilename.c_str(), m_obRectInPixels, m_bRotated, m_obOffsetInPixels, m_obOriginalSizeInPixels);
+    pCopy->setTexture(m_pobTexture);
+    return pCopy;
 }
 
-void SpriteFrame::setRect(const Rect& rect)
+void CCSpriteFrame::setRect(const CCRect& rect)
 {
-    _rect = rect;
-    _rectInPixels = CC_RECT_POINTS_TO_PIXELS(_rect);
+    m_obRect = rect;
+    m_obRectInPixels = CC_RECT_POINTS_TO_PIXELS(m_obRect);
 }
 
-void SpriteFrame::setRectInPixels(const Rect& rectInPixels)
+void CCSpriteFrame::setRectInPixels(const CCRect& rectInPixels)
 {
-    _rectInPixels = rectInPixels;
-    _rect = CC_RECT_PIXELS_TO_POINTS(rectInPixels);
+    m_obRectInPixels = rectInPixels;
+    m_obRect = CC_RECT_PIXELS_TO_POINTS(rectInPixels);
 }
 
-const Point& SpriteFrame::getOffset() const
+const CCPoint& CCSpriteFrame::getOffset(void)
 {
-    return _offset;
+    return m_obOffset;
 }
 
-void SpriteFrame::setOffset(const Point& offsets)
+void CCSpriteFrame::setOffset(const CCPoint& offsets)
 {
-    _offset = offsets;
-    _offsetInPixels = CC_POINT_POINTS_TO_PIXELS( _offset );
+    m_obOffset = offsets;
+    m_obOffsetInPixels = CC_POINT_POINTS_TO_PIXELS( m_obOffset );
 }
 
-const Point& SpriteFrame::getOffsetInPixels() const
+const CCPoint& CCSpriteFrame::getOffsetInPixels(void)
 {
-    return _offsetInPixels;
+    return m_obOffsetInPixels;
 }
 
-void SpriteFrame::setOffsetInPixels(const Point& offsetInPixels)
+void CCSpriteFrame::setOffsetInPixels(const CCPoint& offsetInPixels)
 {
-    _offsetInPixels = offsetInPixels;
-    _offset = CC_POINT_PIXELS_TO_POINTS( _offsetInPixels );
+    m_obOffsetInPixels = offsetInPixels;
+    m_obOffset = CC_POINT_PIXELS_TO_POINTS( m_obOffsetInPixels );
 }
 
-void SpriteFrame::setTexture(Texture2D * texture)
+void CCSpriteFrame::setTexture(CCTexture2D * texture)
 {
-    if( _texture != texture ) {
-        CC_SAFE_RELEASE(_texture);
+    if( m_pobTexture != texture ) {
+        CC_SAFE_RELEASE(m_pobTexture);
         CC_SAFE_RETAIN(texture);
-        _texture = texture;
+        m_pobTexture = texture;
     }
 }
 
-Texture2D* SpriteFrame::getTexture(void)
+CCTexture2D* CCSpriteFrame::getTexture(void)
 {
-    if( _texture ) {
-        return _texture;
+    if( m_pobTexture ) {
+        return m_pobTexture;
     }
 
-    if( _textureFilename.length() > 0 ) {
-        return TextureCache::getInstance()->addImage(_textureFilename.c_str());
+    if( m_strTextureFilename.length() > 0 ) {
+        return CCTextureCache::sharedTextureCache()->addImage(m_strTextureFilename.c_str());
     }
     // no texture or texture filename
     return NULL;

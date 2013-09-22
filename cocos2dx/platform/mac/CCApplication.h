@@ -31,15 +31,15 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class CC_DLL Application : public ApplicationProtocol
+class CC_DLL CCApplication : public CCApplicationProtocol
 {
 public:
-    Application();
-    virtual ~Application();
+    CCApplication();
+    virtual ~CCApplication();
         
     /**
-    @brief	Callback by Director for limit FPS.
-    @param interval The time, which expressed in second in second, between current frame and next.
+    @brief	Callback by CCDirector for limit FPS.
+    @interval       The time, which expressed in second in second, between current frame and next. 
     */
     virtual void setAnimationInterval(double interval);
         
@@ -56,31 +56,28 @@ public:
     @brief	Get current applicaiton instance.
     @return Current application instance pointer.
     */
-    static Application* getInstance();
+    static CCApplication* sharedApplication();
 
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
-    
     /**
     @brief Get current language config
     @return Current language config
     */
-    virtual LanguageType getCurrentLanguage();
+    virtual ccLanguageType getCurrentLanguage();
 		
     /**
      @brief Get target platform
      */
-    virtual Platform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform();
 
     /**
      *  Sets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->setSearchPaths() instead.
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
     CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const std::string& rootResDir);
     
     /** 
      *  Gets the Resource root path.
-     *  @deprecated Please use FileUtils::getInstance()->getSearchPaths() instead. 
+     *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead. 
      */
     CC_DEPRECATED_ATTRIBUTE const std::string& getResourceRootPath(void);
     
@@ -89,10 +86,10 @@ public:
     const std::string& getStartupScriptFilename(void);
     
 protected:
-    static Application * sm_pSharedApplication;
+    static CCApplication * sm_pSharedApplication;
     
-    std::string _resourceRootPath;
-    std::string _startupScriptFilename;
+    std::string m_resourceRootPath;
+    std::string m_startupScriptFilename;
 };
 
 NS_CC_END

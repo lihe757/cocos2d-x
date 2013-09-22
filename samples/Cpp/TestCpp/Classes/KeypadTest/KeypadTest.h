@@ -4,7 +4,7 @@
 #include "cocos2d.h"
 #include "../testBasic.h"
 
-class KeypadTest : public Layer
+class KeypadTest : public CCLayer
 {
 public:
     KeypadTest();
@@ -14,7 +14,7 @@ public:
     virtual void keyMenuClicked();
 
 private:
-    LabelTTF*            _label;
+    CCLabelTTF*            m_pLabel;
 };
 
 class KeypadTestScene : public TestScene

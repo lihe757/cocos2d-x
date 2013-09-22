@@ -14,13 +14,13 @@ else if (_pos > _max)   \
 //
 //------------------------------------------------------------------
 AccelerometerTest::AccelerometerTest(void)
-: _lastTime(0.0)
+: m_fLastTime(0.0)
 {
 }
 
 AccelerometerTest::~AccelerometerTest(void)
 {
-    _ball->release();
+    m_pBall->release();
 }
 
 std::string AccelerometerTest::title()
@@ -30,52 +30,52 @@ std::string AccelerometerTest::title()
 
 void AccelerometerTest::onEnter()
 {
-    Layer::onEnter();
+    CCLayer::onEnter();
 
     setAccelerometerEnabled(true);
 
 
-    LabelTTF* label = LabelTTF::create(title().c_str(), "Arial", 32);
+    CCLabelTTF* label = CCLabelTTF::create(title().c_str(), "Arial", 32);
     addChild(label, 1);
-    label->setPosition( Point(VisibleRect::center().x, VisibleRect::top().y-50) );
+    label->setPosition( ccp(VisibleRect::center().x, VisibleRect::top().y-50) );
 
-    _ball = Sprite::create("Images/ball.png");
-    _ball->setPosition(Point(VisibleRect::center().x, VisibleRect::center().y));
-    addChild(_ball);
+    m_pBall = CCSprite::create("Images/ball.png");
+    m_pBall->setPosition(ccp(VisibleRect::center().x, VisibleRect::center().y));
+    addChild(m_pBall);
 
-    _ball->retain();
+    m_pBall->retain();
 }
 
-void AccelerometerTest::didAccelerate(Acceleration* pAccelerationValue)
+void AccelerometerTest::didAccelerate(CCAcceleration* pAccelerationValue)
 {
 //     double fNow = pAccelerationValue->timestamp;
 // 
-//     if (_lastTime > 0.0)
+//     if (m_fLastTime > 0.0)
 //     {
-//         Point ptNow = convertToUI
+//         CCPoint ptNow = convertToUI
 //     }
 // 
-//     _lastTime = fNow;
+//     m_fLastTime = fNow;
 
-    Director* pDir = Director::getInstance();
+    CCDirector* pDir = CCDirector::sharedDirector();
 
-    /*FIXME: Testing on the Nexus S sometimes _ball is NULL */
-    if ( _ball == NULL ) {
+    /*FIXME: Testing on the Nexus S sometimes m_pBall is NULL */
+    if ( m_pBall == NULL ) {
         return;
     }
 
-    Size ballSize  = _ball->getContentSize();
+    CCSize ballSize  = m_pBall->getContentSize();
 
-    Point ptNow  = _ball->getPosition();
-    Point ptTemp = pDir->convertToUI(ptNow);
+    CCPoint ptNow  = m_pBall->getPosition();
+    CCPoint ptTemp = pDir->convertToUI(ptNow);
 
     ptTemp.x += pAccelerationValue->x * 9.81f;
     ptTemp.y -= pAccelerationValue->y * 9.81f;
 
-    Point ptNext = pDir->convertToGL(ptTemp);
+    CCPoint ptNext = pDir->convertToGL(ptTemp);
     FIX_POS(ptNext.x, (VisibleRect::left().x+ballSize.width / 2.0), (VisibleRect::right().x - ballSize.width / 2.0));
     FIX_POS(ptNext.y, (VisibleRect::bottom().y+ballSize.height / 2.0), (VisibleRect::top().y - ballSize.height / 2.0));
-    _ball->setPosition(ptNext);
+    m_pBall->setPosition(ptNext);
 }
 
 //------------------------------------------------------------------
@@ -85,9 +85,9 @@ void AccelerometerTest::didAccelerate(Acceleration* pAccelerationValue)
 //------------------------------------------------------------------
 void AccelerometerTestScene::runThisTest()
 {
-    Layer* layer = new AccelerometerTest();
-    addChild(layer);
-    layer->release();
+    CCLayer* pLayer = new AccelerometerTest();
+    addChild(pLayer);
+    pLayer->release();
 
-    Director::getInstance()->replaceScene(this);
+    CCDirector::sharedDirector()->replaceScene(this);
 }

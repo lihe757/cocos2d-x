@@ -2,8 +2,7 @@ COCOS_ROOT = ../..
 
 INCLUDES = -I../include
 
-SOURCES = ../openal/OpenALDecoder.cpp \
-          ../openal/SimpleAudioEngine.cpp
+SOURCES = ../blackberry/SimpleAudioEngine.cpp
 
 include $(COCOS_ROOT)/cocos2dx/proj.nacl/cocos2dx.mk
 

@@ -37,19 +37,19 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Graphics;
 
-OspForm::OspForm()
+CCOspForm::CCOspForm()
     : __pKeypad(null)
-    , _editTextCallback(null)
-    , _ctx(null)
+    , m_pfEditTextCallback(null)
+    , m_pCtx(null)
 {
 }
 
-OspForm::~OspForm()
+CCOspForm::~CCOspForm()
 {
 }
 
 result
-OspForm::OnInitializing(void)
+CCOspForm::OnInitializing(void)
 {
     AddTouchEventListener(*this);
     SetMultipointTouchEnabled(true);
@@ -58,85 +58,83 @@ OspForm::OnInitializing(void)
 }
 
 result
-OspForm::OnTerminating(void)
+CCOspForm::OnTerminating(void)
 {
     result r = E_SUCCESS;
 
     if (__pKeypad)
         __pKeypad->Destroy();
 
-    Director::getInstance()->getAccelerometer()->stopSensor();
-
     return r;
 }
 
 void
-OspForm:: OnTouchDoublePressed(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm:: OnTouchDoublePressed(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
 }
 
 void
-OspForm:: OnTouchFocusIn(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm:: OnTouchFocusIn(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
 }
 
 void
-OspForm::OnTouchFocusOut(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm::OnTouchFocusOut(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
 }
 
 void
-OspForm::OnTouchLongPressed(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm::OnTouchLongPressed(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
 }
 
 void
-OspForm::OnTouchMoved(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm::OnTouchMoved(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
     int id = touchInfo.GetPointId();
     float x = currentPosition.x;
     float y = currentPosition.y;
-    Director::getInstance()->getOpenGLView()->handleTouchesMove(1, &id, &x, &y);
+    CCDirector::sharedDirector()->getOpenGLView()->handleTouchesMove(1, &id, &x, &y);
 }
 
 void
-OspForm::OnTouchPressed(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm::OnTouchPressed(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
     int id = touchInfo.GetPointId();
     float x = currentPosition.x;
     float y = currentPosition.y;
-    Director::getInstance()->getOpenGLView()->handleTouchesBegin(1, &id, &x, &y);
+    CCDirector::sharedDirector()->getOpenGLView()->handleTouchesBegin(1, &id, &x, &y);
 }
 
 void
-OspForm::OnTouchReleased(const Control& source, const  Tizen::Graphics::Point& currentPosition, const TouchEventInfo& touchInfo)
+CCOspForm::OnTouchReleased(const Control& source, const Point& currentPosition, const TouchEventInfo& touchInfo)
 {
     int id = touchInfo.GetPointId();
     float x = currentPosition.x;
     float y = currentPosition.y;
-    Director::getInstance()->getOpenGLView()->handleTouchesEnd(1, &id, &x, &y);
+    CCDirector::sharedDirector()->getOpenGLView()->handleTouchesEnd(1, &id, &x, &y);
 }
 
-void OspForm::OnTextValueChanged(const Tizen::Ui::Control& source)
+void CCOspForm::OnTextValueChanged(const Tizen::Ui::Control& source)
 {
-    Tizen::Base::String text = __pKeypad->GetText();
+    String text = __pKeypad->GetText();
     Utf8Encoding utf8;
     ByteBuffer* buffer = utf8.GetBytesN(text);
     const char* pText = "";
     if (buffer)
         pText = (const char *)buffer->GetPointer();
 
-    if (_editTextCallback)
+    if (m_pfEditTextCallback)
     {
-        _editTextCallback(pText, _ctx);
+        m_pfEditTextCallback(pText, m_pCtx);
     }
     else
     {
-        const char* pContentText = IMEDispatcher::sharedDispatcher()->getContentText();
+        const char* pContentText = CCIMEDispatcher::sharedDispatcher()->getContentText();
 
         for (unsigned int i = strlen(pContentText); i > 0; i--)
         {
-            IMEDispatcher::sharedDispatcher()->dispatchDeleteBackward();
+            CCIMEDispatcher::sharedDispatcher()->dispatchDeleteBackward();
         }
 
         std::string text("");
@@ -154,35 +152,35 @@ void OspForm::OnTextValueChanged(const Tizen::Ui::Control& source)
             }
         }
 
-        IMEDispatcher::sharedDispatcher()->dispatchInsertText(text.c_str(), text.length());
+        CCIMEDispatcher::sharedDispatcher()->dispatchInsertText(text.c_str(), text.length());
     }
 
     if (buffer)
         delete buffer;
 }
 
-void OspForm::OnTextValueChangeCanceled(const Tizen::Ui::Control& source)
+void CCOspForm::OnTextValueChangeCanceled(const Tizen::Ui::Control& source)
 {
-    if (_editTextCallback)
+    if (m_pfEditTextCallback)
     {
-        _editTextCallback("", _ctx);
+        m_pfEditTextCallback("", m_pCtx);
     }
     else
     {
-        const char* pContentText = IMEDispatcher::sharedDispatcher()->getContentText();
+        const char* pContentText = CCIMEDispatcher::sharedDispatcher()->getContentText();
 
         for (unsigned int i = strlen(pContentText); i > 0; i--)
         {
-            IMEDispatcher::sharedDispatcher()->dispatchDeleteBackward();
+            CCIMEDispatcher::sharedDispatcher()->dispatchDeleteBackward();
         }
     }
 }
 
 void
-OspForm::ShowKeypad(const char* pMessage, KeypadStyle keypadStyle, KeypadInputModeCategory keypadCategory, bool bSingleLineEnabled, bool bTextPrediction, int nMaxLength, EditTextCallback pfEditTextCallback, void* pCtx)
+CCOspForm::ShowKeypad(const char* pMessage, KeypadStyle keypadStyle, KeypadInputModeCategory keypadCategory, bool bSingleLineEnabled, bool bTextPrediction, int nMaxLength, EditTextCallback pfEditTextCallback, void* pCtx)
 {
-    _editTextCallback = pfEditTextCallback;
-    _ctx = pCtx;
+    m_pfEditTextCallback = pfEditTextCallback;
+    m_pCtx = pCtx;
 
     if (__pKeypad)
     {
@@ -202,16 +200,16 @@ OspForm::ShowKeypad(const char* pMessage, KeypadStyle keypadStyle, KeypadInputMo
 
     __pKeypad->SetTextPredictionEnabled(bTextPrediction);
     __pKeypad->SetSingleLineEnabled(bSingleLineEnabled);
-    __pKeypad->SetText(Tizen::Base::String(pMessage));
+    __pKeypad->SetText(String(pMessage));
     __pKeypad->SetShowState(true);
     __pKeypad->Show();
 }
 
 void
-OspForm::ShowKeypad()
+CCOspForm::ShowKeypad()
 {
     ShowKeypad(
-        IMEDispatcher::sharedDispatcher()->getContentText(),
+        CCIMEDispatcher::sharedDispatcher()->getContentText(),
         KEYPAD_STYLE_NORMAL,
         KEYPAD_MODE_ALPHA,
         true,
@@ -222,7 +220,7 @@ OspForm::ShowKeypad()
 }
 
 void
-OspForm::CloseKeypad()
+CCOspForm::CloseKeypad()
 {
     __pKeypad->SetShowState(false);
     Invalidate(true);

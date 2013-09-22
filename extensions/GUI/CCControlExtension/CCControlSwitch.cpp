@@ -29,83 +29,83 @@
 #include "cocos2d.h"
 
 NS_CC_EXT_BEGIN
-// ControlSwitchSprite
+// CCControlSwitchSprite
 
-class ControlSwitchSprite : public Sprite, public ActionTweenDelegate
+class CCControlSwitchSprite : public CCSprite, public CCActionTweenDelegate
 {
 public:
-    ControlSwitchSprite();
-    virtual ~ControlSwitchSprite();
+    CCControlSwitchSprite();
+    virtual ~CCControlSwitchSprite();
     bool initWithMaskSprite(
-        Sprite *maskSprite, 
-        Sprite *onSprite, 
-        Sprite *offSprite,
-        Sprite *thumbSprite,
-        LabelTTF* onLabel, 
-        LabelTTF* offLabel);
+        CCSprite *maskSprite, 
+        CCSprite *onSprite, 
+        CCSprite *offSprite,
+        CCSprite *thumbSprite,
+        CCLabelTTF* onLabel, 
+        CCLabelTTF* offLabel);
     void draw();
     void needsLayout();
     void setSliderXPosition(float sliderXPosition);
-    float getSliderXPosition() {return _sliderXPosition;}
+    float getSliderXPosition() {return m_fSliderXPosition;}
     float onSideWidth();
     float offSideWidth();
     virtual void updateTweenAction(float value, const char* key);
 /** Contains the position (in x-axis) of the slider inside the receiver. */
-    float _sliderXPosition;
-    CC_SYNTHESIZE(float, _onPosition, OnPosition)
-    CC_SYNTHESIZE(float, _offPosition, OffPosition)
+    float m_fSliderXPosition;
+    CC_SYNTHESIZE(float, m_fOnPosition, OnPosition)
+    CC_SYNTHESIZE(float, m_fOffPosition, OffPosition)
     
-    CC_SYNTHESIZE_RETAIN(Texture2D*, _maskTexture, MaskTexture)
-    CC_SYNTHESIZE(GLuint, _textureLocation, TextureLocation)
-    CC_SYNTHESIZE(GLuint, _maskLocation, MaskLocation)
+    CC_SYNTHESIZE_RETAIN(CCTexture2D*, m_pMaskTexture, MaskTexture)
+    CC_SYNTHESIZE(GLuint, m_uTextureLocation, TextureLocation)
+    CC_SYNTHESIZE(GLuint, m_uMaskLocation, MaskLocation)
     
-    CC_SYNTHESIZE_RETAIN(Sprite*, _onSprite, OnSprite)
-    CC_SYNTHESIZE_RETAIN(Sprite*, _offSprite, OffSprite)
-    CC_SYNTHESIZE_RETAIN(Sprite*, _thumbSprite, ThumbSprite)
-    CC_SYNTHESIZE_RETAIN(LabelTTF*, _onLabel, OnLabel)
-    CC_SYNTHESIZE_RETAIN(LabelTTF*, _offLabel, OffLabel)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_pOnSprite, OnSprite)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_pOffSprite, OffSprite)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_ThumbSprite, ThumbSprite)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pOnLabel, OnLabel)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pOffLabel, OffLabel)
 };
 
-ControlSwitchSprite::ControlSwitchSprite()
-: _sliderXPosition(0.0f)
-, _onPosition(0.0f)
-, _offPosition(0.0f)
-, _maskTexture(NULL)
-, _textureLocation(0)
-, _maskLocation(0)
-, _onSprite(NULL)
-, _offSprite(NULL)
-, _thumbSprite(NULL)
-, _onLabel(NULL)
-, _offLabel(NULL)
+CCControlSwitchSprite::CCControlSwitchSprite()
+: m_fSliderXPosition(0.0f)
+, m_fOnPosition(0.0f)
+, m_fOffPosition(0.0f)
+, m_pMaskTexture(NULL)
+, m_uTextureLocation(0)
+, m_uMaskLocation(0)
+, m_pOnSprite(NULL)
+, m_pOffSprite(NULL)
+, m_ThumbSprite(NULL)
+, m_pOnLabel(NULL)
+, m_pOffLabel(NULL)
 {
 
 }
 
-ControlSwitchSprite::~ControlSwitchSprite()
+CCControlSwitchSprite::~CCControlSwitchSprite()
 {
-    CC_SAFE_RELEASE(_onSprite);
-    CC_SAFE_RELEASE(_offSprite);
-    CC_SAFE_RELEASE(_thumbSprite);
-    CC_SAFE_RELEASE(_onLabel);
-    CC_SAFE_RELEASE(_offLabel);
-    CC_SAFE_RELEASE(_maskTexture);
+    CC_SAFE_RELEASE(m_pOnSprite);
+    CC_SAFE_RELEASE(m_pOffSprite);
+    CC_SAFE_RELEASE(m_ThumbSprite);
+    CC_SAFE_RELEASE(m_pOnLabel);
+    CC_SAFE_RELEASE(m_pOffLabel);
+    CC_SAFE_RELEASE(m_pMaskTexture);
 }
 
-bool ControlSwitchSprite::initWithMaskSprite(
-    Sprite *maskSprite, 
-    Sprite *onSprite, 
-    Sprite *offSprite,
-    Sprite *thumbSprite,
-    LabelTTF* onLabel, 
-    LabelTTF* offLabel)
+bool CCControlSwitchSprite::initWithMaskSprite(
+    CCSprite *maskSprite, 
+    CCSprite *onSprite, 
+    CCSprite *offSprite,
+    CCSprite *thumbSprite,
+    CCLabelTTF* onLabel, 
+    CCLabelTTF* offLabel)
 {
-    if (Sprite::initWithTexture(maskSprite->getTexture()))
+    if (CCSprite::initWithTexture(maskSprite->getTexture()))
     {
         // Sets the default values
-        _onPosition             = 0;
-        _offPosition            = -onSprite->getContentSize().width + thumbSprite->getContentSize().width / 2;
-        _sliderXPosition        = _onPosition; 
+        m_fOnPosition             = 0;
+        m_fOffPosition            = -onSprite->getContentSize().width + thumbSprite->getContentSize().width / 2;
+        m_fSliderXPosition        = m_fOnPosition; 
 
         setOnSprite(onSprite);
         setOffSprite(offSprite);
@@ -113,20 +113,20 @@ bool ControlSwitchSprite::initWithMaskSprite(
         setOnLabel(onLabel);
         setOffLabel(offLabel);
 
-        addChild(_thumbSprite);
+        addChild(m_ThumbSprite);
 
         // Set up the mask with the Mask shader
         setMaskTexture(maskSprite->getTexture());
-        GLProgram* pProgram = new GLProgram();
+        CCGLProgram* pProgram = new CCGLProgram();
         pProgram->initWithVertexShaderByteArray(ccPositionTextureColor_vert, ccExSwitchMask_frag);
         setShaderProgram(pProgram);
         pProgram->release();
 
         CHECK_GL_ERROR_DEBUG();
 
-        getShaderProgram()->addAttribute(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
-        getShaderProgram()->addAttribute(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
-        getShaderProgram()->addAttribute(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORDS);
+        getShaderProgram()->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+        getShaderProgram()->addAttribute(kCCAttributeNameColor, kCCVertexAttrib_Color);
+        getShaderProgram()->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
         CHECK_GL_ERROR_DEBUG();
 
         getShaderProgram()->link();
@@ -135,11 +135,11 @@ bool ControlSwitchSprite::initWithMaskSprite(
         getShaderProgram()->updateUniforms();
         CHECK_GL_ERROR_DEBUG();                
 
-        _textureLocation    = glGetUniformLocation( getShaderProgram()->getProgram(), "u_texture");
-        _maskLocation       = glGetUniformLocation( getShaderProgram()->getProgram(), "u_mask");
+        m_uTextureLocation    = glGetUniformLocation( getShaderProgram()->getProgram(), "u_texture");
+        m_uMaskLocation       = glGetUniformLocation( getShaderProgram()->getProgram(), "u_mask");
         CHECK_GL_ERROR_DEBUG();
 
-        setContentSize(_maskTexture->getContentSize());
+        setContentSize(m_pMaskTexture->getContentSize());
 
         needsLayout();
         return true;
@@ -147,84 +147,85 @@ bool ControlSwitchSprite::initWithMaskSprite(
     return false;
 }
 
-void ControlSwitchSprite::updateTweenAction(float value, const char* key)
+void CCControlSwitchSprite::updateTweenAction(float value, const char* key)
 {
     CCLOG("key = %s, value = %f", key, value);
     setSliderXPosition(value);
 }
 
-void ControlSwitchSprite::draw()
+void CCControlSwitchSprite::draw()
 {
     CC_NODE_DRAW_SETUP();
 
-    GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POS_COLOR_TEX);
-    GL::blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    ccGLEnableVertexAttribs(kCCVertexAttribFlag_PosColorTex);
+    ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     getShaderProgram()->setUniformsForBuiltins();
 
-    GL::bindTexture2DN(0, getTexture()->getName());
-    glUniform1i(_textureLocation, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, getTexture()->getName());
+    glUniform1i(m_uTextureLocation, 0);
 
-    GL::bindTexture2DN(1, _maskTexture->getName());
-    glUniform1i(_maskLocation, 1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture( GL_TEXTURE_2D, m_pMaskTexture->getName() );
+    glUniform1i(m_uMaskLocation, 1);
 
-#define kQuadSize sizeof(_quad.bl)
+#define kQuadSize sizeof(m_sQuad.bl)
 #ifdef EMSCRIPTEN
     long offset = 0;
-    setGLBufferData(&_quad, 4 * kQuadSize, 0);
+    setGLBufferData(&m_sQuad, 4 * kQuadSize, 0);
 #else
-    long offset = (long)&_quad;
+    long offset = (long)&m_sQuad;
 #endif // EMSCRIPTEN
 
     // vertex
-    int diff = offsetof( V3F_C4B_T2F, vertices);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, kQuadSize, (void*) (offset + diff));
+    int diff = offsetof( ccV3F_C4B_T2F, vertices);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, kQuadSize, (void*) (offset + diff));
 
     // texCoods
-    diff = offsetof( V3F_C4B_T2F, texCoords);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORDS, 2, GL_FLOAT, GL_FALSE, kQuadSize, (void*)(offset + diff));
+    diff = offsetof( ccV3F_C4B_T2F, texCoords);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, kQuadSize, (void*)(offset + diff));
 
     // color
-    diff = offsetof( V3F_C4B_T2F, colors);
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
+    diff = offsetof( ccV3F_C4B_T2F, colors);
+    glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
-    GL::bindTexture2DN(0, 0);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);    
+    glActiveTexture(GL_TEXTURE0);
 }
 
-void ControlSwitchSprite::needsLayout()
+void CCControlSwitchSprite::needsLayout()
 {
-    _onSprite->setPosition(Point(_onSprite->getContentSize().width / 2 + _sliderXPosition,
-        _onSprite->getContentSize().height / 2));
-    _offSprite->setPosition(Point(_onSprite->getContentSize().width + _offSprite->getContentSize().width / 2 + _sliderXPosition, 
-        _offSprite->getContentSize().height / 2));
-    _thumbSprite->setPosition(Point(_onSprite->getContentSize().width + _sliderXPosition,
-        _maskTexture->getContentSize().height / 2));
+    m_pOnSprite->setPosition(ccp(m_pOnSprite->getContentSize().width / 2 + m_fSliderXPosition,
+        m_pOnSprite->getContentSize().height / 2));
+    m_pOffSprite->setPosition(ccp(m_pOnSprite->getContentSize().width + m_pOffSprite->getContentSize().width / 2 + m_fSliderXPosition, 
+        m_pOffSprite->getContentSize().height / 2));
+    m_ThumbSprite->setPosition(ccp(m_pOnSprite->getContentSize().width + m_fSliderXPosition,
+        m_pMaskTexture->getContentSize().height / 2));
 
-    if (_onLabel)
+    if (m_pOnLabel)
     {
-        _onLabel->setPosition(Point(_onSprite->getPosition().x - _thumbSprite->getContentSize().width / 6,
-            _onSprite->getContentSize().height / 2));
+        m_pOnLabel->setPosition(ccp(m_pOnSprite->getPosition().x - m_ThumbSprite->getContentSize().width / 6,
+            m_pOnSprite->getContentSize().height / 2));
     }
-    if (_offLabel)
+    if (m_pOffLabel)
     {
-        _offLabel->setPosition(Point(_offSprite->getPosition().x + _thumbSprite->getContentSize().width / 6,
-            _offSprite->getContentSize().height / 2));
+        m_pOffLabel->setPosition(ccp(m_pOffSprite->getPosition().x + m_ThumbSprite->getContentSize().width / 6,
+            m_pOffSprite->getContentSize().height / 2));
     }
 
-    RenderTexture *rt = RenderTexture::create((int)_maskTexture->getContentSize().width, (int)_maskTexture->getContentSize().height);
+    CCRenderTexture *rt = CCRenderTexture::create((int)m_pMaskTexture->getContentSize().width, (int)m_pMaskTexture->getContentSize().height);
 
     rt->begin();
-    _onSprite->visit();
-    _offSprite->visit();
+    m_pOnSprite->visit();
+    m_pOffSprite->visit();
 
-    if (_onLabel)
+    if (m_pOnLabel)
     {
-        _onLabel->visit();
+        m_pOnLabel->visit();
     }
-    if (_offLabel)
+    if (m_pOffLabel)
     {
-        _offLabel->visit();
+        m_pOffLabel->visit();
     }
 
     rt->end();
@@ -233,59 +234,59 @@ void ControlSwitchSprite::needsLayout()
     setFlipY(true);
 }
 
-void ControlSwitchSprite::setSliderXPosition(float sliderXPosition)
+void CCControlSwitchSprite::setSliderXPosition(float sliderXPosition)
 {
-    if (sliderXPosition <= _offPosition)
+    if (sliderXPosition <= m_fOffPosition)
     {
         // Off
-        sliderXPosition = _offPosition;
-    } else if (sliderXPosition >= _onPosition)
+        sliderXPosition = m_fOffPosition;
+    } else if (sliderXPosition >= m_fOnPosition)
     {
         // On
-        sliderXPosition = _onPosition;
+        sliderXPosition = m_fOnPosition;
     }
 
-    _sliderXPosition    = sliderXPosition;
+    m_fSliderXPosition    = sliderXPosition;
 
     needsLayout();
 }
 
 
-float ControlSwitchSprite::onSideWidth()
+float CCControlSwitchSprite::onSideWidth()
 {
-    return _onSprite->getContentSize().width;
+    return m_pOnSprite->getContentSize().width;
 }
 
-float ControlSwitchSprite::offSideWidth()
+float CCControlSwitchSprite::offSideWidth()
 {
-    return _offSprite->getContentSize().height;
+    return m_pOffSprite->getContentSize().height;
 }
 
 
-// ControlSwitch
+// CCControlSwitch
 
-ControlSwitch::ControlSwitch()
-: _switchSprite(NULL)
-, _initialTouchXPosition(0.0f)
-, _moved(false)
-, _on(false)
+CCControlSwitch::CCControlSwitch()
+: m_pSwitchSprite(NULL)
+, m_fInitialTouchXPosition(0.0f)
+, m_bMoved(false)
+, m_bOn(false)
 {
 
 }
 
-ControlSwitch::~ControlSwitch()
+CCControlSwitch::~CCControlSwitch()
 {
-    CC_SAFE_RELEASE(_switchSprite);
+    CC_SAFE_RELEASE(m_pSwitchSprite);
 }
 
-bool ControlSwitch::initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite)
+bool CCControlSwitch::initWithMaskSprite(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite)
 {
     return initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, NULL, NULL);
 }
 
-ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite)
+CCControlSwitch* CCControlSwitch::create(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite)
 {
-    ControlSwitch* pRet = new ControlSwitch();
+    CCControlSwitch* pRet = new CCControlSwitch();
     if (pRet && pRet->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, NULL, NULL))
     {
         pRet->autorelease();
@@ -297,39 +298,39 @@ ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Spri
     return pRet;
 }
 
-bool ControlSwitch::initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite, LabelTTF* onLabel, LabelTTF* offLabel)
+bool CCControlSwitch::initWithMaskSprite(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite, CCLabelTTF* onLabel, CCLabelTTF* offLabel)
 {
-    if (Control::init())
+    if (CCControl::init())
     {
-        CCASSERT(maskSprite,    "Mask must not be nil.");
-        CCASSERT(onSprite,      "onSprite must not be nil.");
-        CCASSERT(offSprite,     "offSprite must not be nil.");
-        CCASSERT(thumbSprite,   "thumbSprite must not be nil.");
+        CCAssert(maskSprite,    "Mask must not be nil.");
+        CCAssert(onSprite,      "onSprite must not be nil.");
+        CCAssert(offSprite,     "offSprite must not be nil.");
+        CCAssert(thumbSprite,   "thumbSprite must not be nil.");
         
         setTouchEnabled(true);
-        _on = true;
+        m_bOn = true;
 
-        _switchSprite = new ControlSwitchSprite();
-        _switchSprite->initWithMaskSprite(maskSprite,
+        m_pSwitchSprite = new CCControlSwitchSprite();
+        m_pSwitchSprite->initWithMaskSprite(maskSprite,
                                             onSprite,
                                            offSprite,
                                            thumbSprite,
                                            onLabel,
                                            offLabel);
-        _switchSprite->setPosition(Point(_switchSprite->getContentSize().width / 2, _switchSprite->getContentSize().height / 2));
-        addChild(_switchSprite);
+        m_pSwitchSprite->setPosition(ccp (m_pSwitchSprite->getContentSize().width / 2, m_pSwitchSprite->getContentSize().height / 2));
+        addChild(m_pSwitchSprite);
         
         ignoreAnchorPointForPosition(false);
-        setAnchorPoint(Point(0.5f, 0.5f));
-        setContentSize(_switchSprite->getContentSize());
+        setAnchorPoint(ccp (0.5f, 0.5f));
+        setContentSize(m_pSwitchSprite->getContentSize());
         return true;
     }
     return false;
 }
 
-ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite, LabelTTF* onLabel, LabelTTF* offLabel)
+CCControlSwitch* CCControlSwitch::create(CCSprite *maskSprite, CCSprite * onSprite, CCSprite * offSprite, CCSprite * thumbSprite, CCLabelTTF* onLabel, CCLabelTTF* offLabel)
 {
-    ControlSwitch* pRet = new ControlSwitch();
+    CCControlSwitch* pRet = new CCControlSwitch();
     if (pRet && pRet->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, onLabel, offLabel))
     {
         pRet->autorelease();
@@ -341,108 +342,108 @@ ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Spri
     return pRet;
 }
 
-void ControlSwitch::setOn(bool isOn)
+void CCControlSwitch::setOn(bool isOn)
 {
     setOn(isOn, false);
 }
 
-void ControlSwitch::setOn(bool isOn, bool animated)
+void CCControlSwitch::setOn(bool isOn, bool animated)
 {
-    _on     = isOn;
+    m_bOn     = isOn;
     
     if (animated) {
-        _switchSprite->runAction
+        m_pSwitchSprite->runAction
         (
-            ActionTween::create
+            CCActionTween::create
                 (
                     0.2f,
                     "sliderXPosition",
-                    _switchSprite->getSliderXPosition(),
-                    (_on) ? _switchSprite->getOnPosition() : _switchSprite->getOffPosition()
+                    m_pSwitchSprite->getSliderXPosition(),
+                    (m_bOn) ? m_pSwitchSprite->getOnPosition() : m_pSwitchSprite->getOffPosition()
                 )
          );
     }
     else {
-        _switchSprite->setSliderXPosition((_on) ? _switchSprite->getOnPosition() : _switchSprite->getOffPosition());
+        m_pSwitchSprite->setSliderXPosition((m_bOn) ? m_pSwitchSprite->getOnPosition() : m_pSwitchSprite->getOffPosition());
     }
     
-    sendActionsForControlEvents(Control::EventType::VALUE_CHANGED);
+    sendActionsForControlEvents(CCControlEventValueChanged);
 }
 
-void ControlSwitch::setEnabled(bool enabled)
+void CCControlSwitch::setEnabled(bool enabled)
 {
-    _enabled = enabled;
-    if (_switchSprite != NULL)
+    m_bEnabled = enabled;
+    if (m_pSwitchSprite != NULL)
     {
-        _switchSprite->setOpacity((enabled) ? 255 : 128);
+        m_pSwitchSprite->setOpacity((enabled) ? 255 : 128);
     } 
 }
 
-Point ControlSwitch::locationFromTouch(Touch* pTouch)
+CCPoint CCControlSwitch::locationFromTouch(CCTouch* pTouch)
 {
-    Point touchLocation   = pTouch->getLocation();                      // Get the touch position
+    CCPoint touchLocation   = pTouch->getLocation();                      // Get the touch position
     touchLocation           = this->convertToNodeSpace(touchLocation);                  // Convert to the node space of this class
     
     return touchLocation;
 }
 
-bool ControlSwitch::ccTouchBegan(Touch *pTouch, Event *pEvent)
+bool CCControlSwitch::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent)
 {
     if (!isTouchInside(pTouch) || !isEnabled() || !isVisible())
     {
         return false;
     }
     
-    _moved = false;
+    m_bMoved = false;
     
-    Point location = this->locationFromTouch(pTouch);
+    CCPoint location = this->locationFromTouch(pTouch);
     
-    _initialTouchXPosition = location.x - _switchSprite->getSliderXPosition();
+    m_fInitialTouchXPosition = location.x - m_pSwitchSprite->getSliderXPosition();
     
-    _switchSprite->getThumbSprite()->setColor(Color3B::GRAY);
-    _switchSprite->needsLayout();
+    m_pSwitchSprite->getThumbSprite()->setColor(ccGRAY);
+    m_pSwitchSprite->needsLayout();
     
     return true;
 }
 
-void ControlSwitch::ccTouchMoved(Touch *pTouch, Event *pEvent)
+void CCControlSwitch::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent)
 {
-    Point location    = this->locationFromTouch(pTouch);
-    location            = Point(location.x - _initialTouchXPosition, 0);
+    CCPoint location    = this->locationFromTouch(pTouch);
+    location            = ccp (location.x - m_fInitialTouchXPosition, 0);
     
-    _moved              = true;
+    m_bMoved              = true;
     
-    _switchSprite->setSliderXPosition(location.x);
+    m_pSwitchSprite->setSliderXPosition(location.x);
 }
 
-void ControlSwitch::ccTouchEnded(Touch *pTouch, Event *pEvent)
+void CCControlSwitch::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent)
 {
-    Point location   = this->locationFromTouch(pTouch);
+    CCPoint location   = this->locationFromTouch(pTouch);
     
-    _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
+    m_pSwitchSprite->getThumbSprite()->setColor(ccWHITE);
     
     if (hasMoved())
     {
-        setOn(!(location.x < _switchSprite->getContentSize().width / 2), true);
+        setOn(!(location.x < m_pSwitchSprite->getContentSize().width / 2), true);
     } 
     else
     {
-        setOn(!_on, true);
+        setOn(!m_bOn, true);
     }
 }
 
-void ControlSwitch::ccTouchCancelled(Touch *pTouch, Event *pEvent)
+void CCControlSwitch::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent)
 {
-    Point location   = this->locationFromTouch(pTouch);
+    CCPoint location   = this->locationFromTouch(pTouch);
     
-    _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
+    m_pSwitchSprite->getThumbSprite()->setColor(ccWHITE);
     
     if (hasMoved())
     {
-        setOn(!(location.x < _switchSprite->getContentSize().width / 2), true);
+        setOn(!(location.x < m_pSwitchSprite->getContentSize().width / 2), true);
     } else
     {
-        setOn(!_on, true);
+        setOn(!m_bOn, true);
     }
 }
 

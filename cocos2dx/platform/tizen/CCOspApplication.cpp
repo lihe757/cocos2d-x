@@ -34,78 +34,78 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Base::Runtime;
 
-OspApplication * OspApplication::sm_pSharedOspApplication = 0;
-OspApplicationInitialized OspApplication::sm_pApplicationInitialized = 0;
-Orientation OspApplication::sm_eScreenOrientation = ORIENTATION_NONE;
+CCOspApplication * CCOspApplication::sm_pSharedCCOspApplication = 0;
+CCOspApplicationInitialized CCOspApplication::sm_pApplicationInitialized = 0;
+Orientation CCOspApplication::sm_eScreenOrientation = ORIENTATION_NONE;
 
-OspApplication::OspApplication()
+CCOspApplication::CCOspApplication()
     : __pForm(null)
 {
-    CCAssert(! sm_pSharedOspApplication, "");
-    sm_pSharedOspApplication = this;
+    CCAssert(! sm_pSharedCCOspApplication, "");
+    sm_pSharedCCOspApplication = this;
 }
 
-OspApplication::~OspApplication()
+CCOspApplication::~CCOspApplication()
 {
-    CCAssert(this == sm_pSharedOspApplication, "");
-    sm_pSharedOspApplication = NULL;
+    CCAssert(this == sm_pSharedCCOspApplication, "");
+    sm_pSharedCCOspApplication = NULL;
 }
 
-Tizen::App::Application*
-OspApplication::CreateInstance(void)
+Application*
+CCOspApplication::CreateInstance(void)
 {
     // Create the instance through the constructor.
-    return new (std::nothrow) OspApplication();
+    return new (std::nothrow) CCOspApplication();
 }
 
 void
-OspApplication::SetApplicationInitializedCallback(OspApplicationInitialized p)
+CCOspApplication::SetApplicationInitializedCallback(CCOspApplicationInitialized p)
 {
     sm_pApplicationInitialized = p;
 }
 
 void
-OspApplication::SetScreenOrientation(Orientation orientation)
+CCOspApplication::SetScreenOrientation(Orientation orientation)
 {
     sm_eScreenOrientation = orientation;
 }
 
-OspApplication*
-OspApplication::GetInstance(void)
+CCOspApplication*
+CCOspApplication::GetInstance(void)
 {
-    CCAssert(sm_pSharedOspApplication, "");
-    return sm_pSharedOspApplication;
+    CCAssert(sm_pSharedCCOspApplication, "");
+    return sm_pSharedCCOspApplication;
 }
 
 Tizen::Ui::Controls::Form*
-OspApplication::getOspForm()
+CCOspApplication::getCCOspForm()
 {
     return __pForm;
 }
 
 bool
-OspApplication::OnAppInitializing(AppRegistry& appRegistry)
+CCOspApplication::OnAppInitializing(AppRegistry& appRegistry)
 {
     CCLOG("OnAppInitializing");
 
     result r = E_SUCCESS;
 
     __pFrame = new (std::nothrow) Frame();
-    TryReturn(__pFrame != null, E_FAILURE, "[OspApplication] Generating a frame failed.");
+    TryReturn(__pFrame != null, E_FAILURE, "[CCOspApplication] Generating a frame failed.");
 
     r = __pFrame->Construct();
-    TryReturn(!IsFailed(r), E_FAILURE, "[OspApplication] pAppFrame->Construct() failed.");
+    TryReturn(!IsFailed(r), E_FAILURE, "[CCOspApplication] pAppFrame->Construct() failed.");
 
     this->AddFrame(*__pFrame);
 
-    __pForm = new (std::nothrow) OspForm;
-    TryCatch(__pForm != null, , "[OspApplication] Allocation of OspForm failed.");
+    __pForm = new (std::nothrow) CCOspForm;
+    TryCatch(__pForm != null, , "[CCOspApplication] Allocation of CCOspForm failed.");
 
     r = __pForm->Construct(FORM_STYLE_NORMAL);
-    TryCatch(!IsFailed(r), , "[OspApplication] __pForm->Construct(FORM_STYLE_NORMAL) failed.");
+    TryCatch(!IsFailed(r), , "[CCOspApplication] __pForm->Construct(FORM_STYLE_NORMAL) failed.");
 
     r = GetAppFrame()->GetFrame()->AddControl(*__pForm);
-    TryCatch(!IsFailed(r), , "[OspApplication] GetAppFrame()->GetFrame()->AddControl(*__pForm) failed.");
+    TryCatch(!IsFailed(r), , "[CCOspApplication] GetAppFrame()->GetFrame()->AddControl(*__pForm) failed.");
 
     return true;
 
@@ -117,7 +117,7 @@ CATCH:
 }
 
 bool
-OspApplication::OnAppInitialized(void)
+CCOspApplication::OnAppInitialized(void)
 {
     sm_pApplicationInitialized();
     __pFrame->SetOrientation(sm_eScreenOrientation);
@@ -125,58 +125,58 @@ OspApplication::OnAppInitialized(void)
 }
 
 bool
-OspApplication::OnAppTerminating(AppRegistry& appRegistry, bool forcedTermination)
+CCOspApplication::OnAppTerminating(AppRegistry& appRegistry, bool forcedTermination)
 {
-    EGLView::getInstance()->cleanup();
+    CCEGLView::sharedOpenGLView()->cleanup();
 
     return true;
 }
 
 void
-OspApplication::OnForeground(void)
+CCOspApplication::OnForeground(void)
 {
-    Tizen::Base::Runtime::Timer* timer = EGLView::getInstance()->getTimer();
+    Timer* timer = CCEGLView::sharedOpenGLView()->getTimer();
 
     if (timer != null)
     {
-        timer->Start(cocos2d::Application::getInstance()->getAnimationInterval());
+        timer->Start(CCApplication::sharedApplication()->getAnimationInterval());
     }
 
-    if (Director::getInstance()->getOpenGLView())
+    if (CCDirector::sharedDirector()->getOpenGLView())
     {
-        cocos2d::Application::getInstance()->applicationWillEnterForeground();
+        CCApplication::sharedApplication()->applicationWillEnterForeground();
     }
 }
 
 void
-OspApplication::OnBackground(void)
+CCOspApplication::OnBackground(void)
 {
-    Tizen::Base::Runtime::Timer* timer = EGLView::getInstance()->getTimer();
+    Timer* timer = CCEGLView::sharedOpenGLView()->getTimer();
 
     if (timer != null)
     {
         timer->Cancel();
     }
 
-    cocos2d::Application::getInstance()->applicationDidEnterBackground();
+    CCApplication::sharedApplication()->applicationDidEnterBackground();
 }
 
 void
-OspApplication::OnLowMemory(void)
+CCOspApplication::OnLowMemory(void)
 {
 }
 
 void
-OspApplication::OnBatteryLevelChanged(BatteryLevel batteryLevel)
+CCOspApplication::OnBatteryLevelChanged(BatteryLevel batteryLevel)
 {
 }
 
 void
-OspApplication::OnScreenOn(void)
+CCOspApplication::OnScreenOn(void)
 {
 }
 
 void
-OspApplication::OnScreenOff(void)
+CCOspApplication::OnScreenOff(void)
 {
 }

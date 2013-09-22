@@ -43,15 +43,15 @@ NS_CC_BEGIN
   
  @since v0.8.2
  */
-class CC_DLL PageTurn3D : public Grid3DAction
+class CC_DLL CCPageTurn3D : public CCGrid3DAction
 {
 public:
-    /** create the action */
-    static PageTurn3D* create(float duration, const Size& gridSize);
+    virtual void update(float time);
 
-    // Overrides
-	virtual PageTurn3D* clone() const override;
-    virtual void update(float time) override;
+public:
+
+    /** create the action */
+    static CCPageTurn3D* create(float duration, const CCSize& gridSize);
 };
 
 // end of actions group

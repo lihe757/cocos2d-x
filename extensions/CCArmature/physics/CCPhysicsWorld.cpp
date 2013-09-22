@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Box2D/Box2D.h"
 #include "../external_tool/GLES-Render.h"
 
-namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_BEGIN
 
 
 class Contact
@@ -41,7 +41,7 @@ public:
 class ContactListener : public b2ContactListener
 {
 	//! Callbacks for derived classes.
-	virtual void BeginContact(b2Contact *contact) override
+	virtual void BeginContact(b2Contact *contact)
 	{
 		if (contact)
 		{
@@ -53,17 +53,17 @@ class ContactListener : public b2ContactListener
 		}
 		B2_NOT_USED(contact);
 	}
-	virtual void EndContact(b2Contact *contact) override
+	virtual void EndContact(b2Contact *contact)
 	{
 		contact_list.clear();
 		B2_NOT_USED(contact);
 	}
-	virtual void PreSolve(b2Contact *contact, const b2Manifold *oldManifold) override
+	virtual void PreSolve(b2Contact *contact, const b2Manifold *oldManifold)
 	{
 		B2_NOT_USED(contact);
 		B2_NOT_USED(oldManifold);
 	}
-	virtual void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override
+	virtual void PostSolve(const b2Contact *contact, const b2ContactImpulse *impulse)
 	{
 		B2_NOT_USED(contact);
 		B2_NOT_USED(impulse);
@@ -75,53 +75,53 @@ public:
 
 
 
-PhysicsWorld *PhysicsWorld::s_PhysicsWorld = NULL;
+CCPhysicsWorld *CCPhysicsWorld::s_PhysicsWorld = NULL;
 
 
-PhysicsWorld *PhysicsWorld::sharedPhysicsWorld()
+CCPhysicsWorld *CCPhysicsWorld::sharedPhysicsWorld()
 {
     if (s_PhysicsWorld == NULL)
     {
-        s_PhysicsWorld = new PhysicsWorld();
+        s_PhysicsWorld = new CCPhysicsWorld();
         s_PhysicsWorld->initNoGravityWorld();
     }
 
     return s_PhysicsWorld;
 }
 
-void PhysicsWorld::purgePhysicsWorld()
+void CCPhysicsWorld::purgePhysicsWorld()
 {
     delete s_PhysicsWorld;
     s_PhysicsWorld = NULL;
 }
 
-PhysicsWorld::PhysicsWorld()
-    : _noGravityWorld(NULL)
-    , _debugDraw(NULL)
+CCPhysicsWorld::CCPhysicsWorld()
+    : m_pNoGravityWorld(NULL)
+    , m_pDebugDraw(NULL)
 {
 }
 
-PhysicsWorld::~PhysicsWorld()
+CCPhysicsWorld::~CCPhysicsWorld()
 {
-    CC_SAFE_DELETE(_debugDraw);
-    CC_SAFE_DELETE(_noGravityWorld);
-    CC_SAFE_DELETE(_contactListener);
+    CC_SAFE_DELETE(m_pDebugDraw);
+    CC_SAFE_DELETE(m_pNoGravityWorld);
+    CC_SAFE_DELETE(m_pContactListener);
 }
 
-void PhysicsWorld::initNoGravityWorld()
+void CCPhysicsWorld::initNoGravityWorld()
 {
     b2Vec2 noGravity(0, 0);
 
-    _noGravityWorld = new b2World(noGravity);
-    _noGravityWorld->SetAllowSleeping(true);
+    m_pNoGravityWorld = new b2World(noGravity);
+    m_pNoGravityWorld->SetAllowSleeping(true);
 
-    _contactListener = new ContactListener();
-    _noGravityWorld->SetContactListener(_contactListener);
+    m_pContactListener = new ContactListener();
+    m_pNoGravityWorld->SetContactListener(m_pContactListener);
 
 
 #if ENABLE_PHYSICS_DEBUG
-    _debugDraw = new GLESDebugDraw( PT_RATIO );
-    _noGravityWorld->SetDebugDraw(_debugDraw);
+    m_pDebugDraw = new GLESDebugDraw( PT_RATIO );
+    m_pNoGravityWorld->SetDebugDraw(m_pDebugDraw);
 
     uint32 flags = 0;
     flags += b2Draw::e_shapeBit;
@@ -129,37 +129,37 @@ void PhysicsWorld::initNoGravityWorld()
     //        flags += b2Draw::e_aabbBit;
     //        flags += b2Draw::e_pairBit;
     //        flags += b2Draw::e_centerOfMassBit;
-    _debugDraw->SetFlags(flags);
+    m_pDebugDraw->SetFlags(flags);
 #endif
 }
 
-b2World *PhysicsWorld::getNoGravityWorld()
+b2World *CCPhysicsWorld::getNoGravityWorld()
 {
-    return _noGravityWorld;
+    return m_pNoGravityWorld;
 }
 
-void PhysicsWorld::update(float dt)
+void CCPhysicsWorld::update(float dt)
 {
-    _noGravityWorld->Step(dt, 0, 0);
+    m_pNoGravityWorld->Step(dt, 0, 0);
 
-    for (std::list<Contact>::iterator it = _contactListener->contact_list.begin(); it != _contactListener->contact_list.end(); ++it)
+    for (std::list<Contact>::iterator it = m_pContactListener->contact_list.begin(); it != m_pContactListener->contact_list.end(); ++it)
     {
         Contact &contact = *it;
 
         b2Body *b2a = contact.fixtureA->GetBody();
         b2Body *b2b = contact.fixtureB->GetBody();
 
-        Bone *ba = (Bone *)b2a->GetUserData();
-        Bone *bb = (Bone *)b2b->GetUserData();
+        CCBone *ba = (CCBone *)b2a->GetUserData();
+        CCBone *bb = (CCBone *)b2b->GetUserData();
 
         BoneColliderSignal.emit(ba, bb);
     }
 
 }
 
-void PhysicsWorld::drawDebug()
+void CCPhysicsWorld::drawDebug()
 {
-    _noGravityWorld->DrawDebugData();
+    m_pNoGravityWorld->DrawDebugData();
 }
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END

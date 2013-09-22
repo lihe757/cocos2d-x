@@ -31,6 +31,7 @@ THE SOFTWARE.
  */
 
 #include "CCActionEase.h"
+#include "cocoa/CCZone.h"
 
 NS_CC_BEGIN
 
@@ -42,13 +43,31 @@ NS_CC_BEGIN
 // EaseAction
 //
 
-bool ActionEase::initWithAction(ActionInterval *pAction)
+CCActionEase* CCActionEase::create(CCActionInterval *pAction)
 {
-    CCASSERT(pAction != NULL, "");
-
-    if (ActionInterval::initWithDuration(pAction->getDuration()))
+    CCActionEase *pRet = new CCActionEase();
+    if (pRet)
     {
-        _inner = pAction;
+        if (pRet->initWithAction(pAction))
+        {
+            pRet->autorelease();
+        }
+        else
+        {
+            CC_SAFE_RELEASE_NULL(pRet);
+        }
+    }
+
+    return pRet;
+}
+
+bool CCActionEase::initWithAction(CCActionInterval *pAction)
+{
+    CCAssert(pAction != NULL, "");
+
+    if (CCActionInterval::initWithDuration(pAction->getDuration()))
+    {
+        m_pInner = pAction;
         pAction->retain();
 
         return true;
@@ -57,59 +76,68 @@ bool ActionEase::initWithAction(ActionInterval *pAction)
     return false;
 }
 
-ActionEase::~ActionEase(void)
+CCObject* CCActionEase::copyWithZone(CCZone *pZone)
 {
-    CC_SAFE_RELEASE(_inner);
+    CCZone* pNewZone = NULL;
+    CCActionEase* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCActionEase*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCActionEase();
+        pZone = pNewZone = new CCZone(pCopy);
+    }
+
+    CCActionInterval::copyWithZone(pZone);
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void ActionEase::startWithTarget(Node *target)
+CCActionEase::~CCActionEase(void)
 {
-    ActionInterval::startWithTarget(target);
-    _inner->startWithTarget(_target);
+    CC_SAFE_RELEASE(m_pInner);
 }
 
-void ActionEase::stop(void)
+void CCActionEase::startWithTarget(CCNode *pTarget)
 {
-    _inner->stop();
-    ActionInterval::stop();
+    CCActionInterval::startWithTarget(pTarget);
+    m_pInner->startWithTarget(m_pTarget);
 }
 
-void ActionEase::update(float time)
+void CCActionEase::stop(void)
 {
-    _inner->update(time);
+    m_pInner->stop();
+    CCActionInterval::stop();
 }
 
-ActionInterval* ActionEase::getInnerAction()
+void CCActionEase::update(float time)
 {
-    return _inner;
+    m_pInner->update(time);
+}
+
+CCActionInterval* CCActionEase::reverse(void)
+{
+    return CCActionEase::create(m_pInner->reverse());
+}
+
+CCActionInterval* CCActionEase::getInnerAction()
+{
+    return m_pInner;
 }
 
 //
 // EaseRateAction
 //
 
-bool EaseRateAction::initWithAction(ActionInterval *pAction, float fRate)
+CCEaseRateAction* CCEaseRateAction::create(CCActionInterval *pAction, float fRate)
 {
-    if (ActionEase::initWithAction(pAction))
-    {
-        _rate = fRate;
-        return true;
-    }
-
-    return false;
-}
-
-EaseRateAction::~EaseRateAction(void)
-{
-}
-
-//
-// EeseIn
-//
-
-EaseIn* EaseIn::create(ActionInterval *pAction, float fRate)
-{
-    EaseIn *pRet = new EaseIn();
+    CCEaseRateAction *pRet = new CCEaseRateAction();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fRate))
@@ -125,31 +153,106 @@ EaseIn* EaseIn::create(ActionInterval *pAction, float fRate)
     return pRet;
 }
 
-EaseIn* EaseIn::clone() const
+bool CCEaseRateAction::initWithAction(CCActionInterval *pAction, float fRate)
 {
-	// no copy constructor
-	auto a = new EaseIn();
-	a->initWithAction(_inner->clone(), _rate);
-	a->autorelease();
-	return a;
+    if (CCActionEase::initWithAction(pAction))
+    {
+        m_fRate = fRate;
+        return true;
+    }
+
+    return false;
 }
 
-void EaseIn::update(float time)
+CCObject* CCEaseRateAction::copyWithZone(CCZone *pZone)
 {
-    _inner->update(powf(time, _rate));
+    CCZone* pNewZone = NULL;
+    CCEaseRateAction* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseRateAction*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseRateAction();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval*)(m_pInner->copy()->autorelease()), m_fRate);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-EaseIn* EaseIn::reverse() const
+CCEaseRateAction::~CCEaseRateAction(void)
 {
-    return EaseIn::create(_inner->reverse(), 1 / _rate);
+}
+
+CCActionInterval* CCEaseRateAction::reverse(void)
+{
+    return CCEaseRateAction::create(m_pInner->reverse(), 1 / m_fRate);
+}
+
+//
+// EeseIn
+//
+
+CCEaseIn* CCEaseIn::create(CCActionInterval *pAction, float fRate)
+{
+    CCEaseIn *pRet = new CCEaseIn();
+    if (pRet)
+    {
+        if (pRet->initWithAction(pAction, fRate))
+        {
+            pRet->autorelease();
+        }
+        else
+        {
+            CC_SAFE_RELEASE_NULL(pRet);
+        }
+    }
+
+    return pRet;
+}
+
+CCObject* CCEaseIn::copyWithZone(CCZone *pZone)
+{
+    CCZone* pNewZone = NULL;
+    CCEaseIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval*)(m_pInner->copy()->autorelease()), m_fRate);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
+}
+
+void CCEaseIn::update(float time)
+{
+    m_pInner->update(powf(time, m_fRate));
+}
+
+CCActionInterval* CCEaseIn::reverse(void)
+{
+    return CCEaseIn::create(m_pInner->reverse(), 1 / m_fRate);
 }
 
 //
 // EaseOut
 //
-EaseOut* EaseOut::create(ActionInterval *pAction, float fRate)
+CCEaseOut* CCEaseOut::create(CCActionInterval *pAction, float fRate)
 {
-    EaseOut *pRet = new EaseOut();
+    CCEaseOut *pRet = new CCEaseOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fRate))
@@ -165,31 +268,43 @@ EaseOut* EaseOut::create(ActionInterval *pAction, float fRate)
     return pRet;   
 }
 
-EaseOut* EaseOut::clone() const
+CCObject* CCEaseOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseOut();
-	a->initWithAction(_inner->clone(), _rate);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval*)(m_pInner->copy()->autorelease()), m_fRate);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseOut::update(float time)
+void CCEaseOut::update(float time)
 {
-    _inner->update(powf(time, 1 / _rate));
+    m_pInner->update(powf(time, 1 / m_fRate));
 }
 
-EaseOut* EaseOut::reverse() const
+CCActionInterval* CCEaseOut::reverse()
 {
-    return EaseOut::create(_inner->reverse(), 1 / _rate);
+    return CCEaseOut::create(m_pInner->reverse(), 1 / m_fRate);
 }
 
 //
 // EaseInOut
 //
-EaseInOut* EaseInOut::create(ActionInterval *pAction, float fRate)
+CCEaseInOut* CCEaseInOut::create(CCActionInterval *pAction, float fRate)
 {
-    EaseInOut *pRet = new EaseInOut();
+    CCEaseInOut *pRet = new CCEaseInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fRate))
@@ -205,40 +320,52 @@ EaseInOut* EaseInOut::create(ActionInterval *pAction, float fRate)
     return pRet; 
 }
 
-EaseInOut* EaseInOut::clone() const
+CCObject* CCEaseInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseInOut();
-	a->initWithAction(_inner->clone(), _rate);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval*)(m_pInner->copy()->autorelease()), m_fRate);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseInOut::update(float time)
+void CCEaseInOut::update(float time)
 {
     time *= 2;
     if (time < 1)
     {
-        _inner->update(0.5f * powf(time, _rate));
+        m_pInner->update(0.5f * powf(time, m_fRate));
     }
     else
     {
-        _inner->update(1.0f - 0.5f * powf(2-time, _rate));
+        m_pInner->update(1.0f - 0.5f * powf(2-time, m_fRate));
     }
 }
 
 // InOut and OutIn are symmetrical
-EaseInOut* EaseInOut::reverse() const
+CCActionInterval* CCEaseInOut::reverse(void)
 {
-    return EaseInOut::create(_inner->reverse(), _rate);
+    return CCEaseInOut::create(m_pInner->reverse(), m_fRate);
 }
 
 //
 // EaseExponentialIn
 //
-EaseExponentialIn* EaseExponentialIn::create(ActionInterval* pAction)
+CCEaseExponentialIn* CCEaseExponentialIn::create(CCActionInterval* pAction)
 {
-    EaseExponentialIn *pRet = new EaseExponentialIn();
+    CCEaseExponentialIn *pRet = new CCEaseExponentialIn();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -254,31 +381,43 @@ EaseExponentialIn* EaseExponentialIn::create(ActionInterval* pAction)
     return pRet;    
 }
 
-EaseExponentialIn* EaseExponentialIn::clone() const
+CCObject* CCEaseExponentialIn::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseExponentialIn();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseExponentialIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseExponentialIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseExponentialIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseExponentialIn::update(float time)
+void CCEaseExponentialIn::update(float time)
 {
-    _inner->update(time == 0 ? 0 : powf(2, 10 * (time/1 - 1)) - 1 * 0.001f);
+    m_pInner->update(time == 0 ? 0 : powf(2, 10 * (time/1 - 1)) - 1 * 0.001f);
 }
 
-ActionEase * EaseExponentialIn::reverse() const
+CCActionInterval* CCEaseExponentialIn::reverse(void)
 {
-    return EaseExponentialOut::create(_inner->reverse());
+    return CCEaseExponentialOut::create(m_pInner->reverse());
 }
 
 //
 // EaseExponentialOut
 //
-EaseExponentialOut* EaseExponentialOut::create(ActionInterval* pAction)
+CCEaseExponentialOut* CCEaseExponentialOut::create(CCActionInterval* pAction)
 {
-    EaseExponentialOut *pRet = new EaseExponentialOut();
+    CCEaseExponentialOut *pRet = new CCEaseExponentialOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -294,32 +433,44 @@ EaseExponentialOut* EaseExponentialOut::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseExponentialOut* EaseExponentialOut::clone() const
+CCObject* CCEaseExponentialOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseExponentialOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseExponentialOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseExponentialOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseExponentialOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseExponentialOut::update(float time)
+void CCEaseExponentialOut::update(float time)
 {
-    _inner->update(time == 1 ? 1 : (-powf(2, -10 * time / 1) + 1));
+    m_pInner->update(time == 1 ? 1 : (-powf(2, -10 * time / 1) + 1));
 }
 
-ActionEase* EaseExponentialOut::reverse() const
+CCActionInterval* CCEaseExponentialOut::reverse(void)
 {
-    return EaseExponentialIn::create(_inner->reverse());
+    return CCEaseExponentialIn::create(m_pInner->reverse());
 }
 
 //
 // EaseExponentialInOut
 //
 
-EaseExponentialInOut* EaseExponentialInOut::create(ActionInterval *pAction)
+CCEaseExponentialInOut* CCEaseExponentialInOut::create(CCActionInterval *pAction)
 {
-    EaseExponentialInOut *pRet = new EaseExponentialInOut();
+    CCEaseExponentialInOut *pRet = new CCEaseExponentialInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -335,16 +486,28 @@ EaseExponentialInOut* EaseExponentialInOut::create(ActionInterval *pAction)
     return pRet; 
 }
 
-EaseExponentialInOut* EaseExponentialInOut::clone() const
+CCObject* CCEaseExponentialInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseExponentialInOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseExponentialInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseExponentialInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseExponentialInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseExponentialInOut::update(float time)
+void CCEaseExponentialInOut::update(float time)
 {
     time /= 0.5f;
     if (time < 1)
@@ -356,21 +519,21 @@ void EaseExponentialInOut::update(float time)
         time = 0.5f * (-powf(2, -10 * (time - 1)) + 2);
     }
 
-    _inner->update(time);
+    m_pInner->update(time);
 }
 
-EaseExponentialInOut* EaseExponentialInOut::reverse() const
+CCActionInterval* CCEaseExponentialInOut::reverse()
 {
-    return EaseExponentialInOut::create(_inner->reverse());
+    return CCEaseExponentialInOut::create(m_pInner->reverse());
 }
 
 //
 // EaseSineIn
 //
 
-EaseSineIn* EaseSineIn::create(ActionInterval* pAction)
+CCEaseSineIn* CCEaseSineIn::create(CCActionInterval* pAction)
 {
-    EaseSineIn *pRet = new EaseSineIn();
+    CCEaseSineIn *pRet = new CCEaseSineIn();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -386,32 +549,44 @@ EaseSineIn* EaseSineIn::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseSineIn* EaseSineIn::clone() const
+CCObject* CCEaseSineIn::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseSineIn();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseSineIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject)
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseSineIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseSineIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseSineIn::update(float time)
+void CCEaseSineIn::update(float time)
 {
-    _inner->update(-1 * cosf(time * (float)M_PI_2) + 1);
+    m_pInner->update(-1 * cosf(time * (float)M_PI_2) + 1);
 }
 
-ActionEase* EaseSineIn::reverse() const
+CCActionInterval* CCEaseSineIn::reverse(void)
 {
-    return EaseSineOut::create(_inner->reverse());
+    return CCEaseSineOut::create(m_pInner->reverse());
 }
 
 //
 // EaseSineOut
 //
 
-EaseSineOut* EaseSineOut::create(ActionInterval* pAction)
+CCEaseSineOut* CCEaseSineOut::create(CCActionInterval* pAction)
 {
-    EaseSineOut *pRet = new EaseSineOut();
+    CCEaseSineOut *pRet = new CCEaseSineOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -427,32 +602,44 @@ EaseSineOut* EaseSineOut::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseSineOut* EaseSineOut::clone() const
+CCObject* CCEaseSineOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseSineOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseSineOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseSineOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseSineOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseSineOut::update(float time)
+void CCEaseSineOut::update(float time)
 {
-    _inner->update(sinf(time * (float)M_PI_2));
+    m_pInner->update(sinf(time * (float)M_PI_2));
 }
 
-ActionEase* EaseSineOut::reverse(void) const
+CCActionInterval* CCEaseSineOut::reverse(void)
 {
-    return EaseSineIn::create(_inner->reverse());
+    return CCEaseSineIn::create(m_pInner->reverse());
 }
 
 //
 // EaseSineInOut
 //
 
-EaseSineInOut* EaseSineInOut::create(ActionInterval* pAction)
+CCEaseSineInOut* CCEaseSineInOut::create(CCActionInterval* pAction)
 {
-    EaseSineInOut *pRet = new EaseSineInOut();
+    CCEaseSineInOut *pRet = new CCEaseSineInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -468,52 +655,115 @@ EaseSineInOut* EaseSineInOut::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseSineInOut* EaseSineInOut::clone() const
+CCObject* CCEaseSineInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseSineInOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseSineInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseSineInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseSineInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseSineInOut::update(float time)
+void CCEaseSineInOut::update(float time)
 {
-    _inner->update(-0.5f * (cosf((float)M_PI * time) - 1));
+    m_pInner->update(-0.5f * (cosf((float)M_PI * time) - 1));
 }
 
-EaseSineInOut* EaseSineInOut::reverse() const
+CCActionInterval* CCEaseSineInOut::reverse()
 {
-    return EaseSineInOut::create(_inner->reverse());
+    return CCEaseSineInOut::create(m_pInner->reverse());
 }
 
 //
 // EaseElastic
 //
 
-bool EaseElastic::initWithAction(ActionInterval *pAction, float fPeriod/* = 0.3f*/)
+CCEaseElastic* CCEaseElastic::create(CCActionInterval *pAction)
 {
-    if (ActionEase::initWithAction(pAction))
+    return CCEaseElastic::create(pAction, 0.3f);
+}
+
+CCEaseElastic* CCEaseElastic::create(CCActionInterval *pAction, float fPeriod/* = 0.3f*/)
+{
+    CCEaseElastic *pRet = new CCEaseElastic();
+    if (pRet)
     {
-        _period = fPeriod;
+        if (pRet->initWithAction(pAction, fPeriod))
+        {
+            pRet->autorelease();
+        }
+        else
+        {
+            CC_SAFE_RELEASE_NULL(pRet);
+        }
+    }
+
+    return pRet; 
+}
+
+bool CCEaseElastic::initWithAction(CCActionInterval *pAction, float fPeriod/* = 0.3f*/)
+{
+    if (CCActionEase::initWithAction(pAction))
+    {
+        m_fPeriod = fPeriod;
         return true;
     }
 
     return false;
 }
 
+CCObject* CCEaseElastic::copyWithZone(CCZone *pZone)
+{
+    CCZone* pNewZone = NULL;
+    CCEaseElastic* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseElastic*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseElastic();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()), m_fPeriod);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
+}
+
+CCActionInterval* CCEaseElastic::reverse(void)
+{
+    CCAssert(0, "Override me");
+
+    return NULL;
+}
+
 //
 // EaseElasticIn
 //
 
-EaseElasticIn* EaseElasticIn::create(ActionInterval *pAction)
+CCEaseElasticIn* CCEaseElasticIn::create(CCActionInterval *pAction)
 {
-    return EaseElasticIn::create(pAction, 0.3f);
+    return CCEaseElasticIn::create(pAction, 0.3f);
 }
 
-EaseElasticIn* EaseElasticIn::create(ActionInterval *pAction, float fPeriod/* = 0.3f*/)
+CCEaseElasticIn* CCEaseElasticIn::create(CCActionInterval *pAction, float fPeriod/* = 0.3f*/)
 {
-    EaseElasticIn *pRet = new EaseElasticIn();
+    CCEaseElasticIn *pRet = new CCEaseElasticIn();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fPeriod))
@@ -529,16 +779,28 @@ EaseElasticIn* EaseElasticIn::create(ActionInterval *pAction, float fPeriod/* = 
     return pRet; 
 }
 
-EaseElasticIn* EaseElasticIn::clone() const
+CCObject* CCEaseElasticIn::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseElasticIn();
-	a->initWithAction(_inner->clone(), _period);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseElasticIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseElasticIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseElasticIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()), m_fPeriod);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseElasticIn::update(float time)
+void CCEaseElasticIn::update(float time)
 {
     float newT = 0;
     if (time == 0 || time == 1)
@@ -547,31 +809,31 @@ void EaseElasticIn::update(float time)
     }
     else
     {
-        float s = _period / 4;
+        float s = m_fPeriod / 4;
         time = time - 1;
-        newT = -powf(2, 10 * time) * sinf((time - s) * M_PI_X_2 / _period);
+        newT = -powf(2, 10 * time) * sinf((time - s) * M_PI_X_2 / m_fPeriod);
     }
 
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseElastic* EaseElasticIn::reverse() const
+CCActionInterval* CCEaseElasticIn::reverse(void)
 {
-    return EaseElasticOut::create(_inner->reverse(), _period);
+    return CCEaseElasticOut::create(m_pInner->reverse(), m_fPeriod);
 }
 
 //
 // EaseElasticOut
 //
 
-EaseElasticOut* EaseElasticOut::create(ActionInterval *pAction)
+CCEaseElasticOut* CCEaseElasticOut::create(CCActionInterval *pAction)
 {
-    return EaseElasticOut::create(pAction, 0.3f);
+    return CCEaseElasticOut::create(pAction, 0.3f);
 }
 
-EaseElasticOut* EaseElasticOut::create(ActionInterval *pAction, float fPeriod/* = 0.3f*/)
+CCEaseElasticOut* CCEaseElasticOut::create(CCActionInterval *pAction, float fPeriod/* = 0.3f*/)
 {
-    EaseElasticOut *pRet = new EaseElasticOut();
+    CCEaseElasticOut *pRet = new CCEaseElasticOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fPeriod))
@@ -587,16 +849,28 @@ EaseElasticOut* EaseElasticOut::create(ActionInterval *pAction, float fPeriod/* 
     return pRet; 
 }
 
-EaseElasticOut* EaseElasticOut::clone() const
+CCObject *CCEaseElasticOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseElasticOut();
-	a->initWithAction(_inner->clone(), _period);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseElasticOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseElasticOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseElasticOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()), m_fPeriod);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseElasticOut::update(float time)
+void CCEaseElasticOut::update(float time)
 {
     float newT = 0;
     if (time == 0 || time == 1)
@@ -605,30 +879,30 @@ void EaseElasticOut::update(float time)
     }
     else
     {
-        float s = _period / 4;
-        newT = powf(2, -10 * time) * sinf((time - s) * M_PI_X_2 / _period) + 1;
+        float s = m_fPeriod / 4;
+        newT = powf(2, -10 * time) * sinf((time - s) * M_PI_X_2 / m_fPeriod) + 1;
     }
 
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseElastic* EaseElasticOut::reverse() const
+CCActionInterval* CCEaseElasticOut::reverse(void)
 {
-    return EaseElasticIn::create(_inner->reverse(), _period);
+    return CCEaseElasticIn::create(m_pInner->reverse(), m_fPeriod);
 }
 
 //
 // EaseElasticInOut
 //
 
-EaseElasticInOut* EaseElasticInOut::create(ActionInterval *pAction)
+CCEaseElasticInOut* CCEaseElasticInOut::create(CCActionInterval *pAction)
 {
-    return EaseElasticInOut::create(pAction, 0.3f);
+    return CCEaseElasticInOut::create(pAction, 0.3f);
 }
 
-EaseElasticInOut* EaseElasticInOut::create(ActionInterval *pAction, float fPeriod/* = 0.3f*/)
+CCEaseElasticInOut* CCEaseElasticInOut::create(CCActionInterval *pAction, float fPeriod/* = 0.3f*/)
 {
-    EaseElasticInOut *pRet = new EaseElasticInOut();
+    CCEaseElasticInOut *pRet = new CCEaseElasticInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction, fPeriod))
@@ -644,16 +918,29 @@ EaseElasticInOut* EaseElasticInOut::create(ActionInterval *pAction, float fPerio
     return pRet; 
 }
 
-EaseElasticInOut* EaseElasticInOut::clone() const
+CCObject* CCEaseElasticInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseElasticInOut();
-	a->initWithAction(_inner->clone(), _period);
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseElasticInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseElasticInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseElasticInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()), m_fPeriod);
+
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
+
 }
 
-void EaseElasticInOut::update(float time)
+void CCEaseElasticInOut::update(float time)
 {
     float newT = 0;
     if (time == 0 || time == 1)
@@ -663,37 +950,76 @@ void EaseElasticInOut::update(float time)
     else
     {
         time = time * 2;
-        if ( _period == 0)
+        if (! m_fPeriod)
         {
-            _period = 0.3f * 1.5f;
+            m_fPeriod = 0.3f * 1.5f;
         }
 
-        float s = _period / 4;
+        float s = m_fPeriod / 4;
 
         time = time - 1;
         if (time < 0)
         {
-            newT = -0.5f * powf(2, 10 * time) * sinf((time -s) * M_PI_X_2 / _period);
+            newT = -0.5f * powf(2, 10 * time) * sinf((time -s) * M_PI_X_2 / m_fPeriod);
         }
         else
         {
-            newT = powf(2, -10 * time) * sinf((time - s) * M_PI_X_2 / _period) * 0.5f + 1;
+            newT = powf(2, -10 * time) * sinf((time - s) * M_PI_X_2 / m_fPeriod) * 0.5f + 1;
         }
     }
 
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseElasticInOut* EaseElasticInOut::reverse() const
+CCActionInterval* CCEaseElasticInOut::reverse(void)
 {
-    return EaseElasticInOut::create(_inner->reverse(), _period);
+    return CCEaseElasticInOut::create(m_pInner->reverse(), m_fPeriod);
 }
 
 //
 // EaseBounce
 //
 
-float EaseBounce::bounceTime(float time)
+CCEaseBounce* CCEaseBounce::create(CCActionInterval* pAction)
+{
+    CCEaseBounce *pRet = new CCEaseBounce();
+    if (pRet)
+    {
+        if (pRet->initWithAction(pAction))
+        {
+            pRet->autorelease();
+        }
+        else
+        {
+            CC_SAFE_RELEASE_NULL(pRet);
+        }
+    }
+
+    return pRet; 
+}
+
+CCObject* CCEaseBounce::copyWithZone(CCZone *pZone)
+{
+    CCZone* pNewZone = NULL;
+    CCEaseBounce* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBounce*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBounce();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
+}
+
+float CCEaseBounce::bounceTime(float time)
 {
     if (time < 1 / 2.75)
     {
@@ -714,13 +1040,18 @@ float EaseBounce::bounceTime(float time)
     return 7.5625f * time * time + 0.984375f;
 }
 
+CCActionInterval* CCEaseBounce::reverse()
+{
+    return CCEaseBounce::create(m_pInner->reverse());
+}
+
 //
 // EaseBounceIn
 //
 
-EaseBounceIn* EaseBounceIn::create(ActionInterval* pAction)
+CCEaseBounceIn* CCEaseBounceIn::create(CCActionInterval* pAction)
 {
-    EaseBounceIn *pRet = new EaseBounceIn();
+    CCEaseBounceIn *pRet = new CCEaseBounceIn();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -736,33 +1067,45 @@ EaseBounceIn* EaseBounceIn::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseBounceIn* EaseBounceIn::clone() const
+CCObject* CCEaseBounceIn::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseBounceIn();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBounceIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBounceIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBounceIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBounceIn::update(float time)
+void CCEaseBounceIn::update(float time)
 {
     float newT = 1 - bounceTime(1 - time);
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseBounce* EaseBounceIn::reverse() const
+CCActionInterval* CCEaseBounceIn::reverse(void)
 {
-    return EaseBounceOut::create(_inner->reverse());
+    return CCEaseBounceOut::create(m_pInner->reverse());
 }
 
 //
 // EaseBounceOut
 //
 
-EaseBounceOut* EaseBounceOut::create(ActionInterval* pAction)
+CCEaseBounceOut* CCEaseBounceOut::create(CCActionInterval* pAction)
 {
-    EaseBounceOut *pRet = new EaseBounceOut();
+    CCEaseBounceOut *pRet = new CCEaseBounceOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -778,33 +1121,45 @@ EaseBounceOut* EaseBounceOut::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseBounceOut* EaseBounceOut::clone() const
+CCObject* CCEaseBounceOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseBounceOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBounceOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject)
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBounceOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBounceOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBounceOut::update(float time)
+void CCEaseBounceOut::update(float time)
 {
     float newT = bounceTime(time);
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseBounce* EaseBounceOut::reverse() const
+CCActionInterval* CCEaseBounceOut::reverse(void)
 {
-    return EaseBounceIn::create(_inner->reverse());
+    return CCEaseBounceIn::create(m_pInner->reverse());
 }
 
 //
 // EaseBounceInOut
 //
 
-EaseBounceInOut* EaseBounceInOut::create(ActionInterval* pAction)
+CCEaseBounceInOut* CCEaseBounceInOut::create(CCActionInterval* pAction)
 {
-    EaseBounceInOut *pRet = new EaseBounceInOut();
+    CCEaseBounceInOut *pRet = new CCEaseBounceInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -820,16 +1175,28 @@ EaseBounceInOut* EaseBounceInOut::create(ActionInterval* pAction)
     return pRet; 
 }
 
-EaseBounceInOut* EaseBounceInOut::clone() const
+CCObject* CCEaseBounceInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseBounceInOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBounceInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBounceInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBounceInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBounceInOut::update(float time)
+void CCEaseBounceInOut::update(float time)
 {
     float newT = 0;
     if (time < 0.5f)
@@ -842,21 +1209,21 @@ void EaseBounceInOut::update(float time)
         newT = bounceTime(time * 2 - 1) * 0.5f + 0.5f;
     }
 
-    _inner->update(newT);
+    m_pInner->update(newT);
 }
 
-EaseBounceInOut* EaseBounceInOut::reverse() const
+CCActionInterval* CCEaseBounceInOut::reverse()
 {
-    return EaseBounceInOut::create(_inner->reverse());
+    return CCEaseBounceInOut::create(m_pInner->reverse());
 }
 
 //
 // EaseBackIn
 //
 
-EaseBackIn* EaseBackIn::create(ActionInterval *pAction)
+CCEaseBackIn* CCEaseBackIn::create(CCActionInterval *pAction)
 {
-    EaseBackIn *pRet = new EaseBackIn();
+    CCEaseBackIn *pRet = new CCEaseBackIn();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -872,33 +1239,45 @@ EaseBackIn* EaseBackIn::create(ActionInterval *pAction)
     return pRet;
 }
 
-EaseBackIn* EaseBackIn::clone() const
+CCObject* CCEaseBackIn::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor	
-	auto a = new EaseBackIn();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBackIn* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBackIn*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBackIn();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBackIn::update(float time)
+void CCEaseBackIn::update(float time)
 {
     float overshoot = 1.70158f;
-    _inner->update(time * time * ((overshoot + 1) * time - overshoot));
+    m_pInner->update(time * time * ((overshoot + 1) * time - overshoot));
 }
 
-ActionEase* EaseBackIn::reverse() const
+CCActionInterval* CCEaseBackIn::reverse(void)
 {
-    return EaseBackOut::create(_inner->reverse());
+    return CCEaseBackOut::create(m_pInner->reverse());
 }
 
 //
 // EaseBackOut
 //
 
-EaseBackOut* EaseBackOut::create(ActionInterval* pAction)
+CCEaseBackOut* CCEaseBackOut::create(CCActionInterval* pAction)
 {
-    EaseBackOut *pRet = new EaseBackOut();
+    CCEaseBackOut *pRet = new CCEaseBackOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -914,35 +1293,47 @@ EaseBackOut* EaseBackOut::create(ActionInterval* pAction)
     return pRet;
 }
 
-EaseBackOut* EaseBackOut::clone() const
+CCObject* CCEaseBackOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor	
-	auto a = new EaseBackOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBackOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBackOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBackOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBackOut::update(float time)
+void CCEaseBackOut::update(float time)
 {
     float overshoot = 1.70158f;
 
     time = time - 1;
-    _inner->update(time * time * ((overshoot + 1) * time + overshoot) + 1);
+    m_pInner->update(time * time * ((overshoot + 1) * time + overshoot) + 1);
 }
 
-ActionEase* EaseBackOut::reverse() const
+CCActionInterval* CCEaseBackOut::reverse(void)
 {
-    return EaseBackIn::create(_inner->reverse());
+    return CCEaseBackIn::create(m_pInner->reverse());
 }
 
 //
 // EaseBackInOut
 //
 
-EaseBackInOut* EaseBackInOut::create(ActionInterval* pAction)
+CCEaseBackInOut* CCEaseBackInOut::create(CCActionInterval* pAction)
 {
-    EaseBackInOut *pRet = new EaseBackInOut();
+    CCEaseBackInOut *pRet = new CCEaseBackInOut();
     if (pRet)
     {
         if (pRet->initWithAction(pAction))
@@ -958,34 +1349,46 @@ EaseBackInOut* EaseBackInOut::create(ActionInterval* pAction)
     return pRet;
 }
 
-EaseBackInOut* EaseBackInOut::clone() const
+CCObject* CCEaseBackInOut::copyWithZone(CCZone *pZone)
 {
-	// no copy constructor
-	auto a = new EaseBackInOut();
-	a->initWithAction(_inner->clone());
-	a->autorelease();
-	return a;
+    CCZone* pNewZone = NULL;
+    CCEaseBackInOut* pCopy = NULL;
+    if(pZone && pZone->m_pCopyObject) 
+    {
+        //in case of being called at sub class
+        pCopy = (CCEaseBackInOut*)(pZone->m_pCopyObject);
+    }
+    else
+    {
+        pCopy = new CCEaseBackInOut();
+        pNewZone = new CCZone(pCopy);
+    }
+
+    pCopy->initWithAction((CCActionInterval *)(m_pInner->copy()->autorelease()));
+    
+    CC_SAFE_DELETE(pNewZone);
+    return pCopy;
 }
 
-void EaseBackInOut::update(float time)
+void CCEaseBackInOut::update(float time)
 {
     float overshoot = 1.70158f * 1.525f;
 
     time = time * 2;
     if (time < 1)
     {
-        _inner->update((time * time * ((overshoot + 1) * time - overshoot)) / 2);
+        m_pInner->update((time * time * ((overshoot + 1) * time - overshoot)) / 2);
     }
     else
     {
         time = time - 2;
-        _inner->update((time * time * ((overshoot + 1) * time + overshoot)) / 2 + 1);
+        m_pInner->update((time * time * ((overshoot + 1) * time + overshoot)) / 2 + 1);
     }
 }
 
-EaseBackInOut* EaseBackInOut::reverse() const
+CCActionInterval* CCEaseBackInOut::reverse()
 {
-    return EaseBackInOut::create(_inner->reverse());
+    return CCEaseBackInOut::create(m_pInner->reverse());
 }
 
 NS_CC_END

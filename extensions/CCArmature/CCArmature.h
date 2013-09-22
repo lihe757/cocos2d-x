@@ -28,47 +28,11 @@ THE SOFTWARE.
 #include "utils/CCArmatureDefine.h"
 #include "CCBone.h"
 #include "display/CCBatchNode.h"
-#include "display/CCShaderNode.h"
 #include "animation/CCArmatureAnimation.h"
-#include "physics/CCPhysicsWorld.h"
-#include "utils/CCSpriteFrameCacheHelper.h"
-#include "utils/CCArmatureDataManager.h"
 
-namespace cocos2d { namespace extension { namespace armature {
-
-CC_DEPRECATED_ATTRIBUTE typedef ProcessBase CCProcessBase;
-CC_DEPRECATED_ATTRIBUTE typedef BaseData CCBaseData;
-CC_DEPRECATED_ATTRIBUTE typedef DisplayData CCDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef SpriteDisplayData CCSpriteDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef ArmatureDisplayData CCArmatureDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef ParticleDisplayData CCParticleDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef ShaderDisplayData CCShaderDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef BoneData CCBoneData;
-CC_DEPRECATED_ATTRIBUTE typedef FrameData CCFrameData;
-CC_DEPRECATED_ATTRIBUTE typedef MovementBoneData CCMovementBoneData;
-CC_DEPRECATED_ATTRIBUTE typedef MovementData CCMovementData;
-CC_DEPRECATED_ATTRIBUTE typedef AnimationData CCAnimationData;
-CC_DEPRECATED_ATTRIBUTE typedef ContourData CCContourData;
-CC_DEPRECATED_ATTRIBUTE typedef TextureData CCTextureData;
-CC_DEPRECATED_ATTRIBUTE typedef ShaderNode CCShaderNode;
-CC_DEPRECATED_ATTRIBUTE typedef DecorativeDisplay CCDecorativeDisplay;
-CC_DEPRECATED_ATTRIBUTE typedef DisplayData CCDisplayData;
-CC_DEPRECATED_ATTRIBUTE typedef DisplayFactory CCDisplayFactory;
-CC_DEPRECATED_ATTRIBUTE typedef BatchNode CCBatchNode;
-CC_DEPRECATED_ATTRIBUTE typedef DecorativeDisplay CCDecorativeDisplay;
-CC_DEPRECATED_ATTRIBUTE typedef DisplayManager CCDisplayManager;
-CC_DEPRECATED_ATTRIBUTE typedef ColliderBody CCColliderBody;
-CC_DEPRECATED_ATTRIBUTE typedef ColliderDetector CCColliderDetector;
-CC_DEPRECATED_ATTRIBUTE typedef PhysicsWorld CCPhysicsWorld;
-CC_DEPRECATED_ATTRIBUTE typedef SpriteFrameCacheHelper CCSpriteFrameCacheHelper;
-CC_DEPRECATED_ATTRIBUTE typedef TweenFunction CCTweenFunction;
-CC_DEPRECATED_ATTRIBUTE typedef ArmatureData CCArmatureData;
-CC_DEPRECATED_ATTRIBUTE typedef Bone CCBone;
-CC_DEPRECATED_ATTRIBUTE typedef ArmatureAnimation CCArmatureAnimation;
-CC_DEPRECATED_ATTRIBUTE typedef Armature CCArmature;
-CC_DEPRECATED_ATTRIBUTE typedef ArmatureDataManager CCArmatureDataManager;
+NS_CC_EXT_BEGIN
     
-class  Armature : public NodeRGBA, public BlendProtocol 
+class  CCArmature : public CCNodeRGBA, public CCBlendProtocol 
 {
 
 public:
@@ -76,21 +40,21 @@ public:
 	* Allocates and initializes a armature.
 	* @return A initialized armature which is marked as "autorelease".
 	*/
-	static Armature *create();
+	static CCArmature *create();
     
    /**
-	* Allocates a armature, and use the ArmatureData named name in ArmatureDataManager to initializes the armature. 
+	* Allocates a armature, and use the CCArmatureData named name in CCArmatureDataManager to initializes the armature. 
 	*
-	* @param  name Armature will use the name to find to the ArmatureData to initializes it.
+	* @param  name CCArmature will use the name to find to the CCArmatureData to initializes it.
 	* @return A initialized armature which is marked as "autorelease".
 	*/
-	static Armature *create(const char *name);
+	static CCArmature *create(const char *name);
 
-	static Armature *create(const char *name, Bone *parentBone);
+	static CCArmature *create(const char *name, CCBone *parentBone);
 
 public:
-    Armature();
-    virtual ~Armature(void);
+    CCArmature();
+    ~CCArmature(void);
 
     /**
      * Init the empty armature
@@ -99,94 +63,97 @@ public:
     
     /**
      * Init a armature with specified name
-     * @param name Armature name
+     * @param name CCArmature name
      */
     virtual bool init(const char *name);
 
-	virtual bool init(const char *name, Bone *parentBone);
+	virtual bool init(const char *name, CCBone *parentBone);
     /**
-     * Add a Bone to this Armature, 
+     * Add a CCBone to this CCArmature, 
      *
-     * @param bone  The Bone you want to add to Armature
-     * @param parentName   The parent Bone's name you want to add to . If it's  NULL, then set Armature to it's parent
+     * @param bone  The CCBone you want to add to CCArmature
+     * @param parentName   The parent CCBone's name you want to add to . If it's  NULL, then set CCArmature to it's parent
      */
-    virtual void addBone(Bone *bone, const char* parentName);
+    virtual void addBone(CCBone *bone, const char* parentName);
     /**
      * Get a bone with the specified name
      *
      * @param name The bone's name you want to get
      */
-    virtual Bone *getBone(const char *name) const;
+    virtual CCBone *getBone(const char *name) const;
     /**
      * Change a bone's parent with the specified parent name.
      *
      * @param bone The bone you want to change parent
 	 * @param parentName The new parent's name.
      */
-    virtual void changeBoneParent(Bone *bone, const char *parentName);
+    virtual void changeBoneParent(CCBone *bone, const char *parentName);
     /**
-     * Remove a bone with the specified name. If recursion it will also remove child Bone recursionly.
+     * Remove a bone with the specified name. If recursion it will also remove child CCBone recursionly.
      *
      * @param bone The bone you want to remove
 	 * @param recursion Determine whether remove the bone's child  recursion.
      */
-    virtual void removeBone(Bone *bone, bool recursion);
+    virtual void removeBone(CCBone *bone, bool recursion);
 
     /**
-     * Get Armature's bone dictionary
-     * @return Armature's bone dictionary
+     * Get CCArmature's bone dictionary
+     * @return CCArmature's bone dictionary
      */
-	Dictionary *getBoneDic();
+	CCDictionary *getBoneDic();
+
+	/**
+     * This boundingBox will calculate all bones' boundingBox every time
+     */
+	virtual CCRect boundingBox();
     
-    Bone *getBoneAtPoint(float x, float y);
+    CCBone *getBoneAtPoint(float x, float y);
     
+	virtual void visit();
+    virtual void update(float dt);
+	virtual void draw();
+
+	virtual CCAffineTransform nodeToParentTransform();
 
 	/**
 	 * Set contentsize and Calculate anchor point. 
      */
 	virtual void updateOffsetPoint();
 
-    // overrides
-	virtual void visit() override;
-    virtual void update(float dt) override;
-	virtual void draw() override;
-	virtual AffineTransform getNodeToParentTransform() const override;
-	/** This boundingBox will calculate all bones' boundingBox every time */
-	virtual Rect getBoundingBox() const override;
-	inline void setBlendFunc(const BlendFunc& blendFunc) override { _blendFunc = blendFunc; }
-	inline const BlendFunc& getBlendFunc(void) const override { return _blendFunc; }
+	inline void setBlendFunc(ccBlendFunc blendFunc) { m_sBlendFunc = blendFunc; }
+	inline ccBlendFunc getBlendFunc(void) { return m_sBlendFunc; }
 
 protected:
     
     /*
-     * Used to create Bone internal
+     * Used to create CCBone internal
      */
-	Bone *createBone(const char *boneName );
+	CCBone *createBone(const char *boneName );
     
 
-	CC_SYNTHESIZE_RETAIN(ArmatureAnimation *, _animation, Animation);
+	CC_SYNTHESIZE_RETAIN(CCArmatureAnimation *, m_pAnimation, Animation);
     
-    CC_SYNTHESIZE(ArmatureData *, _armatureData, ArmatureData);
+    CC_SYNTHESIZE(CCArmatureData *, m_pArmatureData, CCArmatureData);
 
-	CC_SYNTHESIZE(BatchNode*, _batchNode, BatchNode);
+	CC_SYNTHESIZE(CCBatchNode*, m_pBatchNode, BatchNode);
 
-	CC_SYNTHESIZE_PASS_BY_REF(std::string, _name, Name);
+	CC_SYNTHESIZE_PASS_BY_REF(std::string, m_strName, Name);
 
-	CC_SYNTHESIZE(TextureAtlas*, _atlas, TextureAtlas);
+	CC_SYNTHESIZE(CCTextureAtlas*, m_pAtlas, TextureAtlas);
 
-	CC_SYNTHESIZE(Bone*, _parentBone, ParentBone);
+	CC_SYNTHESIZE(CCBone*, m_pParentBone, ParentBone);
 protected:
-    Dictionary *_boneDic;                    //! The dictionary of the bones, include all bones in the armature, no matter it is the direct bone or the indirect bone. It is different from _chindren.
+    CCDictionary *m_pBoneDic;                    //! The dictionary of the bones, include all bones in the armature, no matter it is the direct bone or the indirect bone. It is different from m_pChindren.
 
-	Array *_topBoneList;
+	CCArray *m_pTopBoneList;
 
-    static std::map<int, Armature*> _armatureIndexDic;	//! Use to save armature zorder info, 
+    static std::map<int, CCArmature*> m_sArmatureIndexDic;	//! Use to save armature zorder info, 
 
-	BlendFunc _blendFunc;                    //! It's required for TextureProtocol inheritance
+	ccBlendFunc m_sBlendFunc;                    //! It's required for CCTextureProtocol inheritance
 
-	Point _offsetPoint;
+	CCPoint m_pOffsetPoint;
 };
 
-}}} // namespace cocos2d { namespace extension { namespace armature {
+NS_CC_EXT_END
 
 #endif /*__CCARMATURE_H__*/

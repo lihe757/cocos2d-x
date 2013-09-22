@@ -10,30 +10,25 @@ NS_CC_BEGIN
  * @{
  */
 
-class CC_DLL Integer : public Object, public Clonable
+class CC_DLL CCInteger : public CCObject
 {
 public:
-    Integer(int v)
-        : _value(v) {}
-    int getValue() const {return _value;}
+    CCInteger(int v)
+        : m_nValue(v) {}
+    int getValue() const {return m_nValue;}
 
-    static Integer* create(int v)
+    static CCInteger* create(int v)
     {
-        Integer* pRet = new Integer(v);
+        CCInteger* pRet = new CCInteger(v);
         pRet->autorelease();
         return pRet;
     }
 
     /* override functions */
-    virtual void acceptVisitor(DataVisitor &visitor) { visitor.visit(this); }
+    virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
 
-    Integer* clone() const
-    {
-        return Integer::create(_value);
-    }
-    
 private:
-    int _value;
+    int m_nValue;
 };
 
 // end of data_structure group

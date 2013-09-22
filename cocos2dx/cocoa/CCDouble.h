@@ -34,16 +34,16 @@ NS_CC_BEGIN
  * @{
  */
 
-class CC_DLL Double : public Object, public Clonable
+class CC_DLL CCDouble : public CCObject
 {
 public:
-    Double(double v)
-        : _value(v) {}
-    double getValue() const {return _value;}
+    CCDouble(double v)
+        : m_dValue(v) {}
+    double getValue() const {return m_dValue;}
 
-    static Double* create(double v)
+    static CCDouble* create(double v)
     {
-        Double* pRet = new Double(v);
+        CCDouble* pRet = new CCDouble(v);
         if (pRet)
         {
             pRet->autorelease();
@@ -52,14 +52,10 @@ public:
     }
 
     /* override functions */
-    virtual void acceptVisitor(DataVisitor &visitor) { visitor.visit(this); }
-    
-    Double* clone() const
-    {
-        return Double::create(_value);
-    }
+    virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
+
 private:
-    double _value;
+    double m_dValue;
 };
 
 // end of data_structure group

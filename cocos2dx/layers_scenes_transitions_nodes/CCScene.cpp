@@ -25,27 +25,28 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "CCScene.h"
+#include "support/CCPointExtension.h"
 #include "CCDirector.h"
 
 NS_CC_BEGIN
 
-Scene::Scene()
+CCScene::CCScene()
 {
-    _ignoreAnchorPointForPosition = true;
-    setAnchorPoint(Point(0.5f, 0.5f));
+    m_bIgnoreAnchorPointForPosition = true;
+    setAnchorPoint(ccp(0.5f, 0.5f));
 }
 
-Scene::~Scene()
+CCScene::~CCScene()
 {
 }
 
-bool Scene::init()
+bool CCScene::init()
 {
     bool bRet = false;
      do 
      {
-         Director * pDirector;
-         CC_BREAK_IF( ! (pDirector = Director::getInstance()) );
+         CCDirector * pDirector;
+         CC_BREAK_IF( ! (pDirector = CCDirector::sharedDirector()) );
          this->setContentSize(pDirector->getWinSize());
          // success
          bRet = true;
@@ -53,9 +54,9 @@ bool Scene::init()
      return bRet;
 }
 
-Scene *Scene::create()
+CCScene *CCScene::create()
 {
-    Scene *pRet = new Scene();
+    CCScene *pRet = new CCScene();
     if (pRet && pRet->init())
     {
         pRet->autorelease();

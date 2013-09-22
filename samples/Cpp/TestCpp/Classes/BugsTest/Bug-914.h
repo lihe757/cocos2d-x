@@ -6,12 +6,12 @@
 class Bug914Layer : public BugsTestBaseLayer
 {
 public:
-    static Scene* scene();
+    static CCScene* scene();
     virtual bool init();
 
-    void ccTouchesMoved(Set *touches, Event * event);
-    void ccTouchesBegan(Set *touches, Event * event);
-    void restart(Object* sender);
+    void ccTouchesMoved(CCSet *touches, CCEvent * event);
+    void ccTouchesBegan(CCSet *touches, CCEvent * event);
+    void restart(CCObject* sender);
 
     CREATE_FUNC(Bug914Layer);
 };

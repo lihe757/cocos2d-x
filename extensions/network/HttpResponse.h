@@ -36,13 +36,13 @@ NS_CC_EXT_BEGIN
  Please refer to samples/TestCpp/Classes/ExtensionTest/NetworkTest/HttpClientTest.cpp as a sample
  @since v2.0.2
  */
-class HttpResponse : public Object
+class CCHttpResponse : public CCObject
 {
 public:
-    /** Constructor, it's used by HttpClient internal, users don't need to create HttpResponse manually
+    /** Constructor, it's used by CCHttpClient internal, users don't need to create HttpResponse manually
      @param request the corresponding HttpRequest which leads to this response 
      */
-    HttpResponse(HttpRequest* request)
+    CCHttpResponse(CCHttpRequest* request)
     {
         _pHttpRequest = request;
         if (_pHttpRequest)
@@ -55,10 +55,10 @@ public:
         _errorBuffer.clear();
     }
     
-    /** Destructor, it will be called in HttpClient internal,
+    /** Destructor, it will be called in CCHttpClient internal,
      users don't need to desturct HttpResponse object manully 
      */
-    virtual ~HttpResponse()
+    virtual ~CCHttpResponse()
     {
         if (_pHttpRequest)
         {
@@ -67,9 +67,9 @@ public:
     }
     
     /** Override autorelease method to prevent developers from calling it */
-    Object* autorelease(void)
+    CCObject* autorelease(void)
     {
-        CCASSERT(false, "HttpResponse is used between network thread and ui thread \
+        CCAssert(false, "HttpResponse is used between network thread and ui thread \
                         therefore, autorelease is forbidden here");
         return NULL;
     }
@@ -79,7 +79,7 @@ public:
     /** Get the corresponding HttpRequest object which leads to this response 
         There's no paired setter for it, coz it's already setted in class constructor
      */
-    inline HttpRequest* getHttpRequest()
+    inline CCHttpRequest* getHttpRequest()
     {
         return _pHttpRequest;
     }
@@ -120,13 +120,13 @@ public:
         return _errorBuffer.c_str();
     }
     
-    // setters, will be called by HttpClient
+    // setters, will be called by CCHttpClient
     // users should avoid invoking these methods
     
     
     /** Set if the http request is returned successfully,
      Althrough users can judge if (http code == 200), we want a easier way
-     This setter is mainly used in HttpClient, users mustn't set it directly
+     This setter is mainly used in CCHttpClient, users mustn't set it directly
      */
     inline void setSucceed(bool value)
     {
@@ -134,14 +134,14 @@ public:
     };
     
     
-    /** Set the http response raw buffer, is used by HttpClient
+    /** Set the http response raw buffer, is used by CCHttpClient
      */
     inline void setResponseData(std::vector<char>* data)
     {
         _responseData = *data;
     }
     
-    /** Set the http response Header raw buffer, is used by HttpClient
+    /** Set the http response Header raw buffer, is used by CCHttpClient
      */
     inline void setResponseHeader(std::vector<char>* data)
     {
@@ -166,10 +166,10 @@ public:
     };
     
 protected:
-    bool initWithRequest(HttpRequest* request);
+    bool initWithRequest(CCHttpRequest* request);
     
     // properties
-    HttpRequest*        _pHttpRequest;  /// the corresponding HttpRequest pointer who leads to this response 
+    CCHttpRequest*        _pHttpRequest;  /// the corresponding HttpRequest pointer who leads to this response 
     bool                _succeed;       /// to indecate if the http reqeust is successful simply
     std::vector<char>   _responseData;  /// the returned raw data. You can also dump it as a string
     std::vector<char>   _responseHeader;  /// the returned raw header data. You can also dump it as a string
